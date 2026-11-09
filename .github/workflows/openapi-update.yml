@@ -1,0 +1,58 @@
+# Weekly: pin the latest commit of Cloudflare's official OpenAPI schema, regenerate the client and open a pull request.
+# Nothing is published from here; a human reviews the PR and tags a release.
+
+name: Cloudflare OpenAPI Update
+
+on:
+  schedule:
+    - cron: '17 5 * * 1' # Mondays 05:17 UTC
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.403'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  regenerate:
+    name: Regenerate from upstream schema
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: 🔧 Setup .NET SDK
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: |
+            8.0.x
+            ${{ env.DOTNET_VERSION }}
+
+      - name: ⚙️ Generate
+        run: dotnet run tools/generate.cs -- --update
+
+      - name: 🏗️ Build & Test
+        run: |
+          dotnet restore --force-evaluate
+          dotnet build --no-restore --configuration Release
+          dotnet test --no-build --configuration Release
+
+      - name: 📬 Open Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet; then echo "No upstream changes."; exit 0; fi
+          commit=$(jq -r .commit openapi/cloudflare-openapi.lock.json)
+          branch="openapi/${commit:0:12}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add -A
+          git commit -m "Regenerate from cloudflare/api-schemas@${commit:0:12}"
+          git push --force origin "$branch"
+          gh pr create --base master --head "$branch" --title "OpenAPI: cloudflare/api-schemas@${commit:0:12}" \
+            --body "Automated regeneration from Cloudflare's official OpenAPI schema. See openapi/COVERAGE.md for the counts." || echo "PR already exists."

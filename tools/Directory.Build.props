@@ -1,0 +1,8 @@
+<Project>
+  <!-- Build tools are not packages: do not inherit the package settings of the repository root. -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

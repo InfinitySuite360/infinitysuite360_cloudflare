@@ -1,0 +1,11 @@
+# Anchored on purpose: the generated client has API folders such as Accounts/Item/Artifacts that must not be ignored.
+/src/*/bin/
+/src/*/obj/
+/tests/*/bin/
+/tests/*/obj/
+/out/
+/artifacts/
+/TestResults/
+/.vs/
+*.user
+/openapi/cache/

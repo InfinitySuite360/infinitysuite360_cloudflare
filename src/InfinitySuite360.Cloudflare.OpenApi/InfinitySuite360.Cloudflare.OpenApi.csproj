@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Generated code only. Do not edit files under Generated/ by hand: run `dotnet run tools/generate.cs`
+    (see openapi/README.md). Source: Cloudflare's official OpenAPI schema, pinned in openapi/cloudflare-openapi.lock.json.
+  -->
+  <PropertyGroup>
+    <!-- One target is enough: generated code gains nothing from newer TFMs, and net8.0 assets run on net8.0+ (halves package size and build time). -->
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>InfinitySuite360.Cloudflare.OpenApi</RootNamespace>
+    <PackageId>InfinitySuite360.Cloudflare.OpenApi</PackageId>
+    <Title>Cloudflare InfinitySuite360 – OpenAPI client</Title>
+    <Description>Complete Cloudflare API v4 client with every operation and model of Cloudflare's official OpenAPI schema (github.com/cloudflare/api-schemas), generated with Microsoft Kiota. XML documentation comes from the schema. Normally consumed through InfinitySuite360.Cloudflare. Community package, not affiliated with Cloudflare, Inc.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Generated code: documentation and naming warnings come from the upstream schema and are not actionable here. -->
+    <NoWarn>$(NoWarn);CS1591;CS1573;CS1570;CS1572;CS1574;CS1584;CS1658;CS0108;CS0114;CS0618;CS8618;CS8669</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Kiota.Bundle" Version="2.1.2" />
+  </ItemGroup>
+
+</Project>
