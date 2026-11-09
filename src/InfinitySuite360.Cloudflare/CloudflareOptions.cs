@@ -42,6 +42,9 @@ public sealed class CloudflareOptions
     public string UserAgent { get; set; } = "InfinitySuite360.Cloudflare";
 
     public TurnstileOptions Turnstile { get; set; } = new();
+
+    /// <summary>Checking the token that Cloudflare Access adds to requests (<c>Cf-Access-Jwt-Assertion</c>); off until team domain and audiences are set.</summary>
+    public InfinitySuite360.Cloudflare.AccessJwt.CloudflareAccessJwtOptions AccessJwt { get; set; } = new();
 }
 
 /// <summary>Settings for server-side Turnstile validation (siteverify).</summary>

@@ -2,6 +2,12 @@
   "version": 1,
   "dependencies": {
     "net10.0": {
+      "Microsoft.AspNetCore.TestHost": {
+        "type": "Direct",
+        "requested": "[10.0.0, )",
+        "resolved": "10.0.0",
+        "contentHash": "Q3ia+k+wYM3Iv/Qq5IETOdpz/R0xizs3WNAXz699vEQx5TMVAfG715fBSq9Thzopvx8dYZkxQ/mumTn6AJ/vGQ=="
+      },
       "Microsoft.Extensions.Configuration": {
         "type": "Direct",
         "requested": "[10.0.0, )",
@@ -291,6 +297,12 @@
           "InfinitySuite360.Cloudflare.OpenApi": "[0.1.0, )",
           "Microsoft.Extensions.Http": "[10.0.0, )",
           "Microsoft.Extensions.Options.ConfigurationExtensions": "[10.0.0, )"
+        }
+      },
+      "infinitysuite360.cloudflare.aspnetcore": {
+        "type": "Project",
+        "dependencies": {
+          "InfinitySuite360.Cloudflare": "[0.1.0, )"
         }
       },
       "infinitysuite360.cloudflare.openapi": {

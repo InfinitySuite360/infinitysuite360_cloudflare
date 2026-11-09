@@ -11,10 +11,12 @@
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\InfinitySuite360.Cloudflare\InfinitySuite360.Cloudflare.csproj" />
+    <ProjectReference Include="..\..\src\InfinitySuite360.Cloudflare.AspNetCore\InfinitySuite360.Cloudflare.AspNetCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

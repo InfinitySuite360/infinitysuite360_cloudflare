@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfinitySuite360.Cloudflare
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfinitySuite360.Cloudflare.OpenApi", "src\InfinitySuite360.Cloudflare.OpenApi\InfinitySuite360.Cloudflare.OpenApi.csproj", "{6725256C-CF90-4F8B-886F-4D0F9E279C31}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfinitySuite360.Cloudflare.AspNetCore", "src\InfinitySuite360.Cloudflare.AspNetCore\InfinitySuite360.Cloudflare.AspNetCore.csproj", "{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,18 @@ Global
 		{6725256C-CF90-4F8B-886F-4D0F9E279C31}.Release|x64.Build.0 = Release|Any CPU
 		{6725256C-CF90-4F8B-886F-4D0F9E279C31}.Release|x86.ActiveCfg = Release|Any CPU
 		{6725256C-CF90-4F8B-886F-4D0F9E279C31}.Release|x86.Build.0 = Release|Any CPU
+		{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E}.Debug|x64.Build.0 = Debug|Any CPU
+		{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E}.Debug|x86.Build.0 = Debug|Any CPU
+		{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E}.Release|x64.ActiveCfg = Release|Any CPU
+		{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E}.Release|x64.Build.0 = Release|Any CPU
+		{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E}.Release|x86.ActiveCfg = Release|Any CPU
+		{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -67,5 +81,6 @@ Global
 		{FF59DDB7-6B30-40B3-AADF-A27FCB846A48} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{6DE8FC3B-DB3B-4422-92FA-D1370C5D5C73} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{6725256C-CF90-4F8B-886F-4D0F9E279C31} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{1DDBBDB3-6BA7-4F71-ACBD-5BA3DF3D481E} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <RootNamespace>InfinitySuite360.Cloudflare.AspNetCore</RootNamespace>
+    <PackageId>InfinitySuite360.Cloudflare.AspNetCore</PackageId>
+    <Title>Cloudflare Access for ASP.NET Core InfinitySuite360</Title>
+    <Description>ASP.NET Core authentication for applications behind Cloudflare Access: checks the signed token that Access adds to every request (Cf-Access-Jwt-Assertion) at the origin server — RS256 signature, issuer, audience, expiry — and turns it into a ClaimsPrincipal, so that [Authorize] works. The team domain is validated before any key is fetched, keys are cached and survive a short Cloudflare outage. Community package, not affiliated with Cloudflare, Inc.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\InfinitySuite360.Cloudflare\InfinitySuite360.Cloudflare.csproj" />
+    <InternalsVisibleTo Include="InfinitySuite360.Cloudflare.Tests" />
+  </ItemGroup>
+
+</Project>
