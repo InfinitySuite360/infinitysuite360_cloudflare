@@ -26,7 +26,7 @@ public sealed class CloudflareAccessAuthenticationOptions : AuthenticationScheme
 
 /// <summary>
 /// Authenticates requests by the token that Cloudflare Access signs (<c>Cf-Access-Jwt-Assertion</c>). No token: no result (anonymous). A token that fails the check: authentication failure,
-/// logged with the reason; the caller only sees 401. Needs <c>AddCloudflareInfinitySuite360</c> (it provides the validator) and <c>Cloudflare:AccessJwt</c> settings.
+/// logged with the reason; the caller only sees 401. Needs <c>AddCloudflareInfinitySuite360Core</c> or <c>AddCloudflareInfinitySuite360</c> (it provides the validator) and <c>Cloudflare:AccessJwt</c> settings.
 /// </summary>
 public sealed class CloudflareAccessAuthenticationHandler(IOptionsMonitor<CloudflareAccessAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder)
     : AuthenticationHandler<CloudflareAccessAuthenticationOptions>(options, logger, encoder)
@@ -38,7 +38,7 @@ public sealed class CloudflareAccessAuthenticationHandler(IOptionsMonitor<Cloudf
         if (token.Length == 0) return AuthenticateResult.NoResult();
 
         var validator = Context.RequestServices.GetService<ICloudflareAccessJwtValidator>()
-                        ?? throw new InvalidOperationException("ICloudflareAccessJwtValidator is not registered: call AddCloudflareInfinitySuite360 first.");
+                        ?? throw new InvalidOperationException("ICloudflareAccessJwtValidator is not registered: call AddCloudflareInfinitySuite360Core (or AddCloudflareInfinitySuite360) first.");
         var result = await validator.ValidateAsync(token, Context.RequestAborted).ConfigureAwait(false);
         if (!result.Ok)
         {

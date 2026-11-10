@@ -13,7 +13,7 @@
 
   <!-- Publisher information (GitHub organisation InfinitySuite360). The version is set from the git tag in CI. -->
   <PropertyGroup>
-    <Version>0.1.0</Version>
+    <Version>0.3.0</Version>
     <Authors>InfinitySuite360</Authors>
     <Company>InfinitySuite360</Company>
     <Product>Cloudflare InfinitySuite360</Product>

@@ -76,6 +76,7 @@ jobs:
         run: |
           dotnet restore --locked-mode
           dotnet pack src/InfinitySuite360.Cloudflare.OpenApi --no-restore --configuration Release -p:Version="$VERSION" -o out
+          dotnet pack src/InfinitySuite360.Cloudflare.Core --no-restore --configuration Release -p:Version="$VERSION" -o out
           dotnet pack src/InfinitySuite360.Cloudflare --no-restore --configuration Release -p:Version="$VERSION" -o out
           dotnet pack src/InfinitySuite360.Cloudflare.AspNetCore --no-restore --configuration Release -p:Version="$VERSION" -o out
 
