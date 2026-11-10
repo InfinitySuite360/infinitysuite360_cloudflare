@@ -294,15 +294,21 @@
       "infinitysuite360.cloudflare": {
         "type": "Project",
         "dependencies": {
-          "InfinitySuite360.Cloudflare.OpenApi": "[0.1.0, )",
-          "Microsoft.Extensions.Http": "[10.0.0, )",
-          "Microsoft.Extensions.Options.ConfigurationExtensions": "[10.0.0, )"
+          "InfinitySuite360.Cloudflare.Core": "[0.1.0, )",
+          "InfinitySuite360.Cloudflare.OpenApi": "[0.1.0, )"
         }
       },
       "infinitysuite360.cloudflare.aspnetcore": {
         "type": "Project",
         "dependencies": {
-          "InfinitySuite360.Cloudflare": "[0.1.0, )"
+          "InfinitySuite360.Cloudflare.Core": "[0.1.0, )"
+        }
+      },
+      "infinitysuite360.cloudflare.core": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.Http": "[10.0.0, )",
+          "Microsoft.Extensions.Options.ConfigurationExtensions": "[10.0.0, )"
         }
       },
       "infinitysuite360.cloudflare.openapi": {

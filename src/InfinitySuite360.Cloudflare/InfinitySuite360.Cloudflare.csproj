@@ -1,26 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!--
+    InfinitySuite360.Cloudflare = InfinitySuite360.Cloudflare.Core + InfinitySuite360.Cloudflare.OpenApi. This assembly only holds the glue:
+    the factory for the generated client, ICloudflareClient.OpenApi (extension property), the registration with the generated client and
+    type forwards for the types that moved to the core in 0.3.0. Existing users keep referencing this package and change nothing.
+  -->
   <PropertyGroup>
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <!-- Extension property ICloudflareClient.OpenApi (C# 14). -->
+    <LangVersion>14.0</LangVersion>
     <RootNamespace>InfinitySuite360.Cloudflare</RootNamespace>
     <PackageId>InfinitySuite360.Cloudflare</PackageId>
     <Title>Cloudflare InfinitySuite360</Title>
-    <Description>.NET client for the Cloudflare API v4. Includes the complete generated client for every operation of Cloudflare's official OpenAPI schema (InfinitySuite360.Cloudflare.OpenApi) plus curated clients for zones, DNS, rulesets/WAF, Turnstile, Tunnel, Zero Trust Access, Email Routing, R2, Workers, monitoring, security, certificates and GraphQL Analytics. Writes are disabled by default, retries honour Retry-After, the token never appears in errors. Community package, not affiliated with Cloudflare, Inc.</Description>
+    <Description>.NET client for the Cloudflare API v4: InfinitySuite360.Cloudflare.Core (curated clients for zones, DNS, rulesets/WAF, Turnstile, Tunnel, Zero Trust Access, Email Routing, R2, Workers, monitoring, security, certificates and GraphQL Analytics, raw access, Access token validation) plus the complete generated client for every operation of Cloudflare's official OpenAPI schema (InfinitySuite360.Cloudflare.OpenApi). Services that do not need the generated client reference InfinitySuite360.Cloudflare.Core. Writes are disabled by default, retries honour Retry-After, the token never appears in errors. Community package, not affiliated with Cloudflare, Inc.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
-    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0" />
-  </ItemGroup>
-
   <ItemGroup>
+    <ProjectReference Include="..\InfinitySuite360.Cloudflare.Core\InfinitySuite360.Cloudflare.Core.csproj" />
     <ProjectReference Include="..\InfinitySuite360.Cloudflare.OpenApi\InfinitySuite360.Cloudflare.OpenApi.csproj" />
     <InternalsVisibleTo Include="InfinitySuite360.Cloudflare.Tests" />
   </ItemGroup>

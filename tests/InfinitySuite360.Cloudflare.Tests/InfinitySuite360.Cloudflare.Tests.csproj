@@ -4,6 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- Uses ICloudflareClient.OpenApi, an extension property (C# 14) since 0.3.0. -->
+    <LangVersion>14.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\InfinitySuite360.Cloudflare.Core\InfinitySuite360.Cloudflare.Core.csproj" />
     <ProjectReference Include="..\..\src\InfinitySuite360.Cloudflare\InfinitySuite360.Cloudflare.csproj" />
     <ProjectReference Include="..\..\src\InfinitySuite360.Cloudflare.AspNetCore\InfinitySuite360.Cloudflare.AspNetCore.csproj" />
   </ItemGroup>

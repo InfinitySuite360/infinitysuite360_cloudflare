@@ -1,5 +1,4 @@
 using InfinitySuite360.Cloudflare.Http;
-using InfinitySuite360.Cloudflare.OpenApi;
 using InfinitySuite360.Cloudflare.Resources;
 
 namespace InfinitySuite360.Cloudflare;
@@ -7,7 +6,8 @@ namespace InfinitySuite360.Cloudflare;
 /// <summary>
 /// Single entry point to the Cloudflare API.
 /// <list type="bullet">
-/// <item><see cref="OpenApi"/>: every operation of the official OpenAPI schema, generated and fully typed.</item>
+/// <item><c>OpenApi</c>: every operation of the official OpenAPI schema, generated and fully typed — only with the package
+/// <c>InfinitySuite360.Cloudflare</c>, which adds it as an extension property (<c>CloudflareClientOpenApiExtensions</c>).</item>
 /// <item>Curated clients (<see cref="Zones"/>, <see cref="Dns"/>, …): hand-written convenience for common tasks.</item>
 /// <item><see cref="Api"/>: raw access to any endpoint with the same write guard, retries and error handling.</item>
 /// </list>
@@ -17,9 +17,6 @@ public interface ICloudflareClient
 {
     /// <summary>Raw access to any API v4 endpoint (write guard, retries, error handling).</summary>
     ICloudflareApiConnection Api { get; }
-
-    /// <summary>Complete generated client: all operations and models of the official Cloudflare OpenAPI schema.</summary>
-    CloudflareApiClient OpenApi { get; }
 
     AccountsClient Accounts { get; }
     ZonesClient Zones { get; }
@@ -40,12 +37,9 @@ public interface ICloudflareClient
 
 public sealed class CloudflareClient : ICloudflareClient
 {
-    private readonly Lazy<CloudflareApiClient> _openApi;
-
-    public CloudflareClient(ICloudflareApiConnection api, Func<CloudflareApiClient>? openApiFactory = null)
+    public CloudflareClient(ICloudflareApiConnection api)
     {
         Api = api;
-        _openApi = new Lazy<CloudflareApiClient>(openApiFactory ?? (() => CloudflareOpenApi.CreateClient(api.Options)));
         Accounts = new(api);
         Zones = new(api);
         Dns = new(api);
@@ -71,7 +65,6 @@ public sealed class CloudflareClient : ICloudflareClient
     }
 
     public ICloudflareApiConnection Api { get; }
-    public CloudflareApiClient OpenApi => _openApi.Value;
     public AccountsClient Accounts { get; }
     public ZonesClient Zones { get; }
     public DnsClient Dns { get; }

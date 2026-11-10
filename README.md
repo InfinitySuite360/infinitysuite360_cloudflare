@@ -5,8 +5,9 @@
 
 | Package | Content |
 |---|---|
-| `InfinitySuite360.Cloudflare` | Entry point: `ICloudflareClient`, dependency injection, curated clients for common tasks, Turnstile siteverify. References the OpenAPI package, so one install gives you everything. |
-| `InfinitySuite360.Cloudflare.AspNetCore` | Authentication for applications behind Cloudflare Access: checks the signed token Access adds to every request, so that `[Authorize]` works. |
+| `InfinitySuite360.Cloudflare` | Everything: the core plus the generated client (`ICloudflareClient.OpenApi`). One install, nothing else to choose. |
+| `InfinitySuite360.Cloudflare.Core` | The core without the generated client: `ICloudflareClient`, dependency injection, curated clients for common tasks, raw access, Cloudflare Access token validation, Turnstile siteverify. Depends only on `Microsoft.Extensions.*`; for services that need Access JWT or DNS but not the whole API. |
+| `InfinitySuite360.Cloudflare.AspNetCore` | Authentication for applications behind Cloudflare Access: checks the signed token Access adds to every request, so that `[Authorize]` works. Needs only the core. |
 | `InfinitySuite360.Cloudflare.OpenApi` | Every operation and model of Cloudflare's [official OpenAPI schema](https://github.com/cloudflare/api-schemas), generated with [Microsoft Kiota](https://learn.microsoft.com/openapi/kiota/). XML documentation comes from the schema. |
 
 Targets **net8.0** and **net10.0**. Community package, not affiliated with Cloudflare, Inc.
@@ -28,8 +29,12 @@ The packages are published to GitHub Packages of the organisation:
 
 ```bash
 dotnet nuget add source "https://nuget.pkg.github.com/InfinitySuite360/index.json" --name infinitysuite360 --username <github-user> --password <token-with-read:packages>
-dotnet add package InfinitySuite360.Cloudflare
+dotnet add package InfinitySuite360.Cloudflare        # core + generated client
+dotnet add package InfinitySuite360.Cloudflare.Core   # core only (Access JWT, DNS, curated clients, raw access)
 ```
+
+The generated client is large (the `.nupkg` of `InfinitySuite360.Cloudflare.OpenApi` is about 12 MB). A service that only checks Access tokens or
+manages DNS records references `InfinitySuite360.Cloudflare.Core`; everything in this README except `OpenApi`/`CloudflareApiClient` works the same there.
 
 ## Configure
 
@@ -49,12 +54,13 @@ Keep `ApiToken` and `Turnstile:SecretKey` out of source control (user secrets, e
 `Cloudflare__ApiToken`, or a vault).
 
 ```csharp
-builder.Services.AddCloudflareInfinitySuite360(builder.Configuration);
+builder.Services.AddCloudflareInfinitySuite360(builder.Configuration);       // InfinitySuite360.Cloudflare: core + generated client
+builder.Services.AddCloudflareInfinitySuite360Core(builder.Configuration);   // InfinitySuite360.Cloudflare.Core: without the generated client
 ```
 
 ## Use
 
-### Complete API (generated)
+### Complete API (generated, package `InfinitySuite360.Cloudflare`)
 
 Every endpoint of the schema, typed request and response models, IntelliSense from Cloudflare's documentation:
 
@@ -70,7 +76,8 @@ public sealed class WaitingRoomService(ICloudflareClient cloudflare)
 ```
 
 The generated client is also registered on its own (`CloudflareApiClient`) and can be created without DI:
-`CloudflareOpenApi.CreateClient(options)`.
+`CloudflareOpenApi.CreateClient(options)`. `OpenApi` is an extension property on `ICloudflareClient` (C# 14, the default for net10.0);
+with an older language version call `cloudflare.GetOpenApi()`.
 
 ### Curated clients
 
@@ -158,7 +165,7 @@ address, another container, a misconfigured firewall) can send the header with a
 The audience tag is under Zero Trust → Access → Applications → your application → Overview. Several applications behind one server: list all their tags.
 
 ```csharp
-builder.Services.AddCloudflareInfinitySuite360(builder.Configuration);       // registers ICloudflareAccessJwtValidator (singleton: it holds the key cache)
+builder.Services.AddCloudflareInfinitySuite360Core(builder.Configuration);   // registers ICloudflareAccessJwtValidator (singleton: it holds the key cache)
 builder.Services.AddAuthentication(CloudflareAccessAuthenticationOptions.DefaultScheme).AddCloudflareAccess();
 builder.Services.AddAuthorization();
 app.UseAuthentication(); app.UseAuthorization();
@@ -203,7 +210,7 @@ dotnet test -c Release
 dotnet pack -c Release -o out
 ```
 
-A tag `v<major>.<minor>.<patch>` on `master` builds, tests and publishes both packages to GitHub Packages
+A tag `v<major>.<minor>.<patch>` on `master` builds, tests and publishes all four packages (`.OpenApi`, `.Core`, the full package, `.AspNetCore`) to GitHub Packages
 (`.github/workflows/ci.yml`).
 
 ## Licence
