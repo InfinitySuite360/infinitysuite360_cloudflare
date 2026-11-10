@@ -231,9 +231,10 @@ public sealed class CloudflareAccessJwtValidator : ICloudflareAccessJwtValidator
             if (exp + _options.ClockSkew < now) return CloudflareAccessResult.Fail(CloudflareAccessFailure.Expired, "The token has expired.");
             if (Time(root, "nbf") is { } nbf && nbf - _options.ClockSkew > now) return CloudflareAccessResult.Fail(CloudflareAccessFailure.NotYetValid, "The token is not valid yet.");
 
-            var email = Str(root, "email");
-            var common = Str(root, "common_name");
-            var subject = Str(root, "sub") ?? common ?? email;
+            // Cloudflare sends service tokens with "sub": "" and the client id in common_name: an empty claim counts as missing
+            var email = NonEmpty(Str(root, "email"));
+            var common = NonEmpty(Str(root, "common_name"));
+            var subject = NonEmpty(Str(root, "sub")) ?? common ?? email;
             if (string.IsNullOrEmpty(subject)) return CloudflareAccessResult.Fail(CloudflareAccessFailure.Malformed, "The token names nobody (no sub, common_name or email).");
             return CloudflareAccessResult.Success(new CloudflareAccessIdentity(subject, email, common, Str(root, "identity_nonce"), Str(root, "type"), Str(root, "country"),
                 tokenAudiences, Time(root, "iat"), exp, StringList(root, "groups")));
@@ -332,6 +333,8 @@ public sealed class CloudflareAccessJwtValidator : ICloudflareAccessJwtValidator
     private static DateTimeOffset? Time(JsonElement root, string name) =>
         root.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number && v.TryGetInt64(out var s) && s is > 0 and < 253_402_300_799
             ? DateTimeOffset.FromUnixTimeSeconds(s) : null;
+
+    private static string? NonEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
 
     private static string? Str(JsonElement e, string name) => e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
 

@@ -84,6 +84,18 @@ public class AccessAuthenticationTests : IDisposable
     }
 
     [Fact]
+    public async Task A_service_token_with_an_empty_sub_as_Cloudflare_sends_it_is_recognised()
+    {
+        var client = await StartAsync();
+        var token = _team.Token(_clock, p => { p["sub"] = ""; p.Remove("email"); p["common_name"] = "client-id.access"; p["type"] = "service-token"; });
+        var answer = await client.SendAsync(Get("/me", token));
+        Assert.Equal(HttpStatusCode.OK, answer.StatusCode);
+        var body = await answer.Content.ReadAsStringAsync();
+        Assert.Contains("\"isServiceToken\":true", body);
+        Assert.Contains("\"subject\":\"client-id.access\"", body);
+    }
+
+    [Fact]
     public async Task No_token_is_anonymous_and_protected_endpoints_answer_401_without_a_redirect()
     {
         var client = await StartAsync();
