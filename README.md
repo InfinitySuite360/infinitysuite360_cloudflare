@@ -110,6 +110,25 @@ var events = await cloudflare.Analytics.GetSecurityEventsAsync(DateTimeOffset.Ut
 | Origin CA and mTLS certificates | `Certificates` |
 | GraphQL Analytics, Web Analytics | `Analytics` |
 | Cloudflare IP ranges | `Ips` |
+| Custom lists (IP lists, bulk status) | `Lists` |
+| IP access rules (zone and account) | `IpAccess` |
+
+Edge status and lists (0.3.0):
+
+```csharp
+// A list the watchdog fills itself: one rule refers to it ("ip.src in $watchdog"), so it costs one rule slot however many addresses it holds.
+var list = await cloudflare.Lists.EnsureAsync("watchdog", description: "Blocked by the watchdog");
+var op = await cloudflare.Lists.AddIpsAsync(list.Id, ["203.0.113.7", "198.51.100.0/24"], comment: "ssh scan");
+await cloudflare.Lists.WaitForOperationAsync(op.OperationId);   // the change runs asynchronously; throws when it failed
+
+await cloudflare.IpAccess.CreateAsync(IpAccessModes.Block, IpAccessTargets.Ip, "203.0.113.9", notes: "scanner");
+
+var gaps = await cloudflare.Certificates.FindUncoveredHostnamesAsync(["app.example.com", "a.b.example.com"]);  // names no active certificate covers
+var connectors = await cloudflare.Tunnels.ListConnectionsAsync(tunnelId);                                       // replicas and their data centres
+var sent = await cloudflare.Monitoring.ListAlertHistoryAsync(since: DateTimeOffset.UtcNow.AddDays(-1));         // notifications that were sent
+var refused = (await cloudflare.Access.ListRequestLogsAsync(limit: 200)).Where(l => !l.Allowed);              // Access request log
+var ips = await cloudflare.Ips.GetAsync(); var viaCloudflare = ips.Contains(remoteAddress);                    // ranges as trusted proxies
+```
 
 ### Raw access
 
