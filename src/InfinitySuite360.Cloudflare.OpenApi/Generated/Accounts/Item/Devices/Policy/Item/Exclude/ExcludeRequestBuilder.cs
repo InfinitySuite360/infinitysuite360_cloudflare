@@ -89,11 +89,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Devices.Policy.Item.
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_response_collection?> PutAsync(List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel> body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_response_collection?> PutAsync(List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_request> body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_response_collection> PutAsync(List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel> body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_response_collection> PutAsync(List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_request> body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
@@ -150,11 +150,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Devices.Policy.Item.
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToPutRequestInformation(List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel> body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToPutRequestInformation(List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_request> body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToPutRequestInformation(List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel> body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToPutRequestInformation(List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_request> body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));

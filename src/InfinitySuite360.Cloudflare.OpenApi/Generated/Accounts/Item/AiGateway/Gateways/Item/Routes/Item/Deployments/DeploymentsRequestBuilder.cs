@@ -21,7 +21,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public DeploymentsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/ai-gateway/gateways/{gateway_%2Did}/routes/{id}/deployments", pathParameters)
+        public DeploymentsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/ai-gateway/gateways/{gateway_%2Did}/routes/{id}/deployments{?page*,per_page*}", pathParameters)
         {
         }
         /// <summary>
@@ -29,7 +29,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public DeploymentsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/ai-gateway/gateways/{gateway_%2Did}/routes/{id}/deployments", rawUrl)
+        public DeploymentsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/ai-gateway/gateways/{gateway_%2Did}/routes/{id}/deployments{?page*,per_page*}", rawUrl)
         {
         }
         /// <summary>
@@ -41,11 +41,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Routes.Item.Deployments.Deployments400Error">When receiving a 400 status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Routes.Item.Deployments.DeploymentsGetResponse?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Routes.Item.Deployments.DeploymentsGetResponse?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Routes.Item.Deployments.DeploymentsRequestBuilder.DeploymentsRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Routes.Item.Deployments.DeploymentsGetResponse> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Routes.Item.Deployments.DeploymentsGetResponse> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Routes.Item.Deployments.DeploymentsRequestBuilder.DeploymentsRequestBuilderGetQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             var requestInfo = ToGetRequestInformation(requestConfiguration);
@@ -87,11 +87,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Routes.Item.Deployments.DeploymentsRequestBuilder.DeploymentsRequestBuilderGetQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Routes.Item.Deployments.DeploymentsRequestBuilder.DeploymentsRequestBuilderGetQueryParameters>> requestConfiguration = default)
         {
 #endif
             var requestInfo = new RequestInformation(Method.GET, UrlTemplate, PathParameters);
@@ -129,6 +129,19 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Routes.Item.Deployments.DeploymentsRequestBuilder WithUrl(string rawUrl)
         {
             return new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Routes.Item.Deployments.DeploymentsRequestBuilder(rawUrl, RequestAdapter);
+        }
+        /// <summary>
+        /// Lists the deployment history of a dynamic route.
+        /// </summary>
+        [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
+        public partial class DeploymentsRequestBuilderGetQueryParameters 
+        {
+            /// <summary>Page number</summary>
+            [QueryParameter("page")]
+            public int? Page { get; set; }
+            /// <summary>Number of deployments per page</summary>
+            [QueryParameter("per_page")]
+            public int? PerPage { get; set; }
         }
     }
 }

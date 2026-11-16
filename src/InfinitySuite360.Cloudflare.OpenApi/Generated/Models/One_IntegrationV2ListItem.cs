@@ -31,6 +31,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationV2ListItem_auth_method AuthMethod { get; private set; }
 #endif
+        /// <summary>Vendor-specific integration configuration returned by the API.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationConfig? Config { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationConfig Config { get; set; }
+#endif
         /// <summary>When the integration was created.</summary>
         public DateTimeOffset? Created { get; private set; }
         /// <summary>Integration ID.</summary>
@@ -90,6 +98,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             {
                 { "application", n => { Application = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationV2ListItem_application>(global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationV2ListItem_application.CreateFromDiscriminatorValue); } },
                 { "auth_method", n => { AuthMethod = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationV2ListItem_auth_method>(global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationV2ListItem_auth_method.CreateFromDiscriminatorValue); } },
+                { "config", n => { Config = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationConfig>(global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationConfig.CreateFromDiscriminatorValue); } },
                 { "created", n => { Created = n.GetDateTimeOffsetValue(); } },
                 { "id", n => { Id = n.GetGuidValue(); } },
                 { "is_paused", n => { IsPaused = n.GetBoolValue(); } },
@@ -106,6 +115,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationConfig>("config", Config);
             writer.WriteStringValue("status", Status);
             writer.WriteAdditionalData(AdditionalData);
         }

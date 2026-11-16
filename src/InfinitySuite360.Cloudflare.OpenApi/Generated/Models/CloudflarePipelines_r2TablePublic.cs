@@ -64,10 +64,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>Rolling policy for file sinks (when &amp; why to close a file and open a new one).</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_r2TablePublic_rolling_policy? RollingPolicy { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_SinkRollingPolicy? RollingPolicy { get; set; }
 #nullable restore
 #else
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_r2TablePublic_rolling_policy RollingPolicy { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_SinkRollingPolicy RollingPolicy { get; set; }
 #endif
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value
@@ -93,7 +93,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "jurisdiction", n => { Jurisdiction = n.GetStringValue(); } },
                 { "partitioning", n => { Partitioning = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_r2TablePublic_partitioning>(global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_r2TablePublic_partitioning.CreateFromDiscriminatorValue); } },
                 { "path", n => { Path = n.GetStringValue(); } },
-                { "rolling_policy", n => { RollingPolicy = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_r2TablePublic_rolling_policy>(global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_r2TablePublic_rolling_policy.CreateFromDiscriminatorValue); } },
+                { "rolling_policy", n => { RollingPolicy = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_SinkRollingPolicy>(global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_SinkRollingPolicy.CreateFromDiscriminatorValue); } },
             };
         }
         /// <summary>
@@ -109,7 +109,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteStringValue("jurisdiction", Jurisdiction);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_r2TablePublic_partitioning>("partitioning", Partitioning);
             writer.WriteStringValue("path", Path);
-            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_r2TablePublic_rolling_policy>("rolling_policy", RollingPolicy);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_SinkRollingPolicy>("rolling_policy", RollingPolicy);
         }
     }
 }

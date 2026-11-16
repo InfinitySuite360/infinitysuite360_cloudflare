@@ -8,7 +8,7 @@ using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
     /// <summary>
-    /// Enables Crypto TLS 1.3 feature for a zone.
+    /// Enables Crypto TLS 1.3 feature for a zone.This setting also controls 0-RTT. `zrt` enables TLS 1.3 and 0-RTT, `on` enables TLS 1.3 and disables 0-RTT, and `off` disables both.Reads return `zrt` when TLS 1.3 and 0-RTT are both enabled, so setting `on` while 0-RTT is enabled turns 0-RTT off.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class Zones_tls_1_3 : global::InfinitySuite360.Cloudflare.OpenApi.Models.Zones_base, IParsable

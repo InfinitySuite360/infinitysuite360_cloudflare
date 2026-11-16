@@ -14,7 +14,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The DimensionKeys property</summary>
+        /// <summary>Dimension keys defined for this billable metric. Use them as`Key` in a `DIMENSION` `GroupBy` on the account usage endpoint.They do not depend on the requested period, and a key canbe listed even when no usage in the period carries it. Empty whenthe metric defines no dimensions.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<string>? DimensionKeys { get; set; }
@@ -54,6 +54,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_product_family> ProductFamily { get; set; }
 #endif
+        /// <summary>Resource-tag keys observed on this metric&apos;s usage within therequested period, sorted and deduplicated. Use them as `Key` in a`TAG` `GroupBy` or in `FilterBy.Tags` on the account usageendpoint. Because the list reflects recorded usage, it changes with`from` and `to`, and is empty when no tagged usage exists in theperiod or tag-key discovery is not available.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<string>? TagKeys { get; set; }
+#nullable restore
+#else
+        public List<string> TagKeys { get; set; }
+#endif
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_account_billable_metric"/> and sets the default values.
         /// </summary>
@@ -84,6 +92,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "Name", n => { Name = n.GetStringValue(); } },
                 { "ProductCategory", n => { ProductCategory = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_product_category>(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_product_category.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "ProductFamily", n => { ProductFamily = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_product_family>(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_product_family.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "TagKeys", n => { TagKeys = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
             };
         }
         /// <summary>
@@ -98,6 +107,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteStringValue("Name", Name);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_product_category>("ProductCategory", ProductCategory);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_product_family>("ProductFamily", ProductFamily);
+            writer.WriteCollectionOfPrimitiveValues<string>("TagKeys", TagKeys);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

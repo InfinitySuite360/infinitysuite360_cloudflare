@@ -25,7 +25,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Builds
             get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Builds.Latest.LatestRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>Gets an item from the InfinitySuite360.Cloudflare.OpenApi.accounts.item.builds.builds.item collection</summary>
-        /// <param name="position">Unique identifier of the item</param>
+        /// <param name="position">UUID of the build, as returned by builds list.</param>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Builds.Item.WithBuild_uuItemRequestBuilder"/></returns>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Builds.Item.WithBuild_uuItemRequestBuilder this[Guid position]
         {

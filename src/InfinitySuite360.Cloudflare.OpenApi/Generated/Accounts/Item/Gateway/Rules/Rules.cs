@@ -14,7 +14,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Gateway.Rules
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>Specify the rule description.</summary>
+        /// <summary>Update the rule description. If omitted, the description is unchanged. Set to an empty string to clear the description.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Description { get; set; }

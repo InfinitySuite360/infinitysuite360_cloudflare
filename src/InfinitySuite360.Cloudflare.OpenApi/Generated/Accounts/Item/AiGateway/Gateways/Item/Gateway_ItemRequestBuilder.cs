@@ -125,7 +125,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_GetResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_GetResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Updates the configuration of an AI Gateway, such as its caching, rate limiting, logging, and authentication settings.
+        /// Updates the configuration of an AI Gateway, such as its caching, rate limiting, spend limits, logging, and authentication settings.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutResponse"/></returns>
         /// <param name="body">The request body</param>
@@ -190,7 +190,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
             return requestInfo;
         }
         /// <summary>
-        /// Updates the configuration of an AI Gateway, such as its caching, rate limiting, logging, and authentication settings.
+        /// Updates the configuration of an AI Gateway, such as its caching, rate limiting, spend limits, logging, and authentication settings.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

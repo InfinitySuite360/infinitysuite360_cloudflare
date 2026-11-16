@@ -23,6 +23,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
 #else
         public List<Guid?> DatasetIds { get; set; }
 #endif
+        /// <summary>True when the saved datasets mix analytics and intelligence datasets, for example after a dataset&apos;s analytics setting changed. Such a preference is skipped.</summary>
+        public bool? MixesDatasetKinds { get; set; }
         /// <summary>Saved datasets that you can no longer read or that were deleted. While this list is not empty, the preference is skipped.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -67,6 +69,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "datasetIds", n => { DatasetIds = n.GetCollectionOfPrimitiveValues<Guid?>()?.AsList(); } },
+                { "mixesDatasetKinds", n => { MixesDatasetKinds = n.GetBoolValue(); } },
                 { "unresolvableDatasetIds", n => { UnresolvableDatasetIds = n.GetCollectionOfPrimitiveValues<Guid?>()?.AsList(); } },
                 { "updatedAt", n => { UpdatedAt = n.GetDateTimeOffsetValue(); } },
                 { "updatedBy", n => { UpdatedBy = n.GetStringValue(); } },
@@ -80,6 +83,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteCollectionOfPrimitiveValues<Guid?>("datasetIds", DatasetIds);
+            writer.WriteBoolValue("mixesDatasetKinds", MixesDatasetKinds);
             writer.WriteCollectionOfPrimitiveValues<Guid?>("unresolvableDatasetIds", UnresolvableDatasetIds);
             writer.WriteDateTimeOffsetValue("updatedAt", UpdatedAt);
             writer.WriteStringValue("updatedBy", UpdatedBy);

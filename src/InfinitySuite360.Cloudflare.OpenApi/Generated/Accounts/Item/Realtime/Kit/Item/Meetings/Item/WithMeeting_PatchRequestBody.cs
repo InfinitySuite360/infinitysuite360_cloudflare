@@ -23,6 +23,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_AIConfig AiConfig { get; set; }
 #endif
+        /// <summary>Turns SIP dial-in on or off. Turning it off deletes the SIP URI and credentials; calls already in progress continue. Turning it on again creates a new SIP URI and credentials.</summary>
+        public bool? EnableSip { get; set; }
         /// <summary>Specifies if the meeting should start getting livestreamed on start.</summary>
         public bool? LiveStreamOnStart { get; set; }
         /// <summary>If a meeting is updated to persist_chat, meeting chat would remain for a week within the meeting space.</summary>
@@ -79,6 +81,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "ai_config", n => { AiConfig = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_AIConfig>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_AIConfig.CreateFromDiscriminatorValue); } },
+                { "enable_sip", n => { EnableSip = n.GetBoolValue(); } },
                 { "live_stream_on_start", n => { LiveStreamOnStart = n.GetBoolValue(); } },
                 { "persist_chat", n => { PersistChat = n.GetBoolValue(); } },
                 { "record_on_start", n => { RecordOnStart = n.GetBoolValue(); } },
@@ -98,6 +101,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_AIConfig>("ai_config", AiConfig);
+            writer.WriteBoolValue("enable_sip", EnableSip);
             writer.WriteBoolValue("live_stream_on_start", LiveStreamOnStart);
             writer.WriteBoolValue("persist_chat", PersistChat);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_RecordingConfig>("recording_config", RecordingConfig);

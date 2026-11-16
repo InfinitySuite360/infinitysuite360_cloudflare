@@ -15,6 +15,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
+        /// <summary>Specifies the Iceberg REST catalog URI that clients use to connect to the catalog.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? CatalogUri { get; set; }
+#nullable restore
+#else
+        public string CatalogUri { get; set; }
+#endif
         /// <summary>Use this to uniquely identify the activated catalog.</summary>
         public Guid? Id { get; set; }
         /// <summary>Specifies the name of the activated catalog.</summary>
@@ -50,6 +58,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
+                { "catalog_uri", n => { CatalogUri = n.GetStringValue(); } },
                 { "id", n => { Id = n.GetGuidValue(); } },
                 { "name", n => { Name = n.GetStringValue(); } },
             };
@@ -61,6 +70,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
+            writer.WriteStringValue("catalog_uri", CatalogUri);
             writer.WriteGuidValue("id", Id);
             writer.WriteStringValue("name", Name);
             writer.WriteAdditionalData(AdditionalData);

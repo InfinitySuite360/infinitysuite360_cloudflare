@@ -34,6 +34,29 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Cfd_tunnel.Item.Conf
         {
         }
         /// <summary>
+        /// Resets a remotely managed Cloudflare Tunnel to an empty configuration, removing ingress rules and origin request settings. The tunnel remains remotely managed, and private network routes continue to determine WARP routing. Publishes a new configuration version when the configuration changes. Repeated requests succeed without creating additional versions. If the tunnel or configuration is absent, returns a null result. Locally managed tunnels cannot be reset with this endpoint.
+        /// </summary>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Cfd_tunnel.Item.Configurations.ConfigurationsDeleteResponse"/></returns>
+        /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
+        /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Tunnel_apiResponseCommonFailure2">When receiving a 4XX status code</exception>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Cfd_tunnel.Item.Configurations.ConfigurationsDeleteResponse?> DeleteAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        {
+#nullable restore
+#else
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Cfd_tunnel.Item.Configurations.ConfigurationsDeleteResponse> DeleteAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        {
+#endif
+            var requestInfo = ToDeleteRequestInformation(requestConfiguration);
+            var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
+            {
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.Tunnel_apiResponseCommonFailure2.CreateFromDiscriminatorValue },
+            };
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Cfd_tunnel.Item.Configurations.ConfigurationsDeleteResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Cfd_tunnel.Item.Configurations.ConfigurationsDeleteResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
         /// Retrieves the configuration for a remotely managed Cloudflare Tunnel.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Tunnel_configuration_response"/></returns>
@@ -80,6 +103,25 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Cfd_tunnel.Item.Conf
                 { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.Tunnel_apiResponseCommonFailure2.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.Tunnel_configuration_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.Tunnel_configuration_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// Resets a remotely managed Cloudflare Tunnel to an empty configuration, removing ingress rules and origin request settings. The tunnel remains remotely managed, and private network routes continue to determine WARP routing. Publishes a new configuration version when the configuration changes. Repeated requests succeed without creating additional versions. If the tunnel or configuration is absent, returns a null result. Locally managed tunnels cannot be reset with this endpoint.
+        /// </summary>
+        /// <returns>A <see cref="RequestInformation"/></returns>
+        /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public RequestInformation ToDeleteRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        {
+#nullable restore
+#else
+        public RequestInformation ToDeleteRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        {
+#endif
+            var requestInfo = new RequestInformation(Method.DELETE, UrlTemplate, PathParameters);
+            requestInfo.Configure(requestConfiguration);
+            requestInfo.Headers.TryAdd("Accept", "application/json");
+            return requestInfo;
         }
         /// <summary>
         /// Retrieves the configuration for a remotely managed Cloudflare Tunnel.

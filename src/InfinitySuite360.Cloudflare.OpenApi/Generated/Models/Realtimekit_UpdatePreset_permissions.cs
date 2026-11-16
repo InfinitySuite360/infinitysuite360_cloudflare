@@ -24,6 +24,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public bool? CanChangeParticipantPermissions { get; set; }
         /// <summary>The can_edit_display_name property</summary>
         public bool? CanEditDisplayName { get; set; }
+        /// <summary>Allows renaming the meeting for the current session</summary>
+        public bool? CanEditMeetingTitle { get; set; }
         /// <summary>The can_livestream property</summary>
         public bool? CanLivestream { get; set; }
         /// <summary>The can_record property</summary>
@@ -126,6 +128,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "can_accept_production_requests", n => { CanAcceptProductionRequests = n.GetBoolValue(); } },
                 { "can_change_participant_permissions", n => { CanChangeParticipantPermissions = n.GetBoolValue(); } },
                 { "can_edit_display_name", n => { CanEditDisplayName = n.GetBoolValue(); } },
+                { "can_edit_meeting_title", n => { CanEditMeetingTitle = n.GetBoolValue(); } },
                 { "can_livestream", n => { CanLivestream = n.GetBoolValue(); } },
                 { "can_record", n => { CanRecord = n.GetBoolValue(); } },
                 { "can_spotlight", n => { CanSpotlight = n.GetBoolValue(); } },
@@ -161,6 +164,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteBoolValue("can_accept_production_requests", CanAcceptProductionRequests);
             writer.WriteBoolValue("can_change_participant_permissions", CanChangeParticipantPermissions);
             writer.WriteBoolValue("can_edit_display_name", CanEditDisplayName);
+            writer.WriteBoolValue("can_edit_meeting_title", CanEditMeetingTitle);
             writer.WriteBoolValue("can_livestream", CanLivestream);
             writer.WriteBoolValue("can_record", CanRecord);
             writer.WriteBoolValue("can_spotlight", CanSpotlight);

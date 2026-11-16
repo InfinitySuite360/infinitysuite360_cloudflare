@@ -30,7 +30,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppre
 #endif
         /// <summary>Number of items successfully created or promoted.</summary>
         public int? Processed { get; set; }
-        /// <summary>Number of items skipped because the existing suppression is not customer-managed (for example, a read-only policy suppression).</summary>
+        /// <summary>Number of items skipped because the existing suppression is not customer-managed.</summary>
         public int? Skipped { get; set; }
         /// <summary>Total number of items in the request body, including duplicates.</summary>
         public int? Total { get; set; }

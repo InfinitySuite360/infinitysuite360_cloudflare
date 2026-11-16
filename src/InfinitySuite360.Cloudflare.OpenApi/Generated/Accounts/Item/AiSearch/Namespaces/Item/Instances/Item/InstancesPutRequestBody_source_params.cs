@@ -14,6 +14,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
+        /// <summary>D1 source configuration of a d1 instance; ignored for other types. An omitted d1, query, or template keeps its stored value. For d1, include_items and exclude_items match each row&apos;s item key, `&lt;id&gt;.md`; a submitted source_params replaces both lists (an omitted list is cleared), so omit source_params to keep them.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Item.InstancesPutRequestBody_source_params_d1? D1 { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Item.InstancesPutRequestBody_source_params_d1 D1 { get; set; }
+#endif
         /// <summary>List of path patterns to exclude. Uses micromatch glob syntax: * matches within a path segment, ** matches across path segments (e.g., /admin/** matches /admin/users and /admin/settings/advanced). Most accounts have a limit of 10 rules; contact support to raise it.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -80,6 +88,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.
         {
             return new Dictionary<string, Action<IParseNode>>
             {
+                { "d1", n => { D1 = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Item.InstancesPutRequestBody_source_params_d1>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Item.InstancesPutRequestBody_source_params_d1.CreateFromDiscriminatorValue); } },
                 { "exclude_items", n => { ExcludeItems = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "include_items", n => { IncludeItems = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "prefix", n => { Prefix = n.GetStringValue(); } },
@@ -94,6 +103,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Item.InstancesPutRequestBody_source_params_d1>("d1", D1);
             writer.WriteCollectionOfPrimitiveValues<string>("exclude_items", ExcludeItems);
             writer.WriteCollectionOfPrimitiveValues<string>("include_items", IncludeItems);
             writer.WriteStringValue("prefix", Prefix);

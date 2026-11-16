@@ -40,7 +40,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_account_managed_by ManagedBy { get; set; }
 #endif
-        /// <summary>Account name</summary>
+        /// <summary>Account name. When creating or updating an account, the name is limited to 65 UTF-8 bytes.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Name { get; set; }

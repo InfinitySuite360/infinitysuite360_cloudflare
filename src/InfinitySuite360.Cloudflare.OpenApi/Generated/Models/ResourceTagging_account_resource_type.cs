@@ -47,6 +47,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         #pragma warning disable CS1591
         Alerting_webhook,
         #pragma warning restore CS1591
+        [EnumMember(Value = "app_library_application")]
+        #pragma warning disable CS1591
+        App_library_application,
+        #pragma warning restore CS1591
         [EnumMember(Value = "cloudflared_tunnel")]
         #pragma warning disable CS1591
         Cloudflared_tunnel,

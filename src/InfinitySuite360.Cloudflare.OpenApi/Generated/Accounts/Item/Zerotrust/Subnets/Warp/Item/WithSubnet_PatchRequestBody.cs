@@ -32,14 +32,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Zerotrust.Subnets.Wa
 #else
         public string Name { get; set; }
 #endif
-        /// <summary>The private IPv4 or IPv6 range defining the subnet, in CIDR notation.</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public string? Network { get; set; }
-#nullable restore
-#else
-        public string Network { get; set; }
-#endif
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Zerotrust.Subnets.Warp.Item.WithSubnet_PatchRequestBody"/> and sets the default values.
         /// </summary>
@@ -69,7 +61,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Zerotrust.Subnets.Wa
                 { "comment", n => { Comment = n.GetStringValue(); } },
                 { "is_default_network", n => { IsDefaultNetwork = n.GetBoolValue(); } },
                 { "name", n => { Name = n.GetStringValue(); } },
-                { "network", n => { Network = n.GetStringValue(); } },
             };
         }
         /// <summary>
@@ -82,7 +73,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Zerotrust.Subnets.Wa
             writer.WriteStringValue("comment", Comment);
             writer.WriteBoolValue("is_default_network", IsDefaultNetwork);
             writer.WriteStringValue("name", Name);
-            writer.WriteStringValue("network", Network);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

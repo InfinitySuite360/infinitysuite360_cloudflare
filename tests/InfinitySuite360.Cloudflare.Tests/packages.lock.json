@@ -294,14 +294,14 @@
       "infinitysuite360.cloudflare": {
         "type": "Project",
         "dependencies": {
-          "InfinitySuite360.Cloudflare.Core": "[0.1.0, )",
-          "InfinitySuite360.Cloudflare.OpenApi": "[0.1.0, )"
+          "InfinitySuite360.Cloudflare.Core": "[0.3.0, )",
+          "InfinitySuite360.Cloudflare.OpenApi": "[0.3.0, )"
         }
       },
       "infinitysuite360.cloudflare.aspnetcore": {
         "type": "Project",
         "dependencies": {
-          "InfinitySuite360.Cloudflare.Core": "[0.1.0, )"
+          "InfinitySuite360.Cloudflare.Core": "[0.3.0, )"
         }
       },
       "infinitysuite360.cloudflare.core": {

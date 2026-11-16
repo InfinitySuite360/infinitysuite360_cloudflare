@@ -17,6 +17,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>The amount of CPU time this Worker can use in milliseconds.</summary>
         public int? CpuMs { get; private set; }
+        /// <summary>The number of subrequests this Worker can make per request.</summary>
+        public int? Subrequests { get; private set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_versionItemFull_resources_script_runtime_limits"/> and sets the default values.
         /// </summary>
@@ -43,6 +45,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "cpu_ms", n => { CpuMs = n.GetIntValue(); } },
+                { "subrequests", n => { Subrequests = n.GetIntValue(); } },
             };
         }
         /// <summary>

@@ -5,7 +5,6 @@ using InfinitySuite360.Cloudflare.OpenApi.Analytics;
 using InfinitySuite360.Cloudflare.OpenApi.Billing;
 using InfinitySuite360.Cloudflare.OpenApi.Certificates;
 using InfinitySuite360.Cloudflare.OpenApi.Cws;
-using InfinitySuite360.Cloudflare.OpenApi.Heartbeat;
 using InfinitySuite360.Cloudflare.OpenApi.Internal;
 using InfinitySuite360.Cloudflare.OpenApi.Ips;
 using InfinitySuite360.Cloudflare.OpenApi.Live;
@@ -66,11 +65,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi
         public global::InfinitySuite360.Cloudflare.OpenApi.Cws.CwsRequestBuilder Cws
         {
             get => new global::InfinitySuite360.Cloudflare.OpenApi.Cws.CwsRequestBuilder(PathParameters, RequestAdapter);
-        }
-        /// <summary>The heartbeat property</summary>
-        public global::InfinitySuite360.Cloudflare.OpenApi.Heartbeat.HeartbeatRequestBuilder Heartbeat
-        {
-            get => new global::InfinitySuite360.Cloudflare.OpenApi.Heartbeat.HeartbeatRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>The internal property</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Internal.InternalRequestBuilder Internal

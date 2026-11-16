@@ -82,7 +82,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Integrations.Ite
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationDetailResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationDetailResponse.CreateFromDiscriminatorValue, default, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Updates an integration&apos;s name, permissions, DLP profiles, use cases, or credentials.
+        /// Updates an integration&apos;s name, permissions, DLP profiles, use cases, credentials, or GitLab resources.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationUpdateResponse"/></returns>
         /// <param name="body">Serializer for v2 integration PATCH requests.</param>
@@ -139,7 +139,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Integrations.Ite
             return requestInfo;
         }
         /// <summary>
-        /// Updates an integration&apos;s name, permissions, DLP profiles, use cases, or credentials.
+        /// Updates an integration&apos;s name, permissions, DLP profiles, use cases, credentials, or GitLab resources.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">Serializer for v2 integration PATCH requests.</param>

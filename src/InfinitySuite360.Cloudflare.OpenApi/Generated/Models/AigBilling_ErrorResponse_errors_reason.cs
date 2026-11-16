@@ -64,6 +64,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         #pragma warning disable CS1591
         Prepaid_card_not_supported,
         #pragma warning restore CS1591
+        [EnumMember(Value = "payment_method_not_supported")]
+        #pragma warning disable CS1591
+        Payment_method_not_supported,
+        #pragma warning restore CS1591
         [EnumMember(Value = "authentication_required")]
         #pragma warning disable CS1591
         Authentication_required,

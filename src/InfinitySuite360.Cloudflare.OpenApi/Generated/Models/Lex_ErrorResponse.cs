@@ -41,6 +41,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.Lex_ErrorResponse_result Result { get; set; }
 #endif
+        /// <summary>Metadata about the query execution.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Lex_QueryResultInfo? ResultInfo { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Lex_QueryResultInfo ResultInfo { get; set; }
+#endif
         /// <summary>The success property</summary>
         public bool? Success { get; set; }
         /// <summary>
@@ -71,6 +79,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "errors", n => { Errors = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Lex_V4Error>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Lex_V4Error.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "messages", n => { Messages = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "result", n => { Result = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Lex_ErrorResponse_result>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Lex_ErrorResponse_result.CreateFromDiscriminatorValue); } },
+                { "result_info", n => { ResultInfo = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Lex_QueryResultInfo>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Lex_QueryResultInfo.CreateFromDiscriminatorValue); } },
                 { "success", n => { Success = n.GetBoolValue(); } },
             };
         }
@@ -84,6 +93,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Lex_V4Error>("errors", Errors);
             writer.WriteCollectionOfPrimitiveValues<string>("messages", Messages);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Lex_ErrorResponse_result>("result", Result);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Lex_QueryResultInfo>("result_info", ResultInfo);
             writer.WriteBoolValue("success", Success);
             writer.WriteAdditionalData(AdditionalData);
         }
