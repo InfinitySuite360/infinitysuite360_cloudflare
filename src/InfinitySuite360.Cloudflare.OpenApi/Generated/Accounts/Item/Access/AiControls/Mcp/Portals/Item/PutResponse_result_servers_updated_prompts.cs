@@ -14,7 +14,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mc
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The enabled property</summary>
+        /// <summary>Effective availability of the capability: the portal-level value when set, otherwise the server-level value.</summary>
         public bool? Enabled { get; set; }
         /// <summary>The name property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -40,6 +40,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mc
 #else
         public string PortalDescription { get; set; }
 #endif
+        /// <summary>Availability set on this portal. Absent when the portal does not set it.</summary>
+        public bool? PortalEnabled { get; set; }
         /// <summary>The server_alias property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -56,6 +58,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mc
 #else
         public string ServerDescription { get; set; }
 #endif
+        /// <summary>Availability set on the MCP server. Absent when the server does not set it.</summary>
+        public bool? ServerEnabled { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mcp.Portals.Item.PutResponse_result_servers_updated_prompts"/> and sets the default values.
         /// </summary>
@@ -85,8 +89,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mc
                 { "name", n => { Name = n.GetStringValue(); } },
                 { "portal_alias", n => { PortalAlias = n.GetStringValue(); } },
                 { "portal_description", n => { PortalDescription = n.GetStringValue(); } },
+                { "portal_enabled", n => { PortalEnabled = n.GetBoolValue(); } },
                 { "server_alias", n => { ServerAlias = n.GetStringValue(); } },
                 { "server_description", n => { ServerDescription = n.GetStringValue(); } },
+                { "server_enabled", n => { ServerEnabled = n.GetBoolValue(); } },
             };
         }
         /// <summary>
@@ -100,8 +106,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mc
             writer.WriteStringValue("name", Name);
             writer.WriteStringValue("portal_alias", PortalAlias);
             writer.WriteStringValue("portal_description", PortalDescription);
+            writer.WriteBoolValue("portal_enabled", PortalEnabled);
             writer.WriteStringValue("server_alias", ServerAlias);
             writer.WriteStringValue("server_description", ServerDescription);
+            writer.WriteBoolValue("server_enabled", ServerEnabled);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

@@ -7,6 +7,8 @@ using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Priorit
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.PriorityIntelligence.Matches;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.PriorityIntelligence.Profile;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.PriorityIntelligence.Quota;
+using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.PriorityIntelligence.Resolve;
+using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.PriorityIntelligence.Topics;
 using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions.Serialization;
 using Microsoft.Kiota.Abstractions;
@@ -52,6 +54,16 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Pri
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.PriorityIntelligence.Quota.QuotaRequestBuilder Quota
         {
             get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.PriorityIntelligence.Quota.QuotaRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The resolve property</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.PriorityIntelligence.Resolve.ResolveRequestBuilder Resolve
+        {
+            get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.PriorityIntelligence.Resolve.ResolveRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The topics property</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.PriorityIntelligence.Topics.TopicsRequestBuilder Topics
+        {
+            get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.PriorityIntelligence.Topics.TopicsRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>Gets an item from the InfinitySuite360.Cloudflare.OpenApi.accounts.item.cloudforceOne.v2.priorityIntelligence.item collection</summary>
         /// <param name="position">Unique identifier of the item</param>
@@ -100,7 +112,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Pri
             return await RequestAdapter.SendPrimitiveAsync<Stream>(requestInfo, default, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Creates a new PIR for the account. The cfone.priority_intelligence_requirement_limit entitlement sets how many PIRs can be active; drafts do not count, but the account can hold at most five times that many PIRs in total. An active PIR requires a query.
+        /// Creates a new PIR for the account. The cfone.priority_intelligence_requirement_limit entitlement sets how many PIRs can be active; drafts do not count, but the account can hold at most five times that many PIRs in total. A free-form PIR has a `requirement`, and an active one requires a query. A structured PIR has a `definition` instead; its requirement and event query are generated, and the response includes them in `resolved`.
         /// </summary>
         /// <returns>A <see cref="Stream"/></returns>
         /// <param name="body">The request body</param>
@@ -138,7 +150,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Pri
             return requestInfo;
         }
         /// <summary>
-        /// Creates a new PIR for the account. The cfone.priority_intelligence_requirement_limit entitlement sets how many PIRs can be active; drafts do not count, but the account can hold at most five times that many PIRs in total. An active PIR requires a query.
+        /// Creates a new PIR for the account. The cfone.priority_intelligence_requirement_limit entitlement sets how many PIRs can be active; drafts do not count, but the account can hold at most five times that many PIRs in total. A free-form PIR has a `requirement`, and an active one requires a query. A structured PIR has a `definition` instead; its requirement and event query are generated, and the response includes them in `resolved`.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

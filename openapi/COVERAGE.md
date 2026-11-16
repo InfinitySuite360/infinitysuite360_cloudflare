@@ -1,18 +1,18 @@
 # Cloudflare API coverage
 
-Generated from `cloudflare/api-schemas@650bd71c22db3b938a4611bf4cc5afd896b400b7` (2026-11-07T06:07:05Z), file `openapi.json`, SHA-256 `f4a13c74ffc7e9108a1e8b459c39c5e405f659f6b5e5b9a5a284f9039620a40c`.
+Generated from `cloudflare/api-schemas@139a85d54f1e66f0448caacc233c4a03e0e0b154` (2026-11-16T12:52:48Z), file `openapi.json`, SHA-256 `75d67a03c105daece05b1deea0cb23bf545d189301b6b9344dcd3c015ac41650`.
 
 | | Count |
 |---|---|
-| Paths | 2352 |
-| Operations | 3777 |
-| GET | 1848 |
-| POST | 798 |
-| PUT | 367 |
-| PATCH | 275 |
-| DELETE | 489 |
-| Schemas | 6990 |
-| Generated C# files | 25720 |
+| Paths | 2356 |
+| Operations | 3778 |
+| GET | 1845 |
+| POST | 802 |
+| PUT | 368 |
+| PATCH | 276 |
+| DELETE | 487 |
+| Schemas | 7031 |
+| Generated C# files | 25918 |
 
 Every operation listed in the schema is reachable through `ICloudflareClient.OpenApi`.
 
@@ -26,28 +26,28 @@ Rules are described in [normalization.md](normalization.md).
 | R1 enum-with-empty-value | 11 |
 | R10 overridden-property-default-dropped | 71 |
 | R2 untyped-object | 61 |
-| R3a single-ref-allOf-unwrapped | 892 |
-| R3b non-inheritable-base-dropped | 19 |
+| R3a single-ref-allOf-unwrapped | 904 |
+| R3b non-inheritable-base-dropped | 20 |
 | R4 primitive-allOf-collapsed | 93 |
 | R5 nested-union-flattened | 22 |
-| R6 untyped-object-union | 335 |
+| R6 untyped-object-union | 352 |
 | R7 untyped-union-member | 28 |
 | R8 wildcard-path-segment | 4 |
-| R9 reference-alias-removed | 121 |
+| R9 reference-alias-removed | 123 |
 
 ## Operations per area
 
 | Area | Operations |
 |---|---|
-| `/accounts/{id}/cloudforce-one` | 299 |
+| `/accounts/{id}/cloudforce-one` | 301 |
 | `/radar` | 279 |
 | `/accounts/{id}/magic` | 144 |
 | `/accounts/{id}/access` | 142 |
-| `/accounts/{id}/workers` | 140 |
+| `/accounts/{id}/workers` | 141 |
 | `/accounts/{id}/dlp` | 108 |
 | `/accounts/{id}/email-security` | 75 |
 | `/accounts/{id}/devices` | 74 |
-| `/accounts/{id}/ai-gateway` | 67 |
+| `/accounts/{id}/ai-gateway` | 68 |
 | `/accounts/{id}/realtime` | 63 |
 | `/zones/{id}/settings` | 58 |
 | `/accounts/{id}/gateway` | 57 |
@@ -58,29 +58,30 @@ Rules are described in [normalization.md](normalization.md).
 | `/zones/{id}/api_gateway` | 44 |
 | `/accounts/{id}/data-security` | 42 |
 | `/accounts/{id}/addressing` | 41 |
+| `/accounts/{id}/builds` | 40 |
 | `/zones/{id}/firewall` | 40 |
 | `/accounts/{id}/brand-protection` | 39 |
-| `/zones/{id}/email` | 38 |
-| `/accounts/{id}/builds` | 37 |
 | `/accounts/{id}/load_balancers` | 36 |
 | `/accounts/{id}/r2` | 36 |
 | `/accounts/{id}/images` | 35 |
 | `/accounts/{id}/intel` | 35 |
 | `/accounts/{id}/dex` | 34 |
-| `/accounts/{id}/email` | 32 |
-| `/accounts/{id}/browser-rendering` | 27 |
+| `/zones/{id}/email` | 30 |
+| `/accounts/{id}/browser-rendering` | 29 |
 | `/accounts/{id}/workflows` | 27 |
 | `/accounts/{id}/alerting` | 25 |
+| `/accounts/{id}/email` | 24 |
 | `/accounts/{id}/vectorize` | 24 |
 | `/accounts/{id}/pages` | 23 |
 | `/accounts/{id}/queues` | 23 |
 | `/zones/{id}/cache` | 23 |
 | `/zones/{id}/waiting_rooms` | 23 |
 | `/accounts/{id}/vuln_scanner` | 22 |
+| `/accounts/{id}/pipelines` | 21 |
 | `/accounts/{id}/logpush` | 20 |
 | `/accounts/{id}/shares` | 20 |
+| `/accounts/{id}/zerotrust` | 20 |
 | `/accounts/{id}/artifacts` | 19 |
-| `/accounts/{id}/pipelines` | 19 |
 | `/accounts/{id}/billing` | 18 |
 | `/accounts/{id}/security-center` | 18 |
 | `/accounts/{id}/iam` | 17 |
@@ -92,9 +93,9 @@ Rules are described in [normalization.md](normalization.md).
 | `/accounts/{id}/mnm` | 16 |
 | `/accounts/{id}/r2-catalog` | 16 |
 | `/accounts/{id}/rulesets` | 16 |
-| `/accounts/{id}/zerotrust` | 16 |
 | `/zones/{id}/rulesets` | 16 |
 | `/accounts/{id}/ai` | 15 |
+| `/accounts/{id}/d1` | 15 |
 | `/accounts/{id}/flagship` | 15 |
 | `/accounts/{id}/secondary_dns` | 15 |
 | `/zones/{id}/schema_validation` | 15 |
@@ -106,7 +107,7 @@ Rules are described in [normalization.md](normalization.md).
 | `/accounts/{id}/urlscanner` | 14 |
 | `/zones/{id}/dns_records` | 14 |
 | `/zones/{id}/logpush` | 14 |
-| `/accounts/{id}/d1` | 13 |
+| `/accounts/{id}/cfd_tunnel` | 13 |
 | `/accounts/{id}/pay-per-crawl` | 13 |
 | `/accounts/{id}/registrar` | 13 |
 | `/accounts/{id}/rum` | 13 |
@@ -114,7 +115,6 @@ Rules are described in [normalization.md](normalization.md).
 | `/zones/{id}/origin_tls_client_auth` | 13 |
 | `/zones/{id}/page_shield` | 13 |
 | `/zones/{id}/secondary_dns` | 13 |
-| `/accounts/{id}/cfd_tunnel` | 12 |
 | `/accounts/{id}/dns_settings` | 12 |
 | `/accounts/{id}/secrets_store` | 12 |
 | `/accounts/{id}/slurper` | 12 |
@@ -242,7 +242,6 @@ Rules are described in [normalization.md](normalization.md).
 | `/zones/{id}/fraud_detection` | 2 |
 | `/zones/{id}/images` | 2 |
 | `/zones/{id}/precursor` | 2 |
-| `/_heartbeat` | 1 |
 | `/accounts/{id}/argo` | 1 |
 | `/accounts/{id}/audit_logs` | 1 |
 | `/accounts/{id}/bulk` | 1 |

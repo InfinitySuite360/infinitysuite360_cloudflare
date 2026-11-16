@@ -23,6 +23,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Bucket { get; set; }
 #endif
+        /// <summary>Specifies the Iceberg REST catalog URI that clients use to connect to the catalog.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? CatalogUri { get; set; }
+#nullable restore
+#else
+        public string CatalogUri { get; set; }
+#endif
         /// <summary>Shows the credential configuration status.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.R2DataCatalog_credentialStatus? CredentialStatus { get; set; }
         /// <summary>Use this to uniquely identify the catalog.</summary>
@@ -79,6 +87,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "bucket", n => { Bucket = n.GetStringValue(); } },
+                { "catalog_uri", n => { CatalogUri = n.GetStringValue(); } },
                 { "credential_status", n => { CredentialStatus = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.R2DataCatalog_credentialStatus>(); } },
                 { "id", n => { Id = n.GetGuidValue(); } },
                 { "jurisdiction", n => { Jurisdiction = n.GetStringValue(); } },
@@ -95,6 +104,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("bucket", Bucket);
+            writer.WriteStringValue("catalog_uri", CatalogUri);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.R2DataCatalog_credentialStatus>("credential_status", CredentialStatus);
             writer.WriteGuidValue("id", Id);
             writer.WriteStringValue("jurisdiction", Jurisdiction);

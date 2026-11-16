@@ -94,6 +94,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Item.WithArticle_GetResponse_result_relevance Relevance { get; set; }
 #endif
+        /// <summary>Beta. Whether relevance and severity reflect the account&apos;s current Priority Intelligence Requirements, organization profile, and the article&apos;s current content. current: they do. stale: they were scored before a change; articles fetched in the last 7 days are being rescored, older articles keep these scores. pending: not scored yet, fetched in the last 7 days. unavailable: not scored, and will not be scored automatically, because it was fetched more than 7 days ago or processing failed. Updates to managed topics can take up to a day to mark scores stale. Null when the account has no active PIRs or none of its articles has been scored yet.</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Item.WithArticle_GetResponse_result_relevance_coverage? RelevanceCoverage { get; set; }
         /// <summary>Beta. Intrinsic article severity band, from informational to critical, independent of any organisation or Priority Intelligence Requirement. Null when the account has no active Priority Intelligence Requirements, scoring has not completed, or a historic article has not entered an automatic rescore window.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Item.WithArticle_GetResponse_result_severity? Severity { get; set; }
         /// <summary>The skill_version property</summary>
@@ -184,6 +186,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
                 { "read", n => { Read = n.GetBoolValue(); } },
                 { "read_at", n => { ReadAt = n.GetStringValue(); } },
                 { "relevance", n => { Relevance = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Item.WithArticle_GetResponse_result_relevance>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Item.WithArticle_GetResponse_result_relevance.CreateFromDiscriminatorValue); } },
+                { "relevance_coverage", n => { RelevanceCoverage = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Item.WithArticle_GetResponse_result_relevance_coverage>(); } },
                 { "severity", n => { Severity = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Item.WithArticle_GetResponse_result_severity>(); } },
                 { "skill_version", n => { SkillVersion = n.GetStringValue(); } },
                 { "source_count", n => { SourceCount = n.GetDoubleValue(); } },
@@ -214,6 +217,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
             writer.WriteBoolValue("read", Read);
             writer.WriteStringValue("read_at", ReadAt);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Item.WithArticle_GetResponse_result_relevance>("relevance", Relevance);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Item.WithArticle_GetResponse_result_relevance_coverage>("relevance_coverage", RelevanceCoverage);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Item.WithArticle_GetResponse_result_severity>("severity", Severity);
             writer.WriteStringValue("skill_version", SkillVersion);
             writer.WriteDoubleValue("source_count", SourceCount);

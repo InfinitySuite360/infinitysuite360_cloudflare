@@ -132,7 +132,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.
         public bool? RewriteQuery { get; set; }
         /// <summary>Minimum similarity score a chunk must reach to be returned. Defaults to 0.4.</summary>
         public double? ScoreThreshold { get; set; }
-        /// <summary>The source property</summary>
+        /// <summary>The R2 bucket name for r2, the website URL for web-crawler, or the D1 database ID (UUID) for d1. A d1 instance also requires token_id, and the token needs D1 Read permission. The d1 database cannot be changed after creation.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Source { get; set; }

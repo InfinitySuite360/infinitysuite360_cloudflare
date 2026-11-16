@@ -8,7 +8,7 @@ using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
     /// <summary>
-    /// Current live usage, maximum limits, and utilization percentages for a Cloudchamber account. Usage includes active and assigned instances and is a current snapshot, not a historical or billable metric.
+    /// Current live usage, maximum limits, and utilization percentages for your account. Usage includes active and assigned instances and is a current snapshot, not a historical or billable metric.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class Cc_AccountUsageResponse : IAdditionalDataHolder, IParsable

@@ -8,7 +8,7 @@ using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
     /// <summary>
-    /// Value of the zone setting.Notes: Value must be between 1 and 6000
+    /// Value of the zone setting, in seconds.Notes: Value must be between 1 and 6000
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class Zones_proxy_read_timeout_value : IAdditionalDataHolder, IParsable

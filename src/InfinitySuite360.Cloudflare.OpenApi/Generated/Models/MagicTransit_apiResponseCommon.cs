@@ -17,18 +17,18 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>The errors property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.EndpointHealthchecks>? Errors { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Traceroute>? Errors { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.EndpointHealthchecks> Errors { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Traceroute> Errors { get; set; }
 #endif
         /// <summary>The messages property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.EndpointHealthchecks>? Messages { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Traceroute>? Messages { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.EndpointHealthchecks> Messages { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Traceroute> Messages { get; set; }
 #endif
         /// <summary>Whether the API call was successful.</summary>
         public bool? Success { get; set; }
@@ -57,8 +57,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "errors", n => { Errors = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.EndpointHealthchecks>(global::InfinitySuite360.Cloudflare.OpenApi.Models.EndpointHealthchecks.CreateFromDiscriminatorValue)?.AsList(); } },
-                { "messages", n => { Messages = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.EndpointHealthchecks>(global::InfinitySuite360.Cloudflare.OpenApi.Models.EndpointHealthchecks.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "errors", n => { Errors = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Traceroute>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Traceroute.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "messages", n => { Messages = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Traceroute>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Traceroute.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "success", n => { Success = n.GetBoolValue(); } },
             };
         }
@@ -69,8 +69,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.EndpointHealthchecks>("errors", Errors);
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.EndpointHealthchecks>("messages", Messages);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Traceroute>("errors", Errors);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Traceroute>("messages", Messages);
             writer.WriteBoolValue("success", Success);
             writer.WriteAdditionalData(AdditionalData);
         }

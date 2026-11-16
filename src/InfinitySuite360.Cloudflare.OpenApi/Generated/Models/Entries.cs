@@ -14,8 +14,16 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The upload_status property</summary>
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Dlp_DatasetUploadStatus? UploadStatus { get; set; }
+        /// <summary>The code property</summary>
+        public int? Code { get; set; }
+        /// <summary>The message property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? Message { get; set; }
+#nullable restore
+#else
+        public string Message { get; set; }
+#endif
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Entries"/> and sets the default values.
         /// </summary>
@@ -41,7 +49,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "upload_status", n => { UploadStatus = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Dlp_DatasetUploadStatus>(); } },
+                { "code", n => { Code = n.GetIntValue(); } },
+                { "message", n => { Message = n.GetStringValue(); } },
             };
         }
         /// <summary>
@@ -51,7 +60,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Dlp_DatasetUploadStatus>("upload_status", UploadStatus);
+            writer.WriteIntValue("code", Code);
+            writer.WriteStringValue("message", Message);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

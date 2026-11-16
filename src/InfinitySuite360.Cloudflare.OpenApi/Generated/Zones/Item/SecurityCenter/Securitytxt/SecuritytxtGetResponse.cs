@@ -13,7 +13,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.SecurityCenter.Security
     public partial class SecuritytxtGetResponse : global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_apiResponseCommon, IParsable
     #pragma warning restore CS1591
     {
-        /// <summary>The result property</summary>
+        /// <summary>Configuration of the zone security.txt file</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_securityTxt? Result { get; set; }

@@ -8,9 +8,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
     public enum GraphGetResponse_result_graph_workflow_nodesMember14_type
     #pragma warning restore CS1591
     {
-        [EnumMember(Value = "break")]
+        [EnumMember(Value = "function_call")]
         #pragma warning disable CS1591
-        Break,
+        Function_call,
         #pragma warning restore CS1591
     }
 }

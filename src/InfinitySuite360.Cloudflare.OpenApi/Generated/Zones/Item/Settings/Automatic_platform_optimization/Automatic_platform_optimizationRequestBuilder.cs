@@ -57,7 +57,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Settings.Automatic_plat
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Settings.Automatic_platform_optimization.Automatic_platform_optimizationGetResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Settings.Automatic_platform_optimization.Automatic_platform_optimizationGetResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Automatic Platform Optimization (APO) for WordPress is a performance feature that serves yourWordPress site from Cloudflare&apos;s edge network, reducing load times for visitors.Refer to the APO documentation for more information.
+        /// Automatic Platform Optimization (APO) for WordPress is a performance feature that serves yourWordPress site from Cloudflare&apos;s edge network, reducing load times for visitors.Refer to the APO documentation for more information.When an APO configuration already exists, fields omitted from an object `value` keep their current value, except `recheck`, which is false unless the request sends it.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Settings.Automatic_platform_optimization.Automatic_platform_optimizationPatchResponse"/></returns>
         /// <param name="body">The request body</param>
@@ -101,7 +101,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Settings.Automatic_plat
             return requestInfo;
         }
         /// <summary>
-        /// Automatic Platform Optimization (APO) for WordPress is a performance feature that serves yourWordPress site from Cloudflare&apos;s edge network, reducing load times for visitors.Refer to the APO documentation for more information.
+        /// Automatic Platform Optimization (APO) for WordPress is a performance feature that serves yourWordPress site from Cloudflare&apos;s edge network, reducing load times for visitors.Refer to the APO documentation for more information.When an APO configuration already exists, fields omitted from an object `value` keep their current value, except `recheck`, which is false unless the request sends it.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

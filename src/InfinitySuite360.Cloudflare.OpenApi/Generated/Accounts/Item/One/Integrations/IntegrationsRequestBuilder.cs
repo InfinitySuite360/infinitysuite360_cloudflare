@@ -65,7 +65,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Integrations
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_PaginatedIntegrationV2ListItemList>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.One_PaginatedIntegrationV2ListItemList.CreateFromDiscriminatorValue, default, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Creates a new integration for the specified application. Integration creation with OAuth is not supported by API at the moment. For other auth methods, use `GET /v2/applications/{application_id}/credential-guide` to see the required credential structure and example payloads for each vendor.
+        /// Creates a new integration for the specified application. For other auth methods, use `GET /v2/applications/{application_id}/credential-guide` to see the required credential structure and example payloads for each vendor.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.One_IntegrationCreateResponse"/></returns>
         /// <param name="body">Serializer for v2 integration create requests.</param>
@@ -104,7 +104,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Integrations
             return requestInfo;
         }
         /// <summary>
-        /// Creates a new integration for the specified application. Integration creation with OAuth is not supported by API at the moment. For other auth methods, use `GET /v2/applications/{application_id}/credential-guide` to see the required credential structure and example payloads for each vendor.
+        /// Creates a new integration for the specified application. For other auth methods, use `GET /v2/applications/{application_id}/credential-guide` to see the required credential structure and example payloads for each vendor.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">Serializer for v2 integration create requests.</param>

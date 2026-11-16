@@ -30,6 +30,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
 #else
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Severity.Aggregate.AggregateGetResponse_result_priorities> Priorities { get; set; }
 #endif
+        /// <summary>Beta. How many of the articles counted in articles have stale scores, from before a change to the account&apos;s Priority Intelligence Requirements, organization profile, or the article&apos;s content. They are counted by those scores; see the article list&apos;s relevance_coverage.</summary>
+        public int? StaleArticles { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Severity.Aggregate.AggregateGetResponse_result"/> and sets the default values.
         /// </summary>
@@ -57,6 +59,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
             {
                 { "articles", n => { Articles = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Severity.Aggregate.AggregateGetResponse_result_articles>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Severity.Aggregate.AggregateGetResponse_result_articles.CreateFromDiscriminatorValue); } },
                 { "priorities", n => { Priorities = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Severity.Aggregate.AggregateGetResponse_result_priorities>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Severity.Aggregate.AggregateGetResponse_result_priorities.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "stale_articles", n => { StaleArticles = n.GetIntValue(); } },
             };
         }
         /// <summary>
@@ -68,6 +71,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Severity.Aggregate.AggregateGetResponse_result_articles>("articles", Articles);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Severity.Aggregate.AggregateGetResponse_result_priorities>("priorities", Priorities);
+            writer.WriteIntValue("stale_articles", StaleArticles);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

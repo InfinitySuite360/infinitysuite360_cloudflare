@@ -24,11 +24,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #endif
         /// <summary>free: the account has no Workers Paid or Enterprise plan. paid: it has one of them.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.WorkersObservability_usage_limit_plan? Plan { get; set; }
-        /// <summary>When a limited free account is expected to start keeping events again, at the daily limit reset. Not guaranteed if the account was limited for another reason. null otherwise, including for paid accounts, which are brought back in stages.</summary>
+        /// <summary>When a limited free account starts keeping events again, at the daily limit reset. null otherwise, including for paid accounts, which are brought back in stages.</summary>
         public DateTimeOffset? ResetsAt { get; set; }
         /// <summary>Share of the account&apos;s events being kept, from 0 to 1.</summary>
         public double? SampleRate { get; set; }
-        /// <summary>Whether telemetry is being dropped, and why. More values may be added; treat unknown values like normal.- normal: every event is kept.- limited: the account keeps only sample_rate of its events, usually because it passed its daily limit. A free account over its limit keeps none until resets_at; a paid one keeps about 10 events a second and is brought back in stages after 00:00 UTC.- restricted: events are dropped for another reason. Contact support.</summary>
+        /// <summary>Whether telemetry is being dropped, and why. More values may be added; treat unknown values like normal.- normal: every event is kept.- limited: the account passed its daily limit and keeps only sample_rate of its events. A free account keeps none until resets_at; a paid one keeps about 10 events a second and is brought back in stages after 00:00 UTC.- restricted: the account keeps only sample_rate of its events for another reason. Contact support.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.WorkersObservability_usage_limit_status? Status { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.WorkersObservability_usage_limit"/> and sets the default values.

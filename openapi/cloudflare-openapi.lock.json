@@ -2,7 +2,7 @@
   "repository": "cloudflare/api-schemas",
   "file": "openapi.json",
   "license": "BSD-3-Clause",
-  "commit": "650bd71c22db3b938a4611bf4cc5afd896b400b7",
-  "committedAt": "2026-11-07T06:07:05Z",
-  "sha256": "f4a13c74ffc7e9108a1e8b459c39c5e405f659f6b5e5b9a5a284f9039620a40c"
+  "commit": "139a85d54f1e66f0448caacc233c4a03e0e0b154",
+  "committedAt": "2026-11-16T12:52:48Z",
+  "sha256": "75d67a03c105daece05b1deea0cb23bf545d189301b6b9344dcd3c015ac41650"
 }

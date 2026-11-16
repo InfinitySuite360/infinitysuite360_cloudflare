@@ -80,7 +80,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Alerting.V3.Destinat
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.Aaa_schemasSingle_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.Aaa_schemasSingle_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Update a webhook destination.
+        /// Update a webhook destination. Only `name` can be updated. `url` and `secret` are immutable; to change them, delete the webhook and create a new one.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Aaa_id_response"/></returns>
         /// <param name="body">The request body</param>
@@ -143,7 +143,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Alerting.V3.Destinat
             return requestInfo;
         }
         /// <summary>
-        /// Update a webhook destination.
+        /// Update a webhook destination. Only `name` can be updated. `url` and `secret` are immutable; to change them, delete the webhook and create a new one.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

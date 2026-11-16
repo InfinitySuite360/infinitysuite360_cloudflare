@@ -18,6 +18,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.ArticlesGetResponse_result_articles_relevance_pirs_band? Band { get; set; }
         /// <summary>The pir_id property</summary>
         public Guid? PirId { get; set; }
+        /// <summary>Beta. current: scored against the PIR&apos;s current requirement. saved: the PIR&apos;s structured definition no longer generates a valid requirement, for example because its topic was retired, so the requirement from its last save was scored instead.</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.ArticlesGetResponse_result_articles_relevance_pirs_requirement_basis? RequirementBasis { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.ArticlesGetResponse_result_articles_relevance_pirs"/> and sets the default values.
         /// </summary>
@@ -45,6 +47,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
             {
                 { "band", n => { Band = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.ArticlesGetResponse_result_articles_relevance_pirs_band>(); } },
                 { "pir_id", n => { PirId = n.GetGuidValue(); } },
+                { "requirement_basis", n => { RequirementBasis = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.ArticlesGetResponse_result_articles_relevance_pirs_requirement_basis>(); } },
             };
         }
         /// <summary>
@@ -56,6 +59,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.ArticlesGetResponse_result_articles_relevance_pirs_band>("band", Band);
             writer.WriteGuidValue("pir_id", PirId);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.ArticlesGetResponse_result_articles_relevance_pirs_requirement_basis>("requirement_basis", RequirementBasis);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

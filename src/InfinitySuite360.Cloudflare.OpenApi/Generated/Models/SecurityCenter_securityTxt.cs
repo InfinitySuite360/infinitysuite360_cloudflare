@@ -7,12 +7,13 @@ using System.IO;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
+    /// <summary>
+    /// Configuration of the zone security.txt file
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    #pragma warning disable CS1591
     public partial class SecurityCenter_securityTxt : IAdditionalDataHolder, IParsable
-    #pragma warning restore CS1591
     {
-        /// <summary>The acknowledgments property</summary>
+        /// <summary>Link(s) to a page where security researchers are recognised for their reports.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<string>? Acknowledgments { get; set; }
@@ -22,7 +23,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #endif
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The canonical property</summary>
+        /// <summary>Canonical URI where the security.txt file is located.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<string>? Canonical { get; set; }
@@ -30,7 +31,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public List<string> Canonical { get; set; }
 #endif
-        /// <summary>The contact property</summary>
+        /// <summary>Methods that researchers should use for reporting vulnerabilities. Can be a URI for an email address, phone number, or URL.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<string>? Contact { get; set; }
@@ -38,9 +39,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public List<string> Contact { get; set; }
 #endif
-        /// <summary>The enabled property</summary>
+        /// <summary>Whether or not to serve the security.txt file in this zone. If false, security.txt requests will pass through to the origin server.</summary>
         public bool? Enabled { get; set; }
-        /// <summary>The encryption property</summary>
+        /// <summary>URI(s) pointing to a location where an encryption key that researchers should use for encrypted communications can be retrieved. The key itself must not appear in this field.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<string>? Encryption { get; set; }
@@ -48,9 +49,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public List<string> Encryption { get; set; }
 #endif
-        /// <summary>The expires property</summary>
+        /// <summary>RFC3339-formatted date and time string indicating the time that, after which, the contents of the security.txt file should be considered stale. It is recommended that this value is less than a year into the future.</summary>
         public DateTimeOffset? Expires { get; set; }
-        /// <summary>The hiring property</summary>
+        /// <summary>Link(s) to any security-related job positions.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<string>? Hiring { get; set; }
@@ -58,7 +59,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public List<string> Hiring { get; set; }
 #endif
-        /// <summary>The policy property</summary>
+        /// <summary>Link(s) to where a vulnerability disclosure policy is located.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<string>? Policy { get; set; }
@@ -66,7 +67,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public List<string> Policy { get; set; }
 #endif
-        /// <summary>The preferred_languages property</summary>
+        /// <summary>Comma-separated list of natural languages that are preferred when submitting security reports. Language codes should be as defined in RFC5646.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? PreferredLanguages { get; set; }
@@ -80,6 +81,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public SecurityCenter_securityTxt()
         {
             AdditionalData = new Dictionary<string, object>();
+            Enabled = false;
         }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value

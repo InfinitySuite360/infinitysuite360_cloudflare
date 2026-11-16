@@ -39,7 +39,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workers.Observabilit
         {
         }
         /// <summary>
-        /// Returns the summary of one Trace containing named Agent activity, with the same fields as the Trace list. Searches the full 7-day retention unless from or to narrow it. List the Trace&apos;s events with /agents/traces/{traceId}/events.
+        /// Returns the summary of one Trace with Agent activity, with the same fields as the Trace list. Searches the full 7-day retention unless from or to narrow it. List the Trace&apos;s Agent spans with /agents/traces/{traceId}/events.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workers.Observability.Agents.Traces.Item.WithTraceGetResponse"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
@@ -74,7 +74,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workers.Observabilit
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workers.Observability.Agents.Traces.Item.WithTraceGetResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workers.Observability.Agents.Traces.Item.WithTraceGetResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Returns the summary of one Trace containing named Agent activity, with the same fields as the Trace list. Searches the full 7-day retention unless from or to narrow it. List the Trace&apos;s events with /agents/traces/{traceId}/events.
+        /// Returns the summary of one Trace with Agent activity, with the same fields as the Trace list. Searches the full 7-day retention unless from or to narrow it. List the Trace&apos;s Agent spans with /agents/traces/{traceId}/events.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
@@ -102,7 +102,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workers.Observabilit
             return new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workers.Observability.Agents.Traces.Item.WithTraceItemRequestBuilder(rawUrl, RequestAdapter);
         }
         /// <summary>
-        /// Returns the summary of one Trace containing named Agent activity, with the same fields as the Trace list. Searches the full 7-day retention unless from or to narrow it. List the Trace&apos;s events with /agents/traces/{traceId}/events.
+        /// Returns the summary of one Trace with Agent activity, with the same fields as the Trace list. Searches the full 7-day retention unless from or to narrow it. List the Trace&apos;s Agent spans with /agents/traces/{traceId}/events.
         /// </summary>
         [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
         public partial class WithTraceItemRequestBuilderGetQueryParameters 

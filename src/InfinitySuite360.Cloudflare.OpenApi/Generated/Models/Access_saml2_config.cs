@@ -40,7 +40,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Access_saml2_config_header_attributes> HeaderAttributes { get; set; }
 #endif
-        /// <summary>X509 certificate to verify the signature in the SAML authentication response</summary>
+        /// <summary>X509 certificate to verify the signature in the SAML authentication response. Mutually exclusive with `metadata_url`.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<string>? IdpPublicCerts { get; set; }
@@ -58,6 +58,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #endif
         /// <summary>The maximum URL length the IdP accepts for the SSO redirect URL.When the constructed SSO URL would exceed this length, the RelayStateis stored server-side and a short nonce is passed to the IdP instead.Set this if your IdP enforces a URL length limit.</summary>
         public int? MaxSsoUrlLength { get; set; }
+        /// <summary>HTTPS URL of the IdP&apos;s SAML metadata document from which Access reads the signing certificates used to verify SAML authentication responses. Mutually exclusive with `idp_public_certs`.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? MetadataUrl { get; set; }
+#nullable restore
+#else
+        public string MetadataUrl { get; set; }
+#endif
         /// <summary>Sign the SAML authentication request with Access credentials. To verify the signature, use the public key from the Access certs endpoints.</summary>
         public bool? SignRequest { get; set; }
         /// <summary>URL to send the SAML authentication requests to</summary>
@@ -101,6 +109,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "idp_public_certs", n => { IdpPublicCerts = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "issuer_url", n => { IssuerUrl = n.GetStringValue(); } },
                 { "max_sso_url_length", n => { MaxSsoUrlLength = n.GetIntValue(); } },
+                { "metadata_url", n => { MetadataUrl = n.GetStringValue(); } },
                 { "sign_request", n => { SignRequest = n.GetBoolValue(); } },
                 { "sso_target_url", n => { SsoTargetUrl = n.GetStringValue(); } },
             };
@@ -119,6 +128,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteCollectionOfPrimitiveValues<string>("idp_public_certs", IdpPublicCerts);
             writer.WriteStringValue("issuer_url", IssuerUrl);
             writer.WriteIntValue("max_sso_url_length", MaxSsoUrlLength);
+            writer.WriteStringValue("metadata_url", MetadataUrl);
             writer.WriteBoolValue("sign_request", SignRequest);
             writer.WriteStringValue("sso_target_url", SsoTargetUrl);
             writer.WriteAdditionalData(AdditionalData);
