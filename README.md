@@ -499,14 +499,20 @@ from every answer). What is left out is left out on purpose:
 | `Images` | list, get, stats, variants | delete (`allowDelete`) | uploads (multipart/direct upload), signing keys (secrets), variant changes | storing images needs the Paid plan ($5 per 100 000 images per month); transformations of images stored elsewhere on Free (`images/pricing/`) |
 | `Stream` | videos, video, storage usage | delete (`allowDelete`) | uploads (tus), signed-URL keys and tokens, live inputs, captions, downloads | storage prepaid in steps of $5 per 1000 minutes, delivery $1 per 1000 minutes (`stream/pricing/`) |
 | `Registrar` | registrations, status | auto-renew; off needs `allowDisableAutoRenew` | registering, transfers, domain search: cost money and need the registrant's contact data | at-cost prices of registry and ICANN (`registrar/about/`) |
-| `Members` | members, roles | remove (`allowRemoval`; never the last super administrator) | invitations (send e-mail to a person) and role changes (access control belongs in the dashboard) | `fundamentals/manage-members/manage/` |
+| `Members` | members, roles, policies | remove (`allowRemoval`; never the last accepted super administrator, by legacy role or policy permission group; a member without roles and policies is refused; one lock per account in the process, see below) | invitations (send e-mail to a person) and role changes (access control belongs in the dashboard) | `fundamentals/manage-members/manage/` |
 | `AuditLogs` | audit log v2 (period required) | – | – (v1 stays in `Monitoring.ListAuditLogsAsync`) | 18 months retention (`fundamentals/account/account-security/review-audit-logs/`) |
 | `Radar` | domain ranking, ASN, any dataset below `radar/` | – | the other Radar operations are typed in `OpenApi` | token permission "Account → Radar → Read" (`radar/get-started/first-request/`) |
-| `Pages` | projects, deployments | rollback (`allowDeploy`) | projects, uploads, domains, environment variables (secrets); `env_vars`/`deployment_configs` are removed from answers | Free 500 builds per month, one at a time (`pages/platform/limits/`) |
+| `Pages` | projects, deployments | rollback (`allowDeploy`) | projects, uploads, domains, environment variables (secrets); `env_vars`/`deployment_configs` and, since 0.9.1, every secret-looking member are removed from answers | Free 500 builds per month, one at a time (`pages/platform/limits/`) |
 | `Hyperdrive` | configurations (password and access secret removed) | delete (`allowDelete`) | create/change (needs the database password) | 10 configurations on Free, 25 on Paid (`hyperdrive/platform/limits/`) |
-| `Workflows` | workflows, instances (parameters and step outputs removed) | pause/resume; terminate/restart need `allowTerminate` | creating instances, events, deleting workflows | Free 100 000 executions per day (`workflows/reference/limits/`) |
+| `Workflows` | workflows, instances (parameters, step outputs and secret-looking members removed) | `ChangeInstanceStatusAsync(…, WorkflowInstanceAction)`: pause/resume; terminate/restart need `allowTerminate` | creating instances, events, deleting workflows | Free 100 000 executions per day (`workflows/reference/limits/`) |
 | `DurableObjects` | namespaces, objects | – | SQL query endpoint; namespaces change through Worker deployments | 100 classes on Free, 500 on Workers Paid (`durable-objects/platform/limits/`) |
 | `SecretsStore` | stores, secret metadata (`value` removed) | delete secret (`allowDelete`) | creating secrets and changing values: a value must not pass through a general-purpose client | open beta: 1 store, 100 secrets per account (`secrets-store/manage-secrets/`) |
+
+**Removing members (0.9.1).** `Members.RemoveAsync` reads the member list and refuses to remove the last super administrator. A super administrator is an
+accepted member (status `accepted`; a pending invitation cannot log in) with a legacy role or an allow policy whose permission group is named "Super
+Administrator …" (`policies[].permission_groups[].name`, the form of accounts with domain-scoped roles). A member whose answer carries neither roles nor policies
+is refused, because the check cannot be made. Within one process, list and DELETE run under one lock per account, so two parallel removals cannot both pass.
+Changes made elsewhere (dashboard, another tool) between the list and the DELETE are not covered: Cloudflare has no conditional DELETE for members.
 
 Turnstile and Email Routing already had curated clients (`Turnstile`, `EmailRouting`). Magic Transit/WAN, AI, billing and the intelligence products (Cloudforce
 One, URL scanner, brand protection) stay `OpenApi` only: the platform does not use them, and money or network routing should not be one call away.
@@ -525,8 +531,9 @@ app.MapGet("/zone", (HttpContext ctx) => ctx.GetCloudflareClient().Zones.GetAsyn
 ```
 
 * Every tenant's settings are checked when the host starts (`ValidateOnStart`): no token, an `http` base address or an invalid budget stops the start.
-* A client is never handed to another tenant; when a tenant's token or settings change, the next `GetClient` creates a new client (the old one keeps the token it
-  was created with). The token is only sent in the `Authorization` header of each request, never set on the shared pool, and never appears in `ToString`
+* A client is never handed to another tenant; when a tenant's token or any setting changes (0.9.1: every option value, also Turnstile, Access JWT and budget
+  settings, compared as a keyed hash), the next `GetClient` creates a new client (the old one keeps the token it was created with). Parallel first calls get the
+  same client. Every tenant gets a deep copy of its options (`CloudflareOptions.Clone`). The token is only sent in the `Authorization` header of each request, never set on the shared pool, and never appears in `ToString`
   (`CloudflareOptions.ToString` shows `[redacted]`), exceptions, events or metrics.
 * Resolve the tenant of a request from something the server trusts (an authenticated claim, the host name), never from a header or query value the caller chooses.
 * Without ASP.NET Core: `services.AddCloudflareTenant("shop-a", configuration.GetSection(…))` (core package) or
@@ -543,13 +550,20 @@ kind is used up, instead of running into HTTP 429:
 |---|---|---|
 | `Enabled` | `true` | count and delay |
 | `RequestsPerWindow`, `Window` | 1200, 5 min | Cloudflare's limit (Enterprise can have more) |
-| `ReadShare` | 0.8 (960) | reads (also GraphQL) never use the last 20 % |
+| `ReadShare` | 0.8 (960) | reads (also GraphQL) never use the last 20 %; the reads a write method makes to prepare its change count as writes (0.9.1) |
 | `WriteShare` | 0.95 (1140) | writes keep their headroom when watchers have used the read share |
-| `MaxDelay` | 5 min | a longer wait fails with `CloudflareRateBudgetExceededException` before anything is sent |
+| `MaxDelay` | 5 min | longest wait of one call, counted from the call (0.9.1); a later slot fails with `CloudflareRateBudgetExceededException` before anything is sent |
+| `MaxQueued` | 1000 | most waiting calls (0.9.1); one more fails at once (`QueueFull`) |
 | `Name` | tenant name or `token-<keyed hash>` | label in events and metrics, never the token |
 
-A 429 from Cloudflare blocks the whole budget until `Retry-After`. Events `Delayed`/`Throttled`, `Snapshot()` and the meter `InfinitySuite360.Cloudflare`
-(`cloudflare.budget.requests`, `cloudflare.budget.delays`, `cloudflare.budget.delay` in ms; tags `budget`, `kind`) show it. `CloudflareClient.Create` without
+How it waits (0.9.1): waiting calls are served first come, first served, with one queue per kind (a waiting read never holds up a write); a cancelled call gives
+up its place; time is measured with the monotonic clock, so a changed system time neither frees nor blocks slots (`Snapshot().BlockedUntil` is wall-clock time
+for display only). `HttpClient.Timeout` does not cover this wait (it starts with the request); `MaxDelay` and the cancellation token do. A 429 from Cloudflare
+blocks the whole budget until `Retry-After` (seconds or HTTP date). Events `Delayed` (once per waiting call) and `Throttled`; an exception in a subscriber is
+swallowed and counted (`cloudflare.budget.subscriber_errors`), it never breaks a request. `Snapshot()` (also `Queued`) and the meter
+`InfinitySuite360.Cloudflare` (`cloudflare.budget.requests`, `.delays`, `.refused`, `.delay` in ms; tags `budget`, `kind`; at most 100 budget labels per process,
+then `other`) show it. The registry keeps at most `MaxBudgets` (1024) budgets: idle ones (nothing in the window, no block, nobody waiting) are removed, least
+recently used first, and a client that still holds one is moved back to the current budget of its token on its next request. `CloudflareClient.Create` without
 a registry does not count (scripts, tests); set `RateBudget = registry.For(options)` on the connection to opt in.
 
 ### Raw access
