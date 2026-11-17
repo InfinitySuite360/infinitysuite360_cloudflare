@@ -9,6 +9,7 @@ public sealed class TurnstileWidget : CloudflareModel
 {
     public string Sitekey { get; init; } = "";
     /// <summary>Only returned on create and secret rotation.</summary>
+    [System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
     public string? Secret { get; init; }
     public string Name { get; init; } = "";
     public List<string> Domains { get; init; } = [];

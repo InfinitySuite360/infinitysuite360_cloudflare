@@ -9,14 +9,30 @@ public class CoverageReportTests
     private static readonly Lazy<Task<List<CoverageMatrix.Call>>> Calls = new(CoverageMatrix.RecordAsync);
     private static readonly Lazy<OperationIndex> Index = new(() => OperationIndex.Load(CoverageMatrix.Root()));
 
+    /// <summary>
+    /// L-1 (0.9.1): commit, checksum and operation count are read from the pinned files (lock file, GENERATION.md written by the generator), not written
+    /// into the test, so the weekly regeneration (openapi-update.yml) passes for a new schema while a stale operations.tsv still fails.
+    /// </summary>
     [Fact]
     public void The_operation_index_is_the_pinned_schema()
     {
         var index = Index.Value;
-        Assert.Equal(3777, index.Operations.Count);
-        Assert.Contains("650bd71c22db3b938a4611bf4cc5afd896b400b7", index.Header);
-        var lockFile = File.ReadAllText(Path.Combine(CoverageMatrix.Root(), "openapi", "cloudflare-openapi.lock.json"));
-        Assert.Contains(index.Header.Split(' ')[2].Split('@')[1], lockFile);
+        var root = CoverageMatrix.Root();
+        using var lockFile = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "openapi", "cloudflare-openapi.lock.json")));
+        var commit = lockFile.RootElement.GetProperty("commit").GetString()!;
+        var sha256 = lockFile.RootElement.GetProperty("sha256").GetString()!;
+        Assert.Matches("^[0-9a-f]{40}$", commit);
+        Assert.Contains("@" + commit + " ", index.Header);
+        Assert.Contains("SHA-256 " + sha256, index.Header);
+        Assert.Equal(PinnedOperationCount(), index.Operations.Count);
+        Assert.Equal(index.Operations.Count, index.Operations.Distinct().Count());
+    }
+
+    /// <summary>The operation count of the generator's report (<c>openapi/GENERATION.md</c>, row "Operations").</summary>
+    internal static int PinnedOperationCount()
+    {
+        var line = File.ReadLines(Path.Combine(CoverageMatrix.Root(), "openapi", "GENERATION.md")).Single(l => l.StartsWith("| Operations |", StringComparison.Ordinal));
+        return int.Parse(line.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[1], System.Globalization.CultureInfo.InvariantCulture);
     }
 
     [Fact]
@@ -65,7 +81,7 @@ public class CoverageReportTests
         var clients = typeof(ICloudflareClient).GetProperties().Where(p => typeof(Resources.CloudflareResourceClient).IsAssignableFrom(p.PropertyType)).Select(p => p.Name).ToList();
         var silent = clients.Where(c => !byClient.ContainsKey(c)).ToList();
         Assert.True(silent.Count == 0, "Clients without any matched request: " + string.Join(", ", silent));
-        Assert.Equal(3777, rows.Sum(r => r.Total));
+        Assert.Equal(Index.Value.Operations.Count, rows.Sum(r => r.Total));
         // The shield products were the reason for P1/P2: Page Shield almost complete, API Shield at least 40 % (the rest is reachable through OpenApi).
         Assert.True(rows.Single(r => r.Area.Name == "Page Shield").Curated * 10 >= rows.Single(r => r.Area.Name == "Page Shield").Total * 8);
         Assert.True(rows.Single(r => r.Area.Name == "API Shield").Curated * 10 >= rows.Single(r => r.Area.Name == "API Shield").Total * 4);

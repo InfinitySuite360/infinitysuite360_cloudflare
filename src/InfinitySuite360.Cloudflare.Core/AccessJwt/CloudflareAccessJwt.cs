@@ -57,6 +57,14 @@ public sealed class CloudflareAccessJwtOptions
 
     public bool IsConfigured => TeamDomain.Length > 0 && Audiences.Count > 0;
 
+    /// <summary>A copy with its own audience list (0.9.1, used by <see cref="CloudflareOptions.Clone"/>).</summary>
+    internal CloudflareAccessJwtOptions Copy()
+    {
+        var copy = (CloudflareAccessJwtOptions)MemberwiseClone();
+        copy.Audiences = [.. Audiences ?? []];
+        return copy;
+    }
+
     /// <summary>The domain as a key: trimmed and lower case.</summary>
     internal static string Normalize(string teamDomain) => (teamDomain ?? "").Trim().ToLowerInvariant();
 

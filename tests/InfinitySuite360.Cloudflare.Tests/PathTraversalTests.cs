@@ -93,7 +93,7 @@ public class PathTraversalTests
         foreach (var m in ClientSurface.Methods())
         {
             if (!m.Method.GetParameters().Any(p => p.ParameterType == typeof(string) || p.ParameterType.GetInterfaces().Contains(typeof(IEnumerable<string>)))) continue;
-            foreach (var forced in new[] { "..", "%2e%2e" })
+            foreach (var forced in new[] { "..", "%2e%2e", ".", "%2e" }) // "." since 0.9.1 (L-8)
             {
                 var (_, h, options) = FakeHandler.Create(o => o.AllowWrites = true);
                 var connection = new CloudflareApiConnection(new HttpClient(h), options, (_, _) => Task.CompletedTask);
@@ -109,7 +109,8 @@ public class PathTraversalTests
                         violations.Add($"{ClientSurface.Name(m)} with {forced}: {method} {path}");
                 }
                 foreach (var r in h.Requests)
-                    if (r.Url.Contains("/../", StringComparison.Ordinal) || r.Url.EndsWith("/..", StringComparison.Ordinal) || r.Url.Contains("%2e%2e", StringComparison.OrdinalIgnoreCase))
+                    if (r.Url.Contains("/../", StringComparison.Ordinal) || r.Url.EndsWith("/..", StringComparison.Ordinal) || r.Url.Contains("%2e", StringComparison.OrdinalIgnoreCase)
+                        || r.Url.Contains("/./", StringComparison.Ordinal) || r.Url.EndsWith("/.", StringComparison.Ordinal))
                         violations.Add($"{ClientSurface.Name(m)} with {forced}: sent {r.Method} {r.Url}");
             }
         }

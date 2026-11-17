@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using InfinitySuite360.Cloudflare.Resources;
 
 namespace InfinitySuite360.Cloudflare.Tests;
 
@@ -102,7 +103,7 @@ public class Priority3Tests
             cf.Members.PreviewRemove("m1"),
             cf.Pages.PreviewRollback("site", "d1"),
             cf.Hyperdrive.PreviewDelete("hd1"),
-            cf.Workflows.PreviewChangeInstanceStatus("orders", "i1", "terminate"),
+            cf.Workflows.PreviewChangeInstanceStatus("orders", "i1", WorkflowInstanceAction.Terminate),
             cf.SecretsStore.PreviewDeleteSecret("st1", "s1"),
         };
         Assert.Empty(h.Requests);
@@ -124,7 +125,7 @@ public class Priority3Tests
             () => cf.Members.RemoveAsync("m1"),
             () => cf.Pages.RollbackAsync("site", "d1"),
             () => cf.Hyperdrive.DeleteAsync("hd1"),
-            () => cf.Workflows.ChangeInstanceStatusAsync("orders", "i1", "terminate"),
+            () => cf.Workflows.ChangeInstanceStatusAsync("orders", "i1", WorkflowInstanceAction.Terminate),
             () => cf.SecretsStore.DeleteSecretAsync("st1", "s1"),
         ];
         foreach (var call in refused) await Assert.ThrowsAsync<InvalidOperationException>(call);
@@ -132,7 +133,7 @@ public class Priority3Tests
 
         // Switching auto-renew on and pausing need no switch.
         await cf.Registrar.SetAutoRenewAsync("example.com", true);
-        await cf.Workflows.ChangeInstanceStatusAsync("orders", "i1", "pause");
+        await cf.Workflows.ChangeInstanceStatusAsync("orders", "i1", WorkflowInstanceAction.Pause);
         Assert.Equal([HttpMethod.Patch, HttpMethod.Patch], h.Requests.Select(r => r.Method));
         Assert.Contains("\"status\":\"pause\"", h.Requests[1].Body);
     }
@@ -156,7 +157,7 @@ public class Priority3Tests
     {
         var (cf, h, _) = FakeHandler.Create(o => o.AllowWrites = true);
         await Assert.ThrowsAsync<ArgumentException>(() => cf.Registrar.GetAsync("https://example.com/x"));
-        await Assert.ThrowsAsync<ArgumentException>(() => cf.Workflows.ChangeInstanceStatusAsync("orders", "i1", "delete"));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => cf.Workflows.ChangeInstanceStatusAsync("orders", "i1", (WorkflowInstanceAction)99));
         await Assert.ThrowsAsync<ArgumentException>(() => cf.Pages.ListDeploymentsAsync("site", "staging"));
         await Assert.ThrowsAsync<ArgumentException>(() => cf.AuditLogs.ListAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(-1)));
         await Assert.ThrowsAsync<ArgumentException>(() => cf.Radar.GetAsync("../accounts"));
