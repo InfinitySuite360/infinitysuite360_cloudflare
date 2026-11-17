@@ -165,16 +165,25 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
         return (await ZT.SendAsync<DeviceProfile>(Api, HttpMethod.Patch, path, body, ct).ConfigureAwait(false), true);
     }
 
-    public CloudflareChangePreview PreviewEnsureProfile(DeviceProfileInput profile, bool allowBroadProfile = false, string? accountId = null) =>
-        new("POST", AccountPath(accountId, "devices", "policy"), ProfileBody(profile, allowBroadProfile),
-            $"Create device profile \"{profile.Name}\" (precedence {profile.Precedence}).");
+    public CloudflareChangePreview PreviewEnsureProfile(DeviceProfileInput profile, bool allowBroadProfile = false, string? accountId = null)
+    {
+        var (body, loosening) = ProfileBody(profile, allowBroadProfile);
+        return new("POST", AccountPath(accountId, "devices", "policy"), body,
+            $"Create device profile \"{profile.Name}\" (precedence {profile.Precedence})." + (loosening.Count > 0 ? $" WARNING: loosens ({string.Join("; ", loosening)}; needs allowLoosen)." : ""));
+    }
 
-    /// <summary>Returns the custom profile with this name or creates it; a match that selects all devices needs <paramref name="allowBroadProfile"/>. An existing profile is not changed.</summary>
-    public async Task<(DeviceProfile Profile, bool Created)> EnsureProfileAsync(DeviceProfileInput profile, bool allowBroadProfile = false, string? accountId = null, CancellationToken ct = default)
+    /// <summary>
+    /// Returns the custom profile with this name or creates it; a match that selects all devices needs <paramref name="allowBroadProfile"/>. An existing
+    /// profile is not changed. M2 (0.8.1): loosening settings in the new profile (WARP can be switched off, mode switch, leaving, self-updates, no
+    /// auto-reconnect, local fallback, office IPs excluded) need <paramref name="allowLoosen"/>, as in <see cref="UpdateProfileAsync"/>.
+    /// </summary>
+    public async Task<(DeviceProfile Profile, bool Created)> EnsureProfileAsync(DeviceProfileInput profile, bool allowBroadProfile = false, string? accountId = null,
+        bool allowLoosen = false, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "devices", "policy");
         EnsureWritable(HttpMethod.Post, path);
-        var body = ProfileBody(profile, allowBroadProfile);
+        var (body, loosening) = ProfileBody(profile, allowBroadProfile);
+        if (loosening.Count > 0) P2.Allow(allowLoosen, $"device profile \"{profile.Name}\" would be created loose: {string.Join("; ", loosening)}", nameof(allowLoosen));
         var existing = (await ListProfilesAsync(accountId, ct).ConfigureAwait(false)).FirstOrDefault(p => !p.Default && p.Name == profile.Name);
         if (existing is not null) return (existing, false);
         return (await ZT.SendAsync<DeviceProfile>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), true);
@@ -182,7 +191,8 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
 
     /// <summary>
     /// Changes a custom profile after a fresh read (PATCH, only differing fields). A profile whose match selects all devices, or a new match that does, needs
-    /// <paramref name="allowBroadProfile"/>; loosening needs <paramref name="allowLoosen"/>.
+    /// <paramref name="allowBroadProfile"/>; loosening needs <paramref name="allowLoosen"/>. M2 (0.8.1): changing the match moves devices into or out of
+    /// this profile (out of it they fall back to looser profiles), so it counts as loosening.
     /// </summary>
     public async Task<(DeviceProfile Profile, bool Changed)> UpdateProfileAsync(string policyId, DeviceProfileSettings settings, string? match = null, bool allowBroadProfile = false,
         bool allowLoosen = false, string? accountId = null, CancellationToken ct = default)
@@ -193,7 +203,11 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
         if (current.Default || IsBroadMatch(current.Match) || (match is not null && IsBroadMatch(match)))
             P2.Allow(allowBroadProfile, $"device profile \"{current.Name}\" applies to every device", nameof(allowBroadProfile));
         var (body, loosening) = SettingsBody(current, settings);
-        if (match is not null && match != current.Match) body["match"] = match;
+        if (match is not null && match.Trim() != (current.Match ?? "").Trim())
+        {
+            body["match"] = match;
+            loosening.Add($"the match changes which devices use the profile ({current.Match} → {match})");
+        }
         if (loosening.Count > 0) P2.Allow(allowLoosen, $"the change loosens device profile \"{current.Name}\": {string.Join("; ", loosening)}", nameof(allowLoosen));
         if (body.Count == 0) return (current, false);
         return (await ZT.SendAsync<DeviceProfile>(Api, HttpMethod.Patch, path, body, ct).ConfigureAwait(false), true);
@@ -233,15 +247,23 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
     /// <summary>
     /// Replaces the Split Tunnel exclude list of a profile (PUT) after a fresh read. Excluded traffic bypasses Gateway: new exclusions need
     /// <paramref name="allowLoosen"/>; removed ones can cut off local networks and need <paramref name="allowDisconnect"/>; the default profile
-    /// (<paramref name="policyId"/> null) needs <paramref name="allowBroadProfile"/>. Written only on change.
+    /// (<paramref name="policyId"/> null) needs <paramref name="allowBroadProfile"/>. Written only on change. M3 (0.8.1): an exclusion that covers a large part
+    /// of the address space (IPv4 shorter than /8, IPv6 shorter than /16, including 0.0.0.0/0 and ::/0) takes almost all traffic out of WARP and needs
+    /// <paramref name="allowBroadRoute"/>; the profile is read first and a profile in Include mode (only the include list is in use) is refused, because an
+    /// exclude list there would not do what the caller expects.
     /// </summary>
     public async Task<(List<SplitTunnelEntry> Entries, bool Changed)> SetSplitTunnelExcludeAsync(IEnumerable<SplitTunnelEntry> entries, string? policyId = null, bool allowBroadProfile = false,
-        bool allowLoosen = false, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
+        bool allowLoosen = false, bool allowDisconnect = false, string? accountId = null, bool allowBroadRoute = false, CancellationToken ct = default)
     {
         var path = ProfilePath(policyId, accountId, "exclude");
         EnsureWritable(HttpMethod.Put, path);
         var next = CheckEntries(entries);
         if (policyId is null) P2.Allow(allowBroadProfile, "the default device profile applies to every device", nameof(allowBroadProfile));
+        var broad = next.Where(e => e.Address is not null && ZT.IsBroadCidr(e.Address)).Select(e => e.Address!).ToList();
+        if (broad.Count > 0) P2.Allow(allowBroadRoute, $"excluding {P1.Join(broad)} takes almost all traffic out of WARP and Gateway", nameof(allowBroadRoute));
+        var profile = policyId is null ? await GetDefaultProfileAsync(accountId, ct).ConfigureAwait(false) : await GetProfileAsync(policyId, accountId, ct).ConfigureAwait(false);
+        if (profile.Include.Count > 0 && profile.Exclude.Count == 0)
+            throw new InvalidOperationException($"Refused: device profile \"{profile.Name ?? policyId ?? "default"}\" uses Split Tunnel Include mode ({ZT.Plural(profile.Include.Count, "include entry", "include entries")}); an exclude list does not apply there. Change the mode deliberately in the dashboard or through the OpenApi client.");
         var current = await GetSplitTunnelExcludeAsync(policyId, accountId, ct).ConfigureAwait(false);
         var (added, removed) = EntryDiff(current, next);
         if (added.Count > 0) P2.Allow(allowLoosen, $"excluding {P1.Join(added)} lets that traffic bypass Gateway", nameof(allowLoosen));
@@ -282,23 +304,23 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
             return (JsonNode?)o;
         }).ToArray());
 
-    private static bool IsBroadMatch(string? match)
-    {
-        var m = (match ?? "").Trim();
-        return m.Length == 0 || m is "true" or "any" or "1 == 1" || m.Contains("matches \".*\"", StringComparison.Ordinal) || m.Contains("matches \"^.*$\"", StringComparison.Ordinal);
-    }
+    /// <summary>
+    /// A match that selects every device: empty, a tautology (<see cref="ZT.MatchesAll"/>: <c>true</c>, <c>any</c>, <c>1 == 1</c>, <c>identity.email matches ".*"</c>,
+    /// <c>identity.email ne ""</c>, <c>os.name in {…}</c> with every platform, also behind a top-level <c>or</c>). Syntactic (M2, 0.8.1); read the preview.
+    /// </summary>
+    private static bool IsBroadMatch(string? match) => ZT.MatchesAll(match);
 
-    private static JsonObject ProfileBody(DeviceProfileInput p, bool allowBroadProfile)
+    private static (JsonObject Body, List<string> Loosening) ProfileBody(DeviceProfileInput p, bool allowBroadProfile)
     {
         P1.Required(p.Name, nameof(p), 100);
         if (IsBroadMatch(p.Match)) P2.Allow(allowBroadProfile, $"device profile \"{p.Name}\" would apply to every device", nameof(allowBroadProfile));
         if (p.Precedence is < 1 or > 10000) throw new ArgumentOutOfRangeException(nameof(p), "Precedence 1 to 10000.");
-        var (settings, _) = SettingsBody(new DeviceProfile(), p.Settings ?? new DeviceProfileSettings());
+        var (settings, loosening) = SettingsBody(new DeviceProfile(), p.Settings ?? new DeviceProfileSettings());
         settings["name"] = p.Name;
         settings["match"] = p.Match;
         settings["precedence"] = p.Precedence;
         settings["enabled"] = p.Enabled;
-        return settings;
+        return (settings, loosening);
     }
 
     private static (JsonObject Body, List<string> Loosening) SettingsBody(DeviceProfile current, DeviceProfileSettings s)
@@ -355,14 +377,20 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
         return (await Api.PostAsync<DevicePostureRule>(path, body, ct).ConfigureAwait(false), true);
     }
 
-    /// <summary>Replaces a posture rule (PUT). A rule used by Access policies/groups/applications or Gateway rules needs <paramref name="allowInUse"/> (fresh read, fail-closed).</summary>
+    /// <summary>
+    /// Replaces a posture rule (PUT) after a fresh read. A rule used by Access policies/groups/applications, Gateway rules or device profile matches needs
+    /// <paramref name="allowInUse"/> (fresh read, fail-closed). L5 (0.8.1): written only on change (an unchanged rule returns the current one without a
+    /// write or an in-use check), and members the input does not set (for example <c>expiration</c>) are kept.
+    /// </summary>
     public async Task<DevicePostureRule> UpdatePostureRuleAsync(string ruleId, DevicePostureRuleInput rule, bool allowInUse = false, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "devices", "posture", P1.Required(ruleId, nameof(ruleId)));
         EnsureWritable(HttpMethod.Put, path);
         var body = PostureBody(rule);
+        var raw = await ZT.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
+        if (P1.Covers(P1.Node(raw), body)) return P1.As<DevicePostureRule>(raw);
         await RefusePostureInUseAsync(ruleId, allowInUse, "changing", accountId, ct).ConfigureAwait(false);
-        return await Api.PutAsync<DevicePostureRule>(path, body, ct).ConfigureAwait(false);
+        return await ZT.SendAsync<DevicePostureRule>(Api, HttpMethod.Put, path, ZT.Merge(raw, body, "id", "created_at", "updated_at"), ct).ConfigureAwait(false);
     }
 
     /// <summary>Deletes a posture rule (same in-use check as <see cref="UpdatePostureRuleAsync"/>). False when it did not exist.</summary>
@@ -387,6 +415,9 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
             if (a.Policies.Any(x => ZT.References(x, "device_posture", "integration_uid", ruleId))) users.Add($"Access application \"{a.Name}\"");
         foreach (var r in await new ZeroTrustGatewayClient(Api).ListRulesAsync(null, accountId, ct).ConfigureAwait(false))
             if ((r.DevicePosture ?? "").Contains(ruleId, StringComparison.OrdinalIgnoreCase)) users.Add($"Gateway rule \"{r.Name}\"");
+        // L5 (0.8.1): device profile matches can select devices by posture results as well.
+        foreach (var p in await ListProfilesAsync(accountId, ct).ConfigureAwait(false))
+            if ((p.Match ?? "").Contains(ruleId, StringComparison.OrdinalIgnoreCase)) users.Add($"device profile \"{p.Name}\"");
         if (users.Count > 0)
             throw new InvalidOperationException($"Refused: {what} posture rule {ruleId} changes who passes {string.Join(", ", users)}. Pass allowInUse: true deliberately.");
     }

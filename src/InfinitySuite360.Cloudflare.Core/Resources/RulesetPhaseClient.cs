@@ -129,6 +129,12 @@ internal static class RulesetRisk
         return false;
     }
 
+    /// <summary>The parts of an expression at a top-level <c>or</c>/<c>||</c> (used by the Zero Trust breadth check, 0.8.1).</summary>
+    internal static List<string> TopLevelOr(string expression) => SplitTopLevelOr(StripParens(expression ?? ""));
+
+    /// <summary>The expression without enclosing brackets.</summary>
+    internal static string Unwrap(string expression) => StripParens(expression ?? "");
+
     private static string StripParens(string e)
     {
         e = e.Trim();

@@ -138,10 +138,22 @@ public sealed class AccessActiveSession : CloudflareModel
     public JsonElement? Metadata { get; init; }
 }
 
+/// <summary>The parts of an Access policy (or group) that decide who gets in; compared by the loosening and lock-out checks.</summary>
+internal readonly record struct AccessPolicyShape(string Decision, IReadOnlyList<JsonElement> Include, IReadOnlyList<JsonElement> Exclude, IReadOnlyList<JsonElement> Require,
+    int? Precedence = null, string? SessionDuration = null);
+
 /// <summary>How permissive an Access policy is; used by the loosening and lock-out checks.</summary>
 internal static class AccessPolicyRisk
 {
     private static readonly string[] Decisions = ["deny", "allow", "non_identity", "bypass"];
+
+    /// <summary>Mail providers where anybody can open an address: an <c>email_domain</c> rule for them admits the public (H2c, 0.8.1).</summary>
+    private static readonly HashSet<string> PublicMailDomains = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "gmail.com", "googlemail.com", "outlook.com", "hotmail.com", "live.com", "msn.com", "yahoo.com", "ymail.com", "icloud.com", "me.com", "aol.com",
+        "gmx.de", "gmx.net", "gmx.com", "gmx.at", "gmx.ch", "web.de", "t-online.de", "proton.me", "protonmail.com", "pm.me", "yandex.com", "yandex.ru",
+        "mail.com", "mail.ru", "zoho.com", "fastmail.com", "tutanota.com", "tuta.io", "posteo.de", "qq.com", "163.com",
+    };
 
     public static int Rank(string decision) => Array.IndexOf(Decisions, decision);
 
@@ -150,34 +162,79 @@ internal static class AccessPolicyRisk
 
     public static bool Admits(string decision) => decision is "allow" or "non_identity" or "bypass";
 
-    /// <summary>The policy lets everybody in: bypass, or allow/non_identity for "everyone" without a require rule.</summary>
-    public static bool AdmitsEveryone(string decision, IReadOnlyList<JsonElement> include, IReadOnlyList<JsonElement> require) =>
-        decision == "bypass" || (Admits(decision) && Has(include, "everyone") && require.Count == 0);
+    /// <summary>
+    /// A rule that matches (nearly) anybody: <c>everyone</c>, an <c>ip</c> range shorter than /8 (IPv6 /16, including 0.0.0.0/0 and ::/0), an
+    /// <c>email_domain</c> of a public mail provider (or empty/wildcard) and, as an include rule, <c>any_valid_service_token</c>.
+    /// </summary>
+    public static bool IsBroad(JsonElement rule, bool asRequire = false)
+    {
+        if (rule.ValueKind != JsonValueKind.Object) return false;
+        foreach (var p in rule.EnumerateObject())
+        {
+            switch (p.Name)
+            {
+                case "everyone": return true;
+                case "any_valid_service_token" when !asRequire: return true;
+                case "ip" when P2.Str(p.Value, "ip") is { } ip && ZT.IsBroadCidr(ip): return true;
+                case "email_domain":
+                    var domain = (P2.Str(p.Value, "domain") ?? "").Trim().TrimStart('@');
+                    if (domain.Length == 0 || domain.Contains('*') || PublicMailDomains.Contains(domain)) return true;
+                    break;
+            }
+        }
+        return false;
+    }
 
-    public static bool DeniesEveryone(string decision, IReadOnlyList<JsonElement> include) => decision == "deny" && Has(include, "everyone");
+    /// <summary>
+    /// The policy lets (nearly) everybody in: bypass, or allow/non_identity with a broad include rule (<see cref="IsBroad"/>) and no require rule that
+    /// narrows it (a require of <c>everyone</c> or 0.0.0.0/0 does not count).
+    /// </summary>
+    public static bool AdmitsEveryone(string decision, IReadOnlyList<JsonElement> include, IReadOnlyList<JsonElement> require) =>
+        decision == "bypass" || (Admits(decision) && include.Any(r => IsBroad(r)) && require.All(r => IsBroad(r, asRequire: true)));
+
+    public static bool AdmitsEveryone(AccessPolicyShape s) => AdmitsEveryone(s.Decision, s.Include, s.Require);
+
+    public static bool DeniesEveryone(string decision, IReadOnlyList<JsonElement> include) =>
+        decision == "deny" && include.Any(r => Has([r], "everyone") || (r.ValueKind == JsonValueKind.Object && r.TryGetProperty("ip", out var ip) && ZT.IsBroadCidr(P2.Str(ip, "ip"))));
 
     private static bool Same(JsonElement a, JsonElement b) => JsonNode.DeepEquals(JsonNode.Parse(a.GetRawText()), JsonNode.Parse(b.GetRawText()));
 
     private static bool Removed(IReadOnlyList<JsonElement> before, IReadOnlyList<JsonElement> after) => before.Any(b => !after.Any(a => Same(a, b)));
 
-    /// <summary>Why <paramref name="next"/> is looser than <paramref name="current"/>, or null.</summary>
-    public static string? Loosening((string Decision, IReadOnlyList<JsonElement> Include, IReadOnlyList<JsonElement> Exclude, IReadOnlyList<JsonElement> Require) current,
-        (string Decision, IReadOnlyList<JsonElement> Include, IReadOnlyList<JsonElement> Exclude, IReadOnlyList<JsonElement> Require) next)
+    private static bool Added(IReadOnlyList<JsonElement> before, IReadOnlyList<JsonElement> after) => Removed(after, before);
+
+    /// <summary>
+    /// Why <paramref name="next"/> is looser than <paramref name="current"/>, or null (H2, 0.8.1): a more permissive decision; admitting everyone; for an
+    /// admitting policy added include rules, removed require/exclude rules, an earlier precedence; for a deny policy removed include rules, added
+    /// exclude/require rules, a later precedence; a longer session.
+    /// </summary>
+    public static string? Loosening(AccessPolicyShape current, AccessPolicyShape next)
     {
         if (Rank(next.Decision) > Rank(current.Decision)) return $"decision {current.Decision} → {next.Decision}";
-        if (AdmitsEveryone(next.Decision, next.Include, next.Require) && !AdmitsEveryone(current.Decision, current.Include, current.Require)) return "it would admit everyone";
-        if (current.Decision == "deny")
-            return Removed(current.Include, next.Include) ? "a deny policy would match fewer requests" : null;
+        if (AdmitsEveryone(next) && !AdmitsEveryone(current)) return "it would admit everyone";
+        if (current.Decision == "deny" && next.Decision == "deny")
+        {
+            if (Removed(current.Include, next.Include)) return "a deny policy would match fewer requests (include rules removed)";
+            if (Added(current.Exclude, next.Exclude)) return "a deny policy would match fewer requests (exclude rules added)";
+            if (Added(current.Require, next.Require)) return "a deny policy would match fewer requests (require rules added)";
+            if (next.Precedence is { } p && current.Precedence is { } c && p > c) return $"a deny policy would be evaluated later (precedence {c} → {p})";
+            return null;
+        }
+        if (!Admits(next.Decision)) return null;
+        if (Added(current.Include, next.Include)) return "include rules would be added (admits more)";
         if (Removed(current.Require, next.Require)) return "require rules would be removed";
         if (Removed(current.Exclude, next.Exclude)) return "exclude rules would be removed";
+        if (next.Precedence is { } np && current.Precedence is { } cp && np < cp) return $"an admitting policy would be evaluated earlier (precedence {cp} → {np})";
+        if (ZT.Longer(current.SessionDuration, next.SessionDuration)) return $"longer sessions ({current.SessionDuration ?? "default"} → {next.SessionDuration})";
         return null;
     }
 
-    public static (string Decision, IReadOnlyList<JsonElement> Include, IReadOnlyList<JsonElement> Exclude, IReadOnlyList<JsonElement> Require) Of(AccessPolicy p) =>
-        (p.Decision, p.Include, p.Exclude, p.Require);
+    public static AccessPolicyShape Of(AccessPolicy p) => new(p.Decision, p.Include, p.Exclude, p.Require, p.Precedence, p.SessionDuration);
 
-    public static (string Decision, IReadOnlyList<JsonElement> Include, IReadOnlyList<JsonElement> Exclude, IReadOnlyList<JsonElement> Require) Of(AccessPolicyInput p) =>
-        (p.Decision, p.Include, p.Exclude ?? [], p.Require ?? []);
+    public static AccessPolicyShape Of(AccessPolicyInput p) => new(p.Decision, p.Include, p.Exclude ?? [], p.Require ?? [], p.Precedence, p.SessionDuration);
+
+    /// <summary>Members of a policy that Cloudflare sets itself; they are not sent back with a PUT.</summary>
+    public static readonly string[] ReadOnlyMembers = ["id", "uid", "created_at", "updated_at", "app_count", "reusable"];
 }
 
 public sealed partial class AccessClient
@@ -188,24 +245,32 @@ public sealed partial class AccessClient
     // ------------------------------------------------------------------ applications
 
     /// <summary>Plan of a new application (sends nothing).</summary>
-    public CloudflareChangePreview PreviewEnsureApplication(AccessApplicationInput app, bool allowNoPolicy = false, string? accountId = null) =>
-        new("POST", AccountPath(accountId, "access", "apps"), ZT.Redact(AppBody(app, allowNoPolicy)),
+    public CloudflareChangePreview PreviewEnsureApplication(AccessApplicationInput app, bool allowNoPolicy = false, string? accountId = null)
+    {
+        var (body, inline) = AppBody(app, allowNoPolicy, allowLoosen: true, allowBlock: true);
+        return new("POST", AccountPath(accountId, "access", "apps"), ZT.Redact(body),
             $"Create Access application \"{app.Name}\" for {app.Domain} ({app.Type}) with {ZT.Plural(app.Policies?.Count ?? 0, "policy", "policies")}. "
-            + "WARNING: from then on the hostname needs an Access login.");
+            + "WARNING: from then on the hostname needs an Access login."
+            + (inline.Any(p => AccessPolicyRisk.AdmitsEveryone(p)) ? " WARNING: an inline policy admits everyone (needs allowLoosen)." : "")
+            + (inline.Any(p => AccessPolicyRisk.DeniesEveryone(p.Decision, p.Include)) ? " WARNING: an inline policy denies everyone (needs allowBlock)." : ""));
+    }
 
     /// <summary>
     /// Returns the application for this domain and type or creates it; an existing application is not changed. An application without policies denies
     /// everyone (Cloudflare's default), so that needs <paramref name="allowNoPolicy"/>. Creating protects a hostname that may be public today: check the
-    /// preview first.
+    /// preview first. M4 (0.8.1): inline policy objects get the checks of <see cref="AddApplicationPolicyAsync"/> (admitting everyone needs
+    /// <paramref name="allowLoosen"/>, denying everyone <paramref name="allowBlock"/>); policies referenced by id are read before the POST and one that admits
+    /// everyone needs <paramref name="allowLoosen"/> as well (fail-closed when it cannot be read).
     /// </summary>
     public async Task<(AccessApplication Application, bool Created)> EnsureApplicationAsync(AccessApplicationInput app, bool allowNoPolicy = false,
-        string? accountId = null, CancellationToken ct = default)
+        string? accountId = null, bool allowLoosen = false, bool allowBlock = false, CancellationToken ct = default)
     {
-        var body = AppBody(app, allowNoPolicy);
         var path = AccountPath(accountId, "access", "apps");
         EnsureWritable(HttpMethod.Post, path);
+        var (body, _) = AppBody(app, allowNoPolicy, allowLoosen, allowBlock);
         var existing = await FindApplicationAsync(app, accountId, ct).ConfigureAwait(false);
         if (existing is not null) return (existing, false);
+        await CheckReferencedPoliciesAsync(app, allowLoosen, accountId, ct).ConfigureAwait(false);
         try { return (await ZT.SendAsync<AccessApplication>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), true); }
         catch (CloudflareConflictException)
         {
@@ -244,7 +309,11 @@ public sealed partial class AccessClient
         (await ListApplicationsAsync(accountId, ct).ConfigureAwait(false))
         .FirstOrDefault(a => string.Equals(a.Domain, app.Domain.Trim(), StringComparison.OrdinalIgnoreCase) && a.Type == app.Type);
 
-    private static JsonObject AppBody(AccessApplicationInput app, bool allowNoPolicy)
+    /// <summary>
+    /// The application body. Policy entries are an id (string), a reference object (<c>{"id": …, "precedence": …}</c>) or an inline policy object with
+    /// <c>decision</c>/<c>include</c>; inline policies are validated like <see cref="AddApplicationPolicyAsync"/> (M4, 0.8.1). Returns the inline shapes for the preview.
+    /// </summary>
+    private static (JsonObject Body, List<AccessPolicyShape> Inline) AppBody(AccessApplicationInput app, bool allowNoPolicy, bool allowLoosen, bool allowBlock)
     {
         P1.Required(app.Name, nameof(app), 350);
         var domain = P1.Required(app.Domain, nameof(app)).Trim();
@@ -256,8 +325,68 @@ public sealed partial class AccessClient
         if (app.AppLauncherVisible is { } v) body["app_launcher_visible"] = v;
         if (app.AutoRedirectToIdentity is { } r) body["auto_redirect_to_identity"] = r;
         if (app.AllowedIdps is { Count: > 0 } idps) body["allowed_idps"] = P1.Arr(idps);
-        if (app.Policies is { Count: > 0 } policies) body["policies"] = new JsonArray(policies.Select(ZT.ToNode).ToArray());
-        return body;
+        var inline = new List<AccessPolicyShape>();
+        if (app.Policies is { Count: > 0 } policies)
+        {
+            var nodes = new JsonArray();
+            foreach (var entry in policies)
+            {
+                var node = ZT.ToNode(entry);
+                switch (node)
+                {
+                    case JsonValue s when s.TryGetValue<string>(out var id):
+                        P1.Required(id, nameof(app));
+                        nodes.Add(JsonValue.Create(id));
+                        break;
+                    case JsonObject o when o.ContainsKey("decision") || o.ContainsKey("include"):
+                        var input = InlinePolicy(o);
+                        var checkedBody = PolicyBody(input, allowLoosen, allowBlock, null);
+                        if (o["precedence"] is { } prec) checkedBody["precedence"] = prec.DeepClone();
+                        inline.Add(AccessPolicyRisk.Of(input));
+                        nodes.Add(checkedBody);
+                        break;
+                    case JsonObject o when o["id"] is JsonValue idValue && idValue.TryGetValue<string>(out var refId) && !string.IsNullOrWhiteSpace(refId):
+                        nodes.Add(o.DeepClone());
+                        break;
+                    default:
+                        throw new ArgumentException("A policy entry is the id of a reusable policy, {\"id\": …, \"precedence\": …} or a policy object with decision and include.", nameof(app));
+                }
+            }
+            body["policies"] = nodes;
+        }
+        return (body, inline);
+    }
+
+    private static AccessPolicyInput InlinePolicy(JsonObject o)
+    {
+        static List<JsonElement> List(JsonNode? n) => n is JsonArray a ? a.Select(x => JsonSerializer.SerializeToElement(x, CloudflareJson.Options)).ToList() : [];
+        return new AccessPolicyInput
+        {
+            Name = o["name"] is JsonValue n && n.TryGetValue<string>(out var name) && !string.IsNullOrWhiteSpace(name) ? name : "(inline policy)",
+            Decision = o["decision"] is JsonValue d && d.TryGetValue<string>(out var decision) ? decision : "",
+            Include = List(o["include"]),
+            Exclude = List(o["exclude"]),
+            Require = List(o["require"]),
+            SessionDuration = o["session_duration"] is JsonValue sd && sd.TryGetValue<string>(out var s) ? s : null,
+        };
+    }
+
+    /// <summary>Reads every reusable policy the new application refers to by id; one that admits everyone needs <paramref name="allowLoosen"/> (fail-closed).</summary>
+    private async Task CheckReferencedPoliciesAsync(AccessApplicationInput app, bool allowLoosen, string? accountId, CancellationToken ct)
+    {
+        foreach (var entry in app.Policies ?? [])
+        {
+            var id = ZT.ToNode(entry) switch
+            {
+                JsonValue s when s.TryGetValue<string>(out var v) => v,
+                JsonObject o when !(o.ContainsKey("decision") || o.ContainsKey("include")) && o["id"] is JsonValue idValue && idValue.TryGetValue<string>(out var v) => v,
+                _ => null,
+            };
+            if (id is null) continue;
+            var policy = await GetPolicyAsync(id, accountId, ct).ConfigureAwait(false);
+            if (AccessPolicyRisk.AdmitsEveryone(AccessPolicyRisk.Of(policy)))
+                P2.Allow(allowLoosen, $"reusable policy \"{policy.Name}\" ({policy.Decision}) admits everyone to application \"{app.Name}\"", nameof(allowLoosen));
+        }
     }
 
     // ------------------------------------------------------------------ application policies
@@ -286,19 +415,28 @@ public sealed partial class AccessClient
     }
 
     /// <summary>
-    /// Replaces an application policy after a fresh read. Loosening (more permissive decision, admitting everyone, removing require/exclude rules,
-    /// a deny that matches fewer requests) needs <paramref name="allowLoosen"/>; a deny for everyone needs <paramref name="allowBlock"/>. Written only on change.
+    /// Replaces an application policy after a fresh read. Loosening (more permissive decision, admitting everyone, added include rules, removed
+    /// require/exclude rules, an earlier precedence, longer sessions; for a deny: fewer include rules, added exclude/require rules, a later precedence)
+    /// needs <paramref name="allowLoosen"/>; a deny for everyone needs <paramref name="allowBlock"/>. Written only on change. The PUT keeps every member of
+    /// the current policy the input does not set (for example <c>approval_required</c>, <c>isolation_required</c>, <c>purpose_justification_required</c>,
+    /// <c>mfa_config</c>, <c>connection_rules</c>) instead of resetting it.
     /// </summary>
     public async Task<(AccessPolicy Policy, bool Changed)> ChangeApplicationPolicyAsync(string appId, string policyId, AccessPolicyInput policy, bool allowLoosen = false, bool allowBlock = false,
         string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "access", "apps", P1.Required(appId, nameof(appId)), "policies", P1.Required(policyId, nameof(policyId)));
         EnsureWritable(HttpMethod.Put, path);
-        var currentRaw = await P2.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
+        return await ReplacePolicyAsync(path, policy, allowLoosen, allowBlock, ct).ConfigureAwait(false);
+    }
+
+    private async Task<(AccessPolicy Policy, bool Changed)> ReplacePolicyAsync(string path, AccessPolicyInput policy, bool allowLoosen, bool allowBlock, CancellationToken ct)
+    {
+        var currentRaw = await ZT.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
         var current = P1.As<AccessPolicy>(currentRaw);
         var body = PolicyBody(policy, allowLoosen, allowBlock, current);
         if (P1.Covers(P1.Node(currentRaw), body)) return (current, false);
-        return (await Api.PutAsync<AccessPolicy>(path, body, ct).ConfigureAwait(false), true);
+        var merged = ZT.Merge(currentRaw, body, AccessPolicyRisk.ReadOnlyMembers);
+        return (await ZT.SendAsync<AccessPolicy>(Api, HttpMethod.Put, path, merged, ct).ConfigureAwait(false), true);
     }
 
     public CloudflareChangePreview PreviewRemoveApplicationPolicy(string appId, string policyId, string? accountId = null) =>
@@ -357,11 +495,7 @@ public sealed partial class AccessClient
     {
         var path = AccountPath(accountId, "access", "policies", P1.Required(policyId, nameof(policyId)));
         EnsureWritable(HttpMethod.Put, path);
-        var currentRaw = await P2.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
-        var current = P1.As<AccessPolicy>(currentRaw);
-        var body = PolicyBody(policy, allowLoosen, allowBlock, current);
-        if (P1.Covers(P1.Node(currentRaw), body)) return (current, false);
-        return (await Api.PutAsync<AccessPolicy>(path, body, ct).ConfigureAwait(false), true);
+        return await ReplacePolicyAsync(path, policy, allowLoosen, allowBlock, ct).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -440,16 +574,26 @@ public sealed partial class AccessClient
         }
     }
 
-    /// <summary>Replaces a group after a fresh read. Including everyone or removing exclude/require rules loosens every policy that uses it and needs <paramref name="allowLoosen"/>.</summary>
-    public async Task<(AccessGroup Group, bool Changed)> ChangeGroupAsync(string groupId, AccessGroupInput group, bool allowLoosen = false, string? accountId = null, CancellationToken ct = default)
+    /// <summary>
+    /// Replaces a group after a fresh read. Including everyone, adding include rules or removing exclude/require rules loosens every policy that uses it
+    /// and needs <paramref name="allowLoosen"/>. M5 (0.8.1): any change of the rules of a group that policies, applications or other groups use changes who
+    /// passes them and needs <paramref name="allowInUse"/> (the users are read, fail-closed). The PUT keeps members the input does not set. Written only on change.
+    /// </summary>
+    public async Task<(AccessGroup Group, bool Changed)> ChangeGroupAsync(string groupId, AccessGroupInput group, bool allowLoosen = false, string? accountId = null,
+        bool allowInUse = false, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "access", "groups", P1.Required(groupId, nameof(groupId)));
         EnsureWritable(HttpMethod.Put, path);
-        var currentRaw = await P2.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
+        var currentRaw = await ZT.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
         var current = P1.As<AccessGroup>(currentRaw);
         var body = GroupBody(group, allowLoosen, current);
         if (P1.Covers(P1.Node(currentRaw), body)) return (current, false);
-        return (await Api.PutAsync<AccessGroup>(path, body, ct).ConfigureAwait(false), true);
+        var now = P1.Node(currentRaw);
+        var rulesChange = new[] { "include", "exclude", "require" }.Any(k => !JsonNode.DeepEquals(now?[k] ?? new JsonArray(), body[k] ?? new JsonArray()));
+        if (rulesChange && !allowInUse && await GroupUsersAsync(groupId, accountId, ct).ConfigureAwait(false) is { Count: > 0 } users)
+            throw new InvalidOperationException($"Refused: group \"{current.Name}\" is used by {string.Join(", ", users)}; changing its rules changes who passes them. Pass allowInUse: true deliberately.");
+        var merged = ZT.Merge(currentRaw, body, AccessPolicyRisk.ReadOnlyMembers);
+        return (await ZT.SendAsync<AccessGroup>(Api, HttpMethod.Put, path, merged, ct).ConfigureAwait(false), true);
     }
 
     /// <summary>
@@ -460,19 +604,22 @@ public sealed partial class AccessClient
     {
         var path = AccountPath(accountId, "access", "groups", P1.Required(groupId, nameof(groupId)));
         EnsureWritable(HttpMethod.Delete, path);
-        if (!allowInUse)
-        {
-            var users = new List<string>();
-            foreach (var p in await ListPoliciesAsync(accountId, ct).ConfigureAwait(false))
-                if (ZT.References(ToElement(new { p.Include, p.Exclude, p.Require }), "group", "id", groupId)) users.Add($"policy \"{p.Name}\"");
-            foreach (var a in await ListApplicationsAsync(accountId, ct).ConfigureAwait(false))
-                if (a.Policies.Any(x => ZT.References(x, "group", "id", groupId))) users.Add($"application \"{a.Name}\"");
-            foreach (var g in await ListGroupsAsync(accountId, ct).ConfigureAwait(false))
-                if (g.Id != groupId && ZT.References(ToElement(new { g.Include, g.Exclude, g.Require }), "group", "id", groupId)) users.Add($"group \"{g.Name}\"");
-            if (users.Count > 0)
-                throw new InvalidOperationException($"Refused: group {groupId} is used by {string.Join(", ", users)}. Remove the references first or pass allowInUse: true deliberately.");
-        }
+        if (!allowInUse && await GroupUsersAsync(groupId, accountId, ct).ConfigureAwait(false) is { Count: > 0 } users)
+            throw new InvalidOperationException($"Refused: group {groupId} is used by {string.Join(", ", users)}. Remove the references first or pass allowInUse: true deliberately.");
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>Reusable policies, applications (with their policies) and other groups that refer to <paramref name="groupId"/> (fresh reads, fail-closed).</summary>
+    private async Task<List<string>> GroupUsersAsync(string groupId, string? accountId, CancellationToken ct)
+    {
+        var users = new List<string>();
+        foreach (var p in await ListPoliciesAsync(accountId, ct).ConfigureAwait(false))
+            if (ZT.References(ToElement(new { p.Include, p.Exclude, p.Require }), "group", "id", groupId)) users.Add($"policy \"{p.Name}\"");
+        foreach (var a in await ListApplicationsAsync(accountId, ct).ConfigureAwait(false))
+            if (a.Policies.Any(x => ZT.References(x, "group", "id", groupId))) users.Add($"application \"{a.Name}\"");
+        foreach (var g in await ListGroupsAsync(accountId, ct).ConfigureAwait(false))
+            if (g.Id != groupId && ZT.References(ToElement(new { g.Include, g.Exclude, g.Require }), "group", "id", groupId)) users.Add($"group \"{g.Name}\"");
+        return users;
     }
 
     // ------------------------------------------------------------------ service tokens
@@ -518,8 +665,8 @@ public sealed partial class AccessClient
             $"Delete service token {tokenId}. WARNING: every machine using it is refused at once.");
 
     /// <summary>
-    /// Deletes a service token after a fresh read: a token that was ever used (<c>last_seen_at</c> set) or is referenced by a policy cuts machines off and
-    /// needs <paramref name="allowDisconnect"/>. False when it did not exist.
+    /// Deletes a service token after a fresh read: a token that was ever used (<c>last_seen_at</c> set) or is referenced by a reusable policy, a group or a
+    /// policy bound to an application (L1, 0.8.1) cuts machines off and needs <paramref name="allowDisconnect"/> (fail-closed). False when it did not exist.
     /// </summary>
     public async Task<bool> RemoveServiceTokenAsync(string tokenId, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
     {
@@ -531,8 +678,13 @@ public sealed partial class AccessClient
         {
             if (token.LastSeenAt is not null)
                 throw new InvalidOperationException($"Refused: service token \"{token.Name}\" was used (last seen {token.LastSeenAt:yyyy-MM-dd}); deleting it cuts those machines off. Pass allowDisconnect: true deliberately.");
-            var used = (await ListPoliciesAsync(accountId, ct).ConfigureAwait(false))
-                .Where(p => ZT.References(ToElement(new { p.Include, p.Require }), "service_token", "token_id", tokenId)).Select(p => p.Name).ToList();
+            var used = new List<string>();
+            foreach (var p in await ListPoliciesAsync(accountId, ct).ConfigureAwait(false))
+                if (ZT.References(ToElement(new { p.Include, p.Exclude, p.Require }), "service_token", "token_id", tokenId)) used.Add($"policy \"{p.Name}\"");
+            foreach (var g in await ListGroupsAsync(accountId, ct).ConfigureAwait(false))
+                if (ZT.References(ToElement(new { g.Include, g.Exclude, g.Require }), "service_token", "token_id", tokenId)) used.Add($"group \"{g.Name}\"");
+            foreach (var a in await ListApplicationsAsync(accountId, ct).ConfigureAwait(false))
+                if (a.Policies.Any(x => ZT.References(x, "service_token", "token_id", tokenId))) used.Add($"application \"{a.Name}\"");
             if (used.Count > 0)
                 throw new InvalidOperationException($"Refused: service token \"{token.Name}\" is used by {string.Join(", ", used)}. Pass allowDisconnect: true deliberately.");
         }
@@ -588,7 +740,11 @@ public sealed partial class AccessClient
         }
     }
 
-    /// <summary>Deletes an identity provider after a fresh read of all providers: the last one is the last login method and needs <paramref name="allowRemoveLast"/>. False when it did not exist.</summary>
+    /// <summary>
+    /// Deletes an identity provider after a fresh read of all providers and applications: the last one is the last login method, and M8 (0.8.1) an
+    /// application whose <c>allowed_idps</c> list only this provider (or only providers that no longer exist) can no longer be logged into; both need
+    /// <paramref name="allowRemoveLast"/> (fail-closed). False when it did not exist.
+    /// </summary>
     public async Task<bool> RemoveIdentityProviderAsync(string providerId, bool allowRemoveLast = false, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "access", "identity_providers", P1.Required(providerId, nameof(providerId)));
@@ -597,6 +753,14 @@ public sealed partial class AccessClient
         var target = all.FirstOrDefault(p => p.Id == providerId);
         if (target is null) return false;
         if (all.Count == 1) P2.Allow(allowRemoveLast, $"\"{target.Name}\" is the last identity provider; without it nobody can log in", nameof(allowRemoveLast));
+        if (!allowRemoveLast)
+        {
+            var remaining = all.Where(p => p.Id != providerId).Select(p => p.Id).ToHashSet(StringComparer.Ordinal);
+            var stranded = (await ListApplicationsAsync(accountId, ct).ConfigureAwait(false))
+                .Where(a => a.AllowedIdps.Contains(providerId, StringComparer.Ordinal) && !a.AllowedIdps.Any(remaining.Contains)).Select(a => $"\"{a.Name}\"").ToList();
+            if (stranded.Count > 0)
+                P2.Allow(false, $"application(s) {string.Join(", ", stranded)} allow only identity provider \"{target.Name}\"; without it nobody can log in there", nameof(allowRemoveLast));
+        }
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 
@@ -734,11 +898,19 @@ public sealed partial class AccessClient
             }
         }
         Str("session_duration", c.SessionDuration, current.SessionDuration);
+        if (body.ContainsKey("session_duration") && ZT.Longer(current.SessionDuration, c.SessionDuration))
+            notes.Add(("allowLoosen", $"longer Access sessions ({current.SessionDuration ?? "default"} → {c.SessionDuration})"));
         Str("warp_auth_session_duration", c.WarpAuthSessionDuration, current.WarpAuthSessionDuration);
+        if (body.ContainsKey("warp_auth_session_duration") && ZT.Longer(current.WarpAuthSessionDuration, c.WarpAuthSessionDuration))
+            notes.Add(("allowLoosen", $"longer WARP authentication sessions ({current.WarpAuthSessionDuration ?? "default"} → {c.WarpAuthSessionDuration})"));
         Bool("auto_redirect_to_identity", c.AutoRedirectToIdentity, current.AutoRedirectToIdentity);
         Bool("is_ui_read_only", c.IsUiReadOnly, current.IsUiReadOnly);
         if (body.ContainsKey("is_ui_read_only") && c.UiReadOnlyToggleReason is { } reason) body["ui_read_only_toggle_reason"] = reason;
+        if (body["is_ui_read_only"] is { } ro && !ro.GetValue<bool>())
+            notes.Add(("allowLoosen", "turning off \"UI read-only\" lets the dashboard change what is managed through the API"));
         Bool("allow_authenticate_via_warp", c.AllowAuthenticateViaWarp, current.AllowAuthenticateViaWarp);
+        if (body["allow_authenticate_via_warp"] is { } viaWarp && viaWarp.GetValue<bool>())
+            notes.Add(("allowLoosen", "a WARP session alone would log users into Access applications"));
         Bool("deny_unmatched_requests", c.DenyUnmatchedRequests, current.DenyUnmatchedRequests);
         if (body["deny_unmatched_requests"] is { } deny)
             notes.Add(deny.GetValue<bool>()
@@ -813,10 +985,10 @@ public sealed partial class AccessClient
     {
         P1.Required(g.Name, nameof(g), 350);
         if (g.Include is not { Count: > 0 }) throw new ArgumentException("At least one include rule (see AccessRules).", nameof(g));
-        var everyone = AccessPolicyRisk.Has(g.Include, "everyone") && g.Require is not { Count: > 0 };
-        if (everyone && (current is null || !AccessPolicyRisk.Has(current.Include, "everyone")))
+        var everyone = AccessPolicyRisk.AdmitsEveryone("allow", g.Include, g.Require ?? []);
+        if (everyone && (current is null || !AccessPolicyRisk.AdmitsEveryone("allow", current.Include, current.Require)))
             P2.Allow(allowLoosen, $"group \"{g.Name}\" includes everyone", nameof(allowLoosen));
-        if (current is not null && AccessPolicyRisk.Loosening(("allow", current.Include, current.Exclude, current.Require), ("allow", g.Include, g.Exclude ?? [], g.Require ?? [])) is { } why)
+        if (current is not null && AccessPolicyRisk.Loosening(new("allow", current.Include, current.Exclude, current.Require), new("allow", g.Include, g.Exclude ?? [], g.Require ?? [])) is { } why)
             P2.Allow(allowLoosen, $"the change loosens group \"{current.Name}\": {why}", nameof(allowLoosen));
         return new JsonObject { ["name"] = g.Name, ["include"] = Rules(g.Include), ["exclude"] = Rules(g.Exclude ?? []), ["require"] = Rules(g.Require ?? []) };
     }

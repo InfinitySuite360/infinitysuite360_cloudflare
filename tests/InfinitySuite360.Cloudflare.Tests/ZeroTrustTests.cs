@@ -410,8 +410,19 @@ public class ZeroTrustTests
         Assert.Contains("allowDisconnect", (await RefusedAfterRead(h, () => cf.Access.RemoveServiceTokenAsync("t1"))).Message);
         h.Requests.Clear();
         Route(h, R("GET", "/access/service_tokens/t1", """{"id":"t1","name":"new","client_id":"c"}"""),
-            R("GET", "/access/policies", """[{"id":"p1","name":"bridge","decision":"non_identity","include":[{"service_token":{"token_id":"t1"}}]}]"""));
+            R("GET", "/access/policies", """[{"id":"p1","name":"bridge","decision":"non_identity","include":[{"service_token":{"token_id":"t1"}}]}]"""),
+            R("GET", "/access/groups", "[]"), R("GET", "/access/apps", "[]"));
         Assert.Contains("bridge", (await RefusedAfterRead(h, () => cf.Access.RemoveServiceTokenAsync("t1"))).Message);
+
+        // L1 (0.8.1): groups and policies bound to an application count as well.
+        h.Requests.Clear();
+        Route(h, R("GET", "/access/service_tokens/t1", """{"id":"t1","name":"new","client_id":"c"}"""), R("GET", "/access/policies", "[]"),
+            R("GET", "/access/groups", """[{"id":"g1","name":"machines","include":[{"service_token":{"token_id":"t1"}}]}]"""), R("GET", "/access/apps", "[]"));
+        Assert.Contains("group \"machines\"", (await RefusedAfterRead(h, () => cf.Access.RemoveServiceTokenAsync("t1"))).Message);
+        h.Requests.Clear();
+        Route(h, R("GET", "/access/service_tokens/t1", """{"id":"t1","name":"new","client_id":"c"}"""), R("GET", "/access/policies", "[]"), R("GET", "/access/groups", "[]"),
+            R("GET", "/access/apps", """[{"id":"a1","name":"Bridge","type":"self_hosted","policies":[{"id":"ap1","decision":"non_identity","include":[{"service_token":{"token_id":"t1"}}]}]}]"""));
+        Assert.Contains("application \"Bridge\"", (await RefusedAfterRead(h, () => cf.Access.RemoveServiceTokenAsync("t1"))).Message);
     }
 
     [Fact]
@@ -485,9 +496,20 @@ public class ZeroTrustTests
         await RefusedAfterRead(h, () => cf.Gateway.RemoveListItemsAsync("l1", ["bad.example"]));
         h.Requests.Clear();
         await Assert.ThrowsAsync<ArgumentException>(() => cf.Gateway.AddListItemsAsync("l1", ["https://bad.example/"]));
+        // M6 (0.8.1): adding entries to a list a rule uses changes the rule, too.
         h.Requests.Clear();
-        await cf.Gateway.AddListItemsAsync("l1", ["bad.example", "*.worse.example"]);
+        Assert.Contains("allowInUse", (await RefusedAfterRead(h, () => cf.Gateway.AddListItemsAsync("l1", ["bad.example"]))).Message);
+        h.Requests.Clear();
+        await cf.Gateway.AddListItemsAsync("l1", ["bad.example", "*.worse.example"], allowInUse: true);
         Assert.Equal(2, JsonNode.Parse(h.Requests[^1].Body!)!["append"]!.AsArray().Count);
+
+        // Disabled rules are reported as well (they take the list with them when enabled again).
+        h.Requests.Clear();
+        Route(h, R("GET", "/gateway/rules", """[{"id":"r1","name":"later","action":"allow","enabled":false,"filters":["dns"],"traffic":"any(dns.domains[*] in $l1)"}]"""),
+            R("GET", "/gateway/lists/l1", """{"id":"l1","name":"ok","type":"DOMAIN","count":1}"""));
+        Assert.Contains("disabled", (await RefusedAfterRead(h, () => cf.Gateway.AddListItemsAsync("l1", ["good.example"]))).Message);
+        h.Requests.Clear();
+        Assert.Contains("disabled", (await RefusedAfterRead(h, () => cf.Gateway.RemoveListAsync("l1"))).Message);
     }
 
     [Fact]
@@ -574,7 +596,10 @@ public class ZeroTrustTests
         Assert.DoesNotContain(TunnelTokenMarker, ensured.ToString());
         Assert.Equal(TunnelTokenMarker, ensured.RunToken!.TakeValue());
 
-        var token = await cf.Tunnels.GetRunTokenAsync("t1");
+        // L4 (0.8.1): reading the run token needs allowReadSecret.
+        h.Requests.Clear();
+        await Refused(h, () => cf.Tunnels.GetRunTokenAsync("t1"));
+        var token = await cf.Tunnels.GetRunTokenAsync("t1", allowReadSecret: true);
         Assert.DoesNotContain(TunnelTokenMarker, token.ToString());
         Assert.Equal(TunnelTokenMarker, token.Reveal());
 
@@ -665,7 +690,8 @@ public class ZeroTrustTests
         var (cf, h, _) = FakeHandler.Create(o => o.AllowWrites = true);
         Route(h, R("GET", "/devices/policy/dp1", """{"policy_id":"dp1","name":"staff","match":"identity.email == \"a@example.com\"","switch_locked":true}"""),
             R("PATCH", "/devices/policy/dp1", """{"policy_id":"dp1"}"""),
-            R("GET", "/devices/policy/exclude", """[{"address":"192.168.0.0/16"}]"""), R("PUT", "/devices/policy/exclude", "[]"));
+            R("GET", "/devices/policy/exclude", """[{"address":"192.168.0.0/16"}]"""), R("PUT", "/devices/policy/exclude", "[]"),
+            R("GET", "/devices/policy", """{"name":"Default","default":true,"exclude":[{"address":"192.168.0.0/16"}],"include":[]}"""));
         Assert.Contains("allowLoosen", (await RefusedAfterRead(h, () => cf.Devices.UpdateProfileAsync("dp1", new DeviceProfileSettings { SwitchLocked = false }))).Message);
         h.Requests.Clear();
         Assert.Contains("allowBroadProfile", (await RefusedAfterRead(h, () => cf.Devices.UpdateProfileAsync("dp1", new DeviceProfileSettings(), match: "any"))).Message);
@@ -685,10 +711,28 @@ public class ZeroTrustTests
     {
         var (cf, h, _) = FakeHandler.Create(o => o.AllowWrites = true);
         Route(h, R("GET", "/access/policies", """[{"id":"p1","name":"managed","decision":"allow","include":[],"require":[{"device_posture":{"integration_uid":"pr1"}}]}]"""),
-            R("GET", "/access/groups", "[]"), R("GET", "/access/apps", "[]"), R("GET", "/gateway/rules", "[]"));
+            R("GET", "/access/groups", "[]"), R("GET", "/access/apps", "[]"), R("GET", "/gateway/rules", "[]"), R("GET", "/devices/policies", "[]"),
+            R("GET", "/devices/posture/pr1", """{"id":"pr1","name":"fw","type":"firewall","expiration":"24h","input":{"enabled":true}}"""),
+            R("PUT", "/devices/posture/pr1", """{"id":"pr1","name":"fw2","type":"firewall"}"""));
         Assert.Contains("managed", (await RefusedAfterRead(h, () => cf.Devices.RemovePostureRuleAsync("pr1"))).Message);
         h.Requests.Clear();
-        await RefusedAfterRead(h, () => cf.Devices.UpdatePostureRuleAsync("pr1", new DevicePostureRuleInput { Name = "fw", Type = "firewall" }));
+        await RefusedAfterRead(h, () => cf.Devices.UpdatePostureRuleAsync("pr1", new DevicePostureRuleInput { Name = "fw2", Type = "firewall" }));
+
+        // L5 (0.8.1): an unchanged rule is not written (and not checked); a change keeps expiration; device profile matches count as users.
+        h.Requests.Clear();
+        await cf.Devices.UpdatePostureRuleAsync("pr1", new DevicePostureRuleInput { Name = "fw", Type = "firewall" });
+        Assert.Single(h.Requests);
+        h.Requests.Clear();
+        await cf.Devices.UpdatePostureRuleAsync("pr1", new DevicePostureRuleInput { Name = "fw2", Type = "firewall" }, allowInUse: true);
+        var put = JsonNode.Parse(h.Requests[^1].Body!)!;
+        Assert.Equal("24h", put["expiration"]!.GetValue<string>());
+        Assert.Equal("fw2", put["name"]!.GetValue<string>());
+        Assert.Null(put["id"]);
+
+        h.Requests.Clear();
+        Route(h, R("GET", "/access/policies", "[]"), R("GET", "/access/groups", "[]"), R("GET", "/access/apps", "[]"), R("GET", "/gateway/rules", "[]"),
+            R("GET", "/devices/policies", """[{"policy_id":"dp1","name":"compliant","match":"any(device_posture.checks.passed[*] in {\"pr1\"})"}]"""));
+        Assert.Contains("device profile \"compliant\"", (await RefusedAfterRead(h, () => cf.Devices.RemovePostureRuleAsync("pr1"))).Message);
     }
 
     [Fact]
