@@ -49,7 +49,7 @@ public sealed partial class R2Client
     private static readonly HashSet<string> CorsMethods = ["GET", "PUT", "POST", "DELETE", "HEAD"];
     private static readonly HashSet<string> StorageClasses = ["Standard", "InfrequentAccess"];
     private static readonly HashSet<string> LocationHints = ["wnam", "enam", "weur", "eeur", "apac", "oc"];
-    private static readonly Regex OriginPattern = P2.Rx(@"^https?://[A-Za-z0-9*.\-]+(:[0-9]{1,5})?$");
+    private static readonly Regex OriginPattern = P2.Rx(@"^(https?)://([A-Za-z0-9*.\-]+)(:[0-9]{1,5})?$");
 
     // ---- buckets ----
 
@@ -108,11 +108,12 @@ public sealed partial class R2Client
 
     /// <summary>
     /// Adds a custom domain (the bucket becomes publicly readable there). Refused unless <paramref name="allowPublicAccess"/> is true. An existing domain is
-    /// returned unchanged. The minimum TLS version defaults to 1.2.
+    /// returned unchanged. The minimum TLS version defaults to 1.2; "1.0" and "1.1" need <paramref name="allowWeaken"/> (0.7.1).
     /// </summary>
-    public async Task<(R2CustomDomain Domain, bool Created)> EnsureCustomDomainAsync(string bucket, string domain, string zoneId, bool allowPublicAccess = false, string minTls = "1.2", string? accountId = null, CancellationToken ct = default)
+    public async Task<(R2CustomDomain Domain, bool Created)> EnsureCustomDomainAsync(string bucket, string domain, string zoneId, bool allowPublicAccess = false, string minTls = "1.2", string? accountId = null, bool allowWeaken = false, CancellationToken ct = default)
     {
         P2.Allow(allowPublicAccess, "a custom domain makes every object of the bucket readable by anyone at that hostname", nameof(allowPublicAccess));
+        if (minTls is "1.0" or "1.1") P2.Allow(allowWeaken, $"minimum TLS {minTls} accepts outdated protocol versions", nameof(allowWeaken));
         var body = DomainBody(domain, zoneId, true, minTls);
         var path = AccountPath(accountId, "r2", "buckets", BucketName(bucket), "domains", "custom");
         EnsureWritable(HttpMethod.Post, path);
@@ -224,6 +225,28 @@ public sealed partial class R2Client
         ["minTLS"] = minTls is "1.0" or "1.1" or "1.2" or "1.3" ? minTls : throw new ArgumentException("Minimum TLS: 1.0, 1.1, 1.2 or 1.3.", nameof(minTls)),
     };
 
+    /// <summary>
+    /// M-4 (0.7.1): <c>*</c> and origins that cover every site (<c>https://*</c>, <c>http://*</c>, <c>https://*.com</c>) need <paramref name="allowAnyOrigin"/>;
+    /// a wildcard is only accepted as a leading <c>*.</c> in front of at least two labels (<c>https://*.example.com</c>); other wildcards are invalid.
+    /// </summary>
+    internal static void CheckCorsOrigin(string origin, bool allowAnyOrigin, bool allowHttp)
+    {
+        if (origin == "*") { P2.Allow(allowAnyOrigin, "the origin * lets every website call the bucket from a browser", nameof(allowAnyOrigin)); return; }
+        var m = OriginPattern.Match(origin ?? "");
+        if (!m.Success) throw new ArgumentException($"\"{origin}\" is not an origin (scheme://host[:port], no path).", "rules");
+        if (m.Groups[1].Value == "http" && !allowHttp) throw new ArgumentException($"\"{origin}\" is not https.", "rules");
+        var host = m.Groups[2].Value;
+        if (!host.Contains('*')) return;
+        var labels = host.Split('.');
+        if (host == "*" || (labels[0] == "*" && labels.Length < 3 && labels.Skip(1).All(l => l.Length > 0)))
+        {
+            P2.Allow(allowAnyOrigin, $"the origin {origin} lets (nearly) every website call the bucket from a browser", nameof(allowAnyOrigin));
+            return;
+        }
+        if (labels[0] != "*" || labels.Skip(1).Any(l => l.Length == 0 || l.Contains('*')))
+            throw new ArgumentException($"\"{origin}\": a wildcard is only allowed as a leading \"*.\" in front of the domain (https://*.example.com).", "rules");
+    }
+
     private static JsonObject CorsBody(IReadOnlyList<R2CorsRule> rules, bool allowAnyOrigin)
     {
         if (rules is null || rules.Count is < 1 or > 100) throw new ArgumentException("Between 1 and 100 rules.", nameof(rules));
@@ -231,11 +254,7 @@ public sealed partial class R2Client
         foreach (var r in rules)
         {
             if (r.Origins.Count == 0 || r.Methods.Count == 0) throw new ArgumentException("A rule needs origins and methods.", nameof(rules));
-            foreach (var o in r.Origins)
-            {
-                if (o == "*") P2.Allow(allowAnyOrigin, "the origin * lets every website call the bucket from a browser", nameof(allowAnyOrigin));
-                else if (!OriginPattern.IsMatch(o)) throw new ArgumentException($"\"{o}\" is not an origin (scheme://host[:port], no path).", nameof(rules));
-            }
+            foreach (var o in r.Origins) CheckCorsOrigin(o, allowAnyOrigin, allowHttp: true);
             foreach (var m in r.Methods) if (!CorsMethods.Contains(m)) throw new ArgumentException($"\"{m}\" is not an allowed method (GET, PUT, POST, DELETE, HEAD).", nameof(rules));
             var allowed = new JsonObject { ["origins"] = P1.Arr(r.Origins), ["methods"] = P1.Arr(r.Methods) };
             if (r.Headers is { Count: > 0 }) allowed["headers"] = P1.Arr(r.Headers);

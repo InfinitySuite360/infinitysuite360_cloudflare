@@ -102,8 +102,8 @@ public sealed class ManagedRulesetDeployment
 
 /// <summary>
 /// WAF custom rules and managed rules (deployments and overrides) as a typed facade on top of the Rulesets engine (<see cref="RulesetsClient"/> stays the
-/// generic way). Loosenings need an explicit opt-in: <c>skip</c> rules (<c>allowSkip</c>), disabling or logging managed rules and removing a deployment
-/// (<c>allowLoosen</c>), blocking every request (<c>allowBroadMatch</c>). Token permission: "Zone: Zone WAF: Edit" (reading "Zone WAF: Read").
+/// generic way). Loosenings need an explicit opt-in: <c>skip</c> rules (<c>allowSkip</c>), disabling or logging managed rules, removing a deployment and
+/// (since 0.7.1) removing a custom rule (<c>allowLoosen</c>), blocking every request (<c>allowBroadMatch</c>). Token permission: "Zone: Zone WAF: Edit" (reading "Zone WAF: Read").
 /// Sources: developers.cloudflare.com/waf/custom-rules/, …/waf/managed-rules/deploy-zone-dashboard/ and …/ruleset-engine/managed-rulesets/override-managed-ruleset/ (17.11.2026).
 /// </summary>
 public sealed class WafClient(ICloudflareApiConnection api) : RulesetPhaseClient(api)
@@ -136,9 +136,14 @@ public sealed class WafClient(ICloudflareApiConnection api) : RulesetPhaseClient
     public Task<CloudflareChangePreview?> PreviewRemoveCustomRuleAsync(string reference, string? zoneId = null, CancellationToken ct = default) =>
         PlanRemoveAsync(RulesetPhases.FirewallCustom, CheckRef(reference), "", zoneId, ct);
 
-    /// <summary>Removes the custom rule with this ref. False when it did not exist.</summary>
-    public Task<bool> RemoveCustomRuleAsync(string reference, string? zoneId = null, CancellationToken ct = default) =>
-        RemoveAsync(RulesetPhases.FirewallCustom, CheckRef(reference), zoneId, ct);
+    /// <summary>Removes the custom rule with this ref (a loosening): needs <paramref name="allowLoosen"/> (M-8, 0.7.1). False when it did not exist.</summary>
+    public Task<bool> RemoveCustomRuleAsync(string reference, string? zoneId = null, bool allowLoosen = false, CancellationToken ct = default)
+    {
+        var r = CheckRef(reference);
+        if (!allowLoosen)
+            throw new InvalidOperationException("Refused: removing a WAF custom rule switches its protection off. Pass allowLoosen: true deliberately.");
+        return RemoveAsync(RulesetPhases.FirewallCustom, r, zoneId, ct);
+    }
 
     // ---- managed rules ----
 

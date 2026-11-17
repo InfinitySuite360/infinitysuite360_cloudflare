@@ -99,6 +99,13 @@ public sealed class SpectrumClient(ICloudflareApiConnection api) : CloudflareRes
         return DeleteIfExistsAsync(ZonePath(zoneId, "spectrum", "apps", P1.Required(appId, nameof(appId))), null, ct);
     }
 
+    // M-3 (0.7.1): an origin port that is a management, file-sharing or database port exposes that service through Spectrum, too.
+    private static void CheckOriginPorts(IEnumerable<int> ports, bool allowSensitivePort)
+    {
+        var sensitive = ports.Where(SensitivePorts.Contains).Distinct().ToList();
+        if (sensitive.Count > 0) P2.Allow(allowSensitivePort, $"origin port {string.Join(", ", sensitive)} is a management, file-sharing or database port", nameof(allowSensitivePort));
+    }
+
     private static JsonObject Body(SpectrumAppInput a, bool allowSensitivePort)
     {
         var m = ProtocolPattern.Match(a.Protocol ?? "");
@@ -120,14 +127,22 @@ public sealed class SpectrumClient(ICloudflareApiConnection api) : CloudflareRes
         };
         if (a.OriginDirect is { Count: > 0 } direct)
         {
+            var originPorts = new List<int>();
             foreach (var d in direct)
+            {
                 if (!Uri.TryCreate(d, UriKind.Absolute, out var u) || u.Scheme is not ("tcp" or "udp") || u.Port < 1 || !string.IsNullOrEmpty(u.UserInfo)) throw new ArgumentException($"\"{d}\" is not an origin like tcp://203.0.113.10:22.", nameof(a));
+                originPorts.Add(u.Port);
+            }
+            CheckOriginPorts(originPorts, allowSensitivePort);
             body["origin_direct"] = P1.Arr(direct);
         }
         else
         {
             body["origin_dns"] = new JsonObject { ["name"] = P1.Hostname(a.OriginDnsName, nameof(a)) };
-            body["origin_port"] = a.OriginPort ?? throw new ArgumentException("OriginPort is required with OriginDnsName.", nameof(a));
+            var port = a.OriginPort ?? throw new ArgumentException("OriginPort is required with OriginDnsName.", nameof(a));
+            if (port is < 1 or > 65535) throw new ArgumentOutOfRangeException(nameof(a), "OriginPort 1 to 65535.");
+            CheckOriginPorts([port], allowSensitivePort);
+            body["origin_port"] = port;
         }
         return body;
     }

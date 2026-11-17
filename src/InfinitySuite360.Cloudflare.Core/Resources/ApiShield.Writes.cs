@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -95,14 +96,18 @@ public sealed record ApiShieldAuthIdCharacteristic(string Type, string Name)
 /// The key material is kept privately and only written into the request body. <see cref="ToString"/>, <see cref="Keys"/>, previews and
 /// exception messages contain key id, type and algorithm only. Symmetric keys (<c>kty: oct</c>, HS256/384/512) are secrets: prefer asymmetric keys.
 /// </remarks>
-public sealed class JwtKeySet
+[DebuggerDisplay("JwtKeySet({Keys.Count} key(s), material [redacted])")]
+public sealed class JwtKeySet : IDisposable
 {
     private static readonly string[] PrivateMembers = ["d", "p", "q", "dp", "dq", "qi", "oth"];
-    private readonly string _json;
+
+    // N-5 (0.7.1): the key material as a character buffer that Dispose overwrites; hidden from the debugger's variable views.
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private char[]? _json;
 
     private JwtKeySet(string json, IReadOnlyList<JwtKeyInfo> keys)
     {
-        _json = json;
+        _json = json.ToCharArray();
         Keys = keys;
     }
 
@@ -152,7 +157,14 @@ public sealed class JwtKeySet
 
     private static string? Str(JsonObject o, string name) => o[name] is JsonValue v && v.TryGetValue<string>(out var s) ? s : null;
 
-    internal JsonObject ToCredentials() => new() { ["keys"] = JsonNode.Parse(_json) };
+    internal JsonObject ToCredentials() => new() { ["keys"] = JsonNode.Parse(_json is { } j ? new string(j) : throw new ObjectDisposedException(nameof(JwtKeySet))) };
+
+    /// <summary>Overwrites the key material buffer (symmetric keys are secrets). The string passed to <see cref="Parse"/> cannot be wiped by .NET.</summary>
+    public void Dispose()
+    {
+        if (_json is { } j) Array.Clear(j);
+        _json = null;
+    }
 
     internal JsonObject ToRedactedCredentials() =>
         new() { ["keys"] = new JsonArray(Keys.Select(k => (JsonNode?)new JsonObject { ["kid"] = k.Kid, ["kty"] = k.Kty, ["alg"] = k.Alg, ["material"] = "[redacted]" }).ToArray()) };
@@ -460,9 +472,16 @@ public sealed partial class ApiShieldClient
         new("PATCH", ZonePath(zoneId, "schema_validation", "settings"), OverrideBody(overrideAction),
             overrideAction is null ? "Remove the zone override of schema validation (operation actions apply again)." : "Override schema validation of the whole zone with \"none\" (validation is effectively off).");
 
-    /// <inheritdoc cref="PreviewSetOverrideAction"/>
-    public Task<SchemaValidationSettings> SetOverrideActionAsync(string? overrideAction, string? zoneId = null, CancellationToken ct = default) =>
-        Api.PatchAsync<SchemaValidationSettings>(ZonePath(zoneId, "schema_validation", "settings"), OverrideBody(overrideAction), ct);
+    /// <summary>
+    /// Sets or removes the zone override. <c>"none"</c> switches schema validation off for the whole zone and needs <paramref name="allowLoosen"/> (M-8, 0.7.1);
+    /// null (remove the override) is always allowed.
+    /// </summary>
+    public Task<SchemaValidationSettings> SetOverrideActionAsync(string? overrideAction, string? zoneId = null, bool allowLoosen = false, CancellationToken ct = default)
+    {
+        var body = OverrideBody(overrideAction);
+        if (overrideAction == "none") P2.Allow(allowLoosen, "the override \"none\" switches schema validation off for the whole zone", nameof(allowLoosen));
+        return Api.PatchAsync<SchemaValidationSettings>(ZonePath(zoneId, "schema_validation", "settings"), body, ct);
+    }
 
     private static JsonObject OverrideBody(string? overrideAction) =>
         overrideAction is null or "none"
@@ -526,15 +545,37 @@ public sealed partial class ApiShieldClient
     /// first, wait until all tokens use it, then remove the old one.
     /// </summary>
     /// <returns>Cloudflare's answer with the key values replaced by <c>[redacted]</c> (id, type and algorithm stay).</returns>
-    public async Task<JsonElement> ReplaceTokenValidationKeysAsync(string configId, JwtKeySet keys, string? zoneId = null, CancellationToken ct = default) =>
-        RedactKeys(await Api.PutAsync<JsonElement>(ZonePath(zoneId, "token_validation", "config", configId, "credentials"), keys.ToCredentials(), ct).ConfigureAwait(false));
+    /// <remarks>
+    /// M-8 (0.7.1): the current key ids are read first (after the guard check); a key set that drops a current key (or a configuration whose keys cannot be read)
+    /// needs <paramref name="allowKeyRemoval"/>, because every token signed with the dropped key fails at once.
+    /// </remarks>
+    public async Task<JsonElement> ReplaceTokenValidationKeysAsync(string configId, JwtKeySet keys, string? zoneId = null, bool allowKeyRemoval = false, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(keys);
+        var path = ZonePath(zoneId, "token_validation", "config", configId, "credentials");
+        EnsureWritable(HttpMethod.Put, path);
+        if (!allowKeyRemoval)
+        {
+            var current = await GetTokenValidationConfigAsync(configId, zoneId, ct).ConfigureAwait(false);
+            var currentKids = current?.Credentials?.Keys?.Select(k => k.Kid).ToList();
+            if (currentKids is null || currentKids.Any(k => k is null))
+                throw new InvalidOperationException("Refused: the current keys of the configuration cannot be identified, so removed keys cannot be ruled out. Pass allowKeyRemoval: true deliberately.");
+            var removed = currentKids.Where(k => keys.Keys.All(n => n.Kid != k)).ToList();
+            if (removed.Count > 0)
+                throw new InvalidOperationException($"Refused: the new key set drops the keys {string.Join(", ", removed)}; tokens signed with them fail at once. Add the new key first; pass allowKeyRemoval: true deliberately.");
+        }
+        return RedactKeys(await Api.PutAsync<JsonElement>(path, keys.ToCredentials(), ct).ConfigureAwait(false));
+    }
 
     public CloudflareChangePreview PreviewDeleteTokenValidationConfig(string configId, string? zoneId = null) =>
         new("DELETE", ZonePath(zoneId, "token_validation", "config", configId), null, $"Delete token validation configuration {configId} (rules that use it stop validating).");
 
-    /// <summary>Deletes a configuration. True when deleted, false when it did not exist.</summary>
-    public Task<bool> DeleteTokenValidationConfigAsync(string configId, string? zoneId = null, CancellationToken ct = default) =>
-        DeleteIfExistsAsync(ZonePath(zoneId, "token_validation", "config", configId), null, ct);
+    /// <summary>Deletes a configuration (rules that use it stop validating): needs <paramref name="allowRemoval"/> (M-8, 0.7.1). True when deleted, false when it did not exist.</summary>
+    public Task<bool> DeleteTokenValidationConfigAsync(string configId, string? zoneId = null, bool allowRemoval = false, CancellationToken ct = default)
+    {
+        P2.Allow(allowRemoval, "deleting a token validation configuration stops the validation of the rules that use it", nameof(allowRemoval));
+        return DeleteIfExistsAsync(ZonePath(zoneId, "token_validation", "config", configId), null, ct);
+    }
 
     /// <summary>Plan of a new token validation rule. <c>block</c> needs <paramref name="allowBlock"/> (requests without a valid token are rejected).</summary>
     public CloudflareChangePreview PreviewCreateTokenValidationRule(TokenValidationRuleInput rule, string? zoneId = null, bool allowBlock = false) =>
@@ -556,9 +597,12 @@ public sealed partial class ApiShieldClient
     public CloudflareChangePreview PreviewDeleteTokenValidationRule(string ruleId, string? zoneId = null) =>
         new("DELETE", ZonePath(zoneId, "token_validation", "rules", ruleId), null, $"Delete token validation rule {ruleId}.");
 
-    /// <summary>Deletes a rule. True when deleted, false when it did not exist.</summary>
-    public Task<bool> DeleteTokenValidationRuleAsync(string ruleId, string? zoneId = null, CancellationToken ct = default) =>
-        DeleteIfExistsAsync(ZonePath(zoneId, "token_validation", "rules", ruleId), null, ct);
+    /// <summary>Deletes a rule (its requests are no longer checked): needs <paramref name="allowRemoval"/> (M-8, 0.7.1). True when deleted, false when it did not exist.</summary>
+    public Task<bool> DeleteTokenValidationRuleAsync(string ruleId, string? zoneId = null, bool allowRemoval = false, CancellationToken ct = default)
+    {
+        P2.Allow(allowRemoval, "deleting a token validation rule stops checking the tokens of its requests", nameof(allowRemoval));
+        return DeleteIfExistsAsync(ZonePath(zoneId, "token_validation", "rules", ruleId), null, ct);
+    }
 
     private static JsonObject ConfigBody(TokenValidationConfigInput c, bool redacted)
     {
@@ -779,8 +823,12 @@ public sealed partial class ApiShieldClient
     /// Revokes a client certificate (status becomes pending_revocation, then revoked). Lock-out risk: every client that presents this certificate fails
     /// <c>cf.tls_client_auth.cert_verified</c> and is blocked by an mTLS rule. Issue and roll out the replacement first. <see cref="ReactivateClientCertificateAsync"/> undoes a revocation.
     /// </summary>
-    public async Task<ZoneClientCertificate> RevokeClientCertificateAsync(string certificateId, string? zoneId = null, CancellationToken ct = default) =>
-        (await Api.SendAsync<ZoneClientCertificate>(HttpMethod.Delete, ZonePath(zoneId, "client_certificates", certificateId), null, ct).ConfigureAwait(false)).Result!;
+    /// <remarks>Needs <paramref name="allowRevoke"/> (M-8, 0.7.1): nothing is sent without it.</remarks>
+    public async Task<ZoneClientCertificate> RevokeClientCertificateAsync(string certificateId, string? zoneId = null, bool allowRevoke = false, CancellationToken ct = default)
+    {
+        P2.Allow(allowRevoke, "revoking a client certificate locks out every device that presents it", nameof(allowRevoke));
+        return (await Api.SendAsync<ZoneClientCertificate>(HttpMethod.Delete, ZonePath(zoneId, "client_certificates", certificateId), null, ct).ConfigureAwait(false)).Result!;
+    }
 
     public CloudflareChangePreview PreviewReactivateClientCertificate(string certificateId, string? zoneId = null) =>
         new("PATCH", ZonePath(zoneId, "client_certificates", certificateId), new JsonObject { ["reactivate"] = true }, $"Reactivate the revoked client certificate {certificateId}.");

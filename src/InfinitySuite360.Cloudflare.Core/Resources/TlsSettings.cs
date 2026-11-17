@@ -36,7 +36,7 @@ public sealed class TlsOverview
 
 /// <summary>
 /// SSL/TLS settings of a zone with previews and guards (zone settings API, developers.cloudflare.com/ssl/edge-certificates/additional-options/, 17.11.2026).
-/// Weakening the SSL mode or the minimum TLS version needs <c>allowWeaken: true</c>; TLS 1.3 only (old clients fail) needs <c>allowTls13Only</c>;
+/// Weakening the SSL mode or the minimum TLS version, and switching tls_1_3, always_use_https or opportunistic_encryption off (0.7.1), needs <c>allowWeaken: true</c>; TLS 1.3 only (old clients fail) needs <c>allowTls13Only</c>;
 /// HSTS that browsers keep longer than one day, with subdomains or preload needs <c>allowLongLivedHsts</c> (HTTPS can then not be switched off
 /// for the max-age). Token permission: "Zone: Zone Settings: Edit" (reading "Read"). Per-hostname TLS settings (Advanced Certificate Manager) are
 /// reachable through <c>OpenApi</c>.
@@ -45,6 +45,7 @@ public sealed class TlsSettingsClient(ICloudflareApiConnection api) : Cloudflare
 {
     private static readonly string[] SslModes = ["off", "flexible", "full", "strict"];
     private static readonly string[] TlsVersions = ["1.0", "1.1", "1.2", "1.3"];
+    private static readonly HashSet<string> WeakeningOff = [ZoneSettingIds.Tls13, ZoneSettingIds.AlwaysUseHttps, ZoneSettingIds.OpportunisticEncryption];
     private static readonly HashSet<string> Switches =
     [
         ZoneSettingIds.Tls13, ZoneSettingIds.AlwaysUseHttps, ZoneSettingIds.AutomaticHttpsRewrites, ZoneSettingIds.OpportunisticEncryption,
@@ -138,9 +139,58 @@ public sealed class TlsSettingsClient(ICloudflareApiConnection api) : Cloudflare
     public CloudflareChangePreview PreviewSetSwitch(string settingId, bool on, string? zoneId = null) =>
         new("PATCH", ZonePath(zoneId, "settings", CheckSwitch(settingId)), Value(on ? "on" : "off"), SwitchSummary(settingId, on));
 
-    /// <summary>Switches tls_1_3, always_use_https, automatic_https_rewrites, opportunistic_encryption, ech, http3 or 0rtt on or off.</summary>
-    public Task<ZoneSetting> SetSwitchAsync(string settingId, bool on, string? zoneId = null, CancellationToken ct = default) =>
-        Api.PatchAsync<ZoneSetting>(ZonePath(zoneId, "settings", CheckSwitch(settingId)), Value(on ? "on" : "off"), ct);
+    /// <summary>
+    /// Switches tls_1_3, always_use_https, automatic_https_rewrites, opportunistic_encryption, ech, http3 or 0rtt on or off. Switching <c>tls_1_3</c>,
+    /// <c>always_use_https</c> or <c>opportunistic_encryption</c> off weakens the transport security and needs <paramref name="allowWeaken"/> (0.7.1).
+    /// </summary>
+    public Task<ZoneSetting> SetSwitchAsync(string settingId, bool on, string? zoneId = null, bool allowWeaken = false, CancellationToken ct = default)
+    {
+        CheckSwitch(settingId);
+        if (!on && WeakeningOff.Contains(settingId) && !allowWeaken)
+            throw new InvalidOperationException($"Refused: switching {settingId} off weakens the transport security. Pass allowWeaken: true deliberately.");
+        return Api.PatchAsync<ZoneSetting>(ZonePath(zoneId, "settings", settingId), Value(on ? "on" : "off"), ct);
+    }
+
+    /// <summary>True for zone settings whose weakening this client guards (ssl, min_tls_version, tls_1_3, always_use_https, opportunistic_encryption).</summary>
+    internal static bool IsGuarded(string settingId) => settingId is ZoneSettingIds.Ssl or ZoneSettingIds.MinTlsVersion || WeakeningOff.Contains(settingId);
+
+    /// <summary>
+    /// The guards of <see cref="SetSslModeAsync"/>, <see cref="SetMinTlsVersionAsync"/> and <see cref="SetSwitchAsync"/> with their safe defaults, for the generic
+    /// <see cref="ZonesClient.SetSettingAsync"/>: refuses a weaker SSL mode or minimum TLS version (one read of the settings), TLS 1.3 only and the weakening switches.
+    /// </summary>
+    internal async Task RefuseWeakeningAsync(IReadOnlyList<(string Id, JsonNode? Value)> changes, string? zoneId, CancellationToken ct)
+    {
+        Dictionary<string, string>? current = null;
+        async Task<string?> CurrentAsync(string id)
+        {
+            current ??= (await Api.GetAsync<List<ZoneSetting>>(ZonePath(zoneId, "settings"), ct).ConfigureAwait(false) ?? []).ToDictionary(x => x.Id, x => x.ValueText);
+            return current.TryGetValue(id, out var v) ? v : null;
+        }
+        foreach (var (id, node) in changes)
+        {
+            if (!IsGuarded(id)) continue;
+            var value = node is JsonValue jv && jv.TryGetValue<string>(out var text) ? text : throw new ArgumentException($"The value of {id} must be a string.", nameof(changes));
+            switch (id)
+            {
+                case ZoneSettingIds.Ssl:
+                    CheckMode(value);
+                    var mode = await CurrentAsync(id).ConfigureAwait(false);
+                    if (Rank(SslModes, value) < Rank(SslModes, mode))
+                        throw new InvalidOperationException($"Refused: SSL mode {mode} → {value} weakens the encryption to the origin. Use Tls.SetSslModeAsync with allowWeaken: true deliberately.");
+                    break;
+                case ZoneSettingIds.MinTlsVersion:
+                    CustomHostnamesClient.Tls(value);
+                    if (value == "1.3") throw new InvalidOperationException("Refused: TLS 1.3 only locks out clients without TLS 1.3. Use Tls.SetMinTlsVersionAsync with allowTls13Only: true deliberately.");
+                    var tls = await CurrentAsync(id).ConfigureAwait(false);
+                    if (Rank(TlsVersions, value) < Rank(TlsVersions, tls))
+                        throw new InvalidOperationException($"Refused: minimum TLS version {tls} → {value} accepts weaker protocol versions. Use Tls.SetMinTlsVersionAsync with allowWeaken: true deliberately.");
+                    break;
+                default:
+                    if (value == "off") throw new InvalidOperationException($"Refused: switching {id} off weakens the transport security. Use Tls.SetSwitchAsync with allowWeaken: true deliberately.");
+                    break;
+            }
+        }
+    }
 
     private static string CheckSwitch(string id) =>
         Switches.Contains(id) ? id : throw new ArgumentException($"Setting must be one of {string.Join(", ", Switches)}.", nameof(id));

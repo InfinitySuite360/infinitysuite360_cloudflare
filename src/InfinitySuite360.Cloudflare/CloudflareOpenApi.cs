@@ -20,6 +20,7 @@ public static class CloudflareOpenApi
     public static CloudflareApiClient CreateClient(CloudflareOptions options, HttpClient? httpClient = null)
     {
         ArgumentNullException.ThrowIfNull(options);
+        options.Validate();
         var http = httpClient ?? new HttpClient(CreateHandler(options)) { Timeout = options.Timeout };
         var auth = new BaseBearerTokenAuthenticationProvider(new OptionsTokenProvider(options));
         var adapter = new DefaultRequestAdapter(auth, httpClient: http) { BaseUrl = options.BaseAddress.TrimEnd('/') };
@@ -34,10 +35,10 @@ public static class CloudflareOpenApi
     {
         var retry = new RetryHandlerOption
         {
-            MaxRetry = Math.Clamp(options.MaxRetries, 0, 10),
+            MaxRetry = Math.Clamp(options.MaxRetries, 0, CloudflareOptions.MaxRetriesLimit),
             ShouldRetry = (_, _, response) =>
                 response.StatusCode == HttpStatusCode.TooManyRequests
-                || (response.RequestMessage is { } request && CloudflareWritePolicy.IsIdempotent(request.Method)),
+                || (response.RequestMessage is { RequestUri: { } uri } request && CloudflareWritePolicy.IsIdempotent(request.Method, CloudflareWritePolicy.RelativePath(uri, options))),
         };
         var handlers = KiotaClientFactory.CreateDefaultHandlers([retry]);
         handlers.Insert(0, new CloudflareWriteGuardHandler(options));
