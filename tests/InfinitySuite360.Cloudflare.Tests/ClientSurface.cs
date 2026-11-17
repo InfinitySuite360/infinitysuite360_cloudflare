@@ -98,7 +98,7 @@ internal static class ClientSurface
         if (type == typeof(int)) return defaultValue is int i ? i : lower.Contains("port") ? 8443 : lower.Contains("days") ? 365 : 1;
         if (type == typeof(long)) return defaultValue is long l ? l : 1L;
         if (type == typeof(double)) return defaultValue is double d ? d : 1.0;
-        if (type == typeof(DateTimeOffset)) return DateTimeOffset.UtcNow.AddDays(7);
+        if (type == typeof(DateTimeOffset)) return lower.Contains("since") || lower.Contains("start") || lower.Contains("from") ? DateTimeOffset.UtcNow.AddDays(-1) : DateTimeOffset.UtcNow.AddDays(7);
         if (type == typeof(TimeSpan)) return TimeSpan.FromDays(30);
         if (type == typeof(JsonElement)) return JsonSerializer.SerializeToElement(new { a = 1 });
         if (type == typeof(JsonObject) || type == typeof(JsonNode)) return new JsonObject { ["a"] = 1 };
@@ -173,6 +173,7 @@ internal static class ClientSurface
         if (n.Contains("zoneid")) return "zone1";
         if (n.Contains("accountid")) return "acc1";
         if (n is "originname") return "o1";
+        if (n.Contains("domain")) return "app.example.com";
         if (n.Contains("hostname") || n is "host" or "domain" or "origin" or "fallbackorigin" or "server") return "app.example.com";
         if (n.Contains("pattern")) return "example.com/api/*";
         if (n.Contains("url")) return "https://example.com/a.css";

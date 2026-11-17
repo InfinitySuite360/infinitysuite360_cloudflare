@@ -27,7 +27,11 @@ public static class CloudflareOpenApiServiceCollectionExtensions
     private static IServiceCollection AddCloudflareOpenApi(this IServiceCollection services)
     {
         services.AddHttpClient(CloudflareServiceCollectionExtensions.OpenApiHttpClientName, (sp, http) => http.Timeout = sp.GetRequiredService<IOptions<CloudflareOptions>>().Value.Timeout)
-            .ConfigurePrimaryHttpMessageHandler(sp => CloudflareOpenApi.CreateHandler(sp.GetRequiredService<IOptions<CloudflareOptions>>().Value));
+            .ConfigurePrimaryHttpMessageHandler(sp =>
+            {
+                var options = sp.GetRequiredService<IOptions<CloudflareOptions>>().Value;
+                return CloudflareOpenApi.CreateHandler(options, null, sp.GetRequiredService<CloudflareRateBudgetRegistry>().For(options));
+            });
         services.TryAddTransient(sp => CloudflareOpenApi.CreateClient(
             sp.GetRequiredService<IOptions<CloudflareOptions>>().Value,
             sp.GetRequiredService<IHttpClientFactory>().CreateClient(CloudflareServiceCollectionExtensions.OpenApiHttpClientName)));

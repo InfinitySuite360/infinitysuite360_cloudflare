@@ -77,6 +77,28 @@ public interface ICloudflareClient
     DlpClient Dlp { get; }
     /// <summary>Zero Trust risk scoring, read-only: behaviors and user summary.</summary>
     RiskScoringClient RiskScoring { get; }
+    /// <summary>Cloudflare Images (0.9.0, narrow): images, usage, variants; delete with preview.</summary>
+    ImagesClient Images { get; }
+    /// <summary>Cloudflare Stream (0.9.0, narrow): videos, storage usage; delete with preview.</summary>
+    StreamClient Stream { get; }
+    /// <summary>Cloudflare Registrar (0.9.0, narrow): registrations, status, auto-renew with preview.</summary>
+    RegistrarClient Registrar { get; }
+    /// <summary>Account members and roles (0.9.0, narrow): read; remove with preview and lock-out protection.</summary>
+    MembersClient Members { get; }
+    /// <summary>Account audit log v2 (0.9.0, read-only; v1 in Monitoring).</summary>
+    AuditLogsClient AuditLogs { get; }
+    /// <summary>Cloudflare Radar (0.9.0, read-only): domain ranking, ASNs, any dataset.</summary>
+    RadarClient Radar { get; }
+    /// <summary>Cloudflare Pages (0.9.0, narrow): projects, deployments; rollback with preview.</summary>
+    PagesClient Pages { get; }
+    /// <summary>Hyperdrive (0.9.0, narrow): configurations without passwords; delete with preview.</summary>
+    HyperdriveClient Hyperdrive { get; }
+    /// <summary>Workflows (0.9.0, narrow): workflows, instances; pause/resume/terminate with preview.</summary>
+    WorkflowsClient Workflows { get; }
+    /// <summary>Durable Objects (0.9.0, read-only): namespaces and objects.</summary>
+    DurableObjectsClient DurableObjects { get; }
+    /// <summary>Secrets Store (0.9.0, narrow): stores and secret metadata, never values; delete with preview.</summary>
+    SecretsStoreClient SecretsStore { get; }
 }
 
 public sealed class CloudflareClient : ICloudflareClient
@@ -122,6 +144,17 @@ public sealed class CloudflareClient : ICloudflareClient
         Devices = new(api);
         Dlp = new(api);
         RiskScoring = new(api);
+        Images = new(api);
+        Stream = new(api);
+        Registrar = new(api);
+        Members = new(api);
+        AuditLogs = new(api);
+        Radar = new(api);
+        Pages = new(api);
+        Hyperdrive = new(api);
+        Workflows = new(api);
+        DurableObjects = new(api);
+        SecretsStore = new(api);
     }
 
     /// <summary>Creates a client without dependency injection (console tools, scripts, tests).</summary>
@@ -173,4 +206,15 @@ public sealed class CloudflareClient : ICloudflareClient
     public DevicesClient Devices { get; }
     public DlpClient Dlp { get; }
     public RiskScoringClient RiskScoring { get; }
+    public ImagesClient Images { get; }
+    public StreamClient Stream { get; }
+    public RegistrarClient Registrar { get; }
+    public MembersClient Members { get; }
+    public AuditLogsClient AuditLogs { get; }
+    public RadarClient Radar { get; }
+    public PagesClient Pages { get; }
+    public HyperdriveClient Hyperdrive { get; }
+    public WorkflowsClient Workflows { get; }
+    public DurableObjectsClient DurableObjects { get; }
+    public SecretsStoreClient SecretsStore { get; }
 }

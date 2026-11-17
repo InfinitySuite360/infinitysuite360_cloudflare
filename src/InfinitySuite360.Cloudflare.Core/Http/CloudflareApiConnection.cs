@@ -43,6 +43,15 @@ public sealed class CloudflareApiConnection : ICloudflareApiConnection
 
     public CloudflareOptions Options { get; }
 
+    /// <summary>
+    /// Shared request budget of the token (0.9.0; see <see cref="CloudflareRateBudgetRegistry"/>). When set, every attempt takes a slot first and waits while
+    /// the budget is used up; a 429 from Cloudflare blocks the budget until <c>Retry-After</c>. Null: no counting (the default without a registry).
+    /// </summary>
+    public CloudflareRateBudget? RateBudget { get; init; }
+
+    /// <summary>Describes the connection without the token.</summary>
+    public override string ToString() => $"CloudflareApiConnection({Options}, Budget={RateBudget?.Name ?? "none"})";
+
     public Task<CloudflareResponse<T>> SendAsync<T>(HttpMethod method, string path, object? body = null, CancellationToken ct = default) =>
         SendContentAsync<T>(method, path, () => body is null ? null! : JsonContent(body), ct);
 
@@ -102,8 +111,11 @@ public sealed class CloudflareApiConnection : ICloudflareApiConnection
         var uri = CloudflareWritePolicy.ResolveUri(path, Options);
         var idempotent = CloudflareWritePolicy.IsIdempotent(method, path);
         var maxRetries = Math.Clamp(Options.MaxRetries, 0, CloudflareOptions.MaxRetriesLimit);
+        // GraphQL Analytics uses POST but only reads; it counts against the read share.
+        var kind = CloudflareWritePolicy.IsRead(method) || CloudflarePath.Normalize(path) == "graphql" ? CloudflareRequestKind.Read : CloudflareRequestKind.Write;
         for (var attempt = 0; ; attempt++)
         {
+            if (RateBudget is { } budget) await budget.AcquireAsync(kind, ct).ConfigureAwait(false);
             using var request = new HttpRequestMessage(method, uri);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Options.ApiToken);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -111,6 +123,7 @@ public sealed class CloudflareApiConnection : ICloudflareApiConnection
             request.Content = content();
 
             var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.TooManyRequests) RateBudget?.ReportThrottled(RetryAfter(response), kind);
             var retryable = response.StatusCode == HttpStatusCode.TooManyRequests
                 || (idempotent && response.StatusCode is HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout);
             if (!retryable || attempt >= maxRetries) return response;
@@ -121,10 +134,15 @@ public sealed class CloudflareApiConnection : ICloudflareApiConnection
         }
     }
 
-    private TimeSpan RetryDelay(HttpResponseMessage response, int attempt)
+    private static TimeSpan? RetryAfter(HttpResponseMessage response)
     {
         var ra = response.Headers.RetryAfter;
-        TimeSpan? fromHeader = ra?.Delta ?? (ra?.Date is { } date ? date - DateTimeOffset.UtcNow : null);
+        return ra?.Delta ?? (ra?.Date is { } date ? date - DateTimeOffset.UtcNow : null);
+    }
+
+    private TimeSpan RetryDelay(HttpResponseMessage response, int attempt)
+    {
+        var fromHeader = RetryAfter(response);
         var wait = fromHeader ?? TimeSpan.FromMilliseconds(Options.RetryBaseDelay.TotalMilliseconds * Math.Pow(2, attempt));
         if (wait < TimeSpan.Zero) wait = TimeSpan.Zero;
         return wait > TimeSpan.FromSeconds(60) ? TimeSpan.FromSeconds(60) : wait;

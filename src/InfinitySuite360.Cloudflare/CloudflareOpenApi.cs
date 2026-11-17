@@ -31,7 +31,13 @@ public static class CloudflareOpenApi
     /// Handler chain for the generated client: write guard first, then Kiota's default handlers (retry, redirect, …).
     /// Retries only happen for HTTP 429 or idempotent methods.
     /// </summary>
-    public static HttpMessageHandler CreateHandler(CloudflareOptions options, HttpMessageHandler? innerHandler = null)
+    public static HttpMessageHandler CreateHandler(CloudflareOptions options, HttpMessageHandler? innerHandler = null) => CreateHandler(options, innerHandler, null);
+
+    /// <summary>
+    /// Handler chain with the shared request budget of the token (0.9.0): write guard, Kiota's handlers, then <see cref="CloudflareRateBudgetHandler"/>
+    /// right before the network, so every attempt (also a retry) takes a slot.
+    /// </summary>
+    public static HttpMessageHandler CreateHandler(CloudflareOptions options, HttpMessageHandler? innerHandler, CloudflareRateBudget? budget)
     {
         var retry = new RetryHandlerOption
         {
@@ -42,6 +48,7 @@ public static class CloudflareOpenApi
         };
         var handlers = KiotaClientFactory.CreateDefaultHandlers([retry]);
         handlers.Insert(0, new CloudflareWriteGuardHandler(options));
+        if (budget is not null) handlers.Add(new CloudflareRateBudgetHandler(budget));
         return KiotaClientFactory.ChainHandlersCollectionAndGetFirstLink(innerHandler ?? KiotaClientFactory.GetDefaultHttpMessageHandler(), [.. handlers])
             ?? throw new InvalidOperationException("Could not build the handler chain.");
     }
