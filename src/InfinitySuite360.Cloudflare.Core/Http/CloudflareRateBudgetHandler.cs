@@ -14,7 +14,27 @@ public sealed class CloudflareRateBudgetHandler(CloudflareRateBudget budget) : D
         await budget.AcquireAsync(kind, cancellationToken).ConfigureAwait(false);
         var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
         if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-            budget.ReportThrottled(response.Headers.RetryAfter?.Delta, kind);
+        {
+            try { budget.ReportThrottled(CloudflareRetryAfter.Of(response, budget.Time), kind); }
+            catch
+            {
+                response.Dispose();
+                throw;
+            }
+        }
         return response;
+    }
+}
+
+/// <summary>Reads <c>Retry-After</c> as seconds or as an HTTP date (0.9.1, L-7).</summary>
+internal static class CloudflareRetryAfter
+{
+    /// <summary>The wait the answer asks for; null without the header; never negative.</summary>
+    public static TimeSpan? Of(HttpResponseMessage response, TimeProvider time)
+    {
+        var header = response.Headers.RetryAfter;
+        if (header is null) return null;
+        var wait = header.Delta ?? (header.Date is { } date ? date - time.GetUtcNow() : null);
+        return wait is { } w && w < TimeSpan.Zero ? TimeSpan.Zero : wait;
     }
 }

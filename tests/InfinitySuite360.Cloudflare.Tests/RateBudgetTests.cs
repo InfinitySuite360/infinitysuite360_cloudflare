@@ -5,14 +5,22 @@ using InfinitySuite360.Cloudflare.Http;
 
 namespace InfinitySuite360.Cloudflare.Tests;
 
-/// <summary>A clock the test moves by hand.</summary>
+/// <summary>
+/// A clock the test moves by hand: wall clock (<see cref="GetUtcNow"/>) and monotonic clock (<see cref="GetTimestamp"/>, 0.9.1) move together with
+/// <see cref="Advance"/>; <see cref="JumpWall"/> moves only the wall clock (a changed system time).
+/// </summary>
 internal sealed class FakeClock(DateTimeOffset start) : TimeProvider
 {
+    private readonly object _gate = new();
     private DateTimeOffset _now = start;
-    public override DateTimeOffset GetUtcNow() => _now;
-    public void Advance(TimeSpan by) => _now += by;
+    private long _ticks = 1_000_000;
+    public override DateTimeOffset GetUtcNow() { lock (_gate) return _now; }
+    public override long GetTimestamp() { lock (_gate) return _ticks; }
+    public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+    public void Advance(TimeSpan by) { lock (_gate) { _now += by; _ticks += by.Ticks; } }
+    public void JumpWall(TimeSpan by) { lock (_gate) _now += by; }
     /// <summary>A delay that moves the clock instead of sleeping, and records the wait.</summary>
-    public Func<TimeSpan, CancellationToken, Task> Delay(List<TimeSpan> waits) => (t, _) => { waits.Add(t); Advance(t); return Task.CompletedTask; };
+    public Func<TimeSpan, CancellationToken, Task> Delay(List<TimeSpan> waits) => (t, _) => { lock (waits) waits.Add(t); Advance(t); return Task.CompletedTask; };
 }
 
 /// <summary>P6 (0.9.0): shared request budget per token (1200 requests per five minutes at Cloudflare). Fake clock, fake handler, no network.</summary>

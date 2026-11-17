@@ -15,6 +15,7 @@ namespace InfinitySuite360.Cloudflare.Resources;
 [JsonConverter(typeof(CloudflareOneTimeSecretConverter))]
 public sealed class CloudflareOneTimeSecret : IDisposable
 {
+    [System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
     private string? _value;
 
     internal CloudflareOneTimeSecret(string value, string kind)

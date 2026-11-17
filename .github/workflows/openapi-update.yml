@@ -40,6 +40,7 @@ jobs:
           dotnet restore --force-evaluate
           dotnet build --no-restore --configuration Release
           # Coverage matrix of the new schema (openapi/COVERAGE.md); the contract test then shows endpoints the curated clients use that are gone.
+          # The tests read commit, checksum and operation count from the lock file and GENERATION.md (0.9.1, L-1): no fixed numbers to update by hand.
           CLOUDFLARE_COVERAGE_WRITE=1 dotnet test --no-build --configuration Release --filter "FullyQualifiedName~CoverageReportTests.Coverage_md_is_current"
           dotnet test --no-build --configuration Release
 
