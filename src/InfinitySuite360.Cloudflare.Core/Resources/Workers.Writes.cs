@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -14,11 +15,14 @@ namespace InfinitySuite360.Cloudflare.Resources;
 /// serialization, previews, models and exception messages never contain it. Cloudflare never returns secret values, so no model of this package has one.
 /// </summary>
 [JsonConverter(typeof(WorkerSecretTextConverter))]
-public sealed class WorkerSecretText
+[DebuggerDisplay("WorkerSecretText([redacted])")]
+public sealed class WorkerSecretText : IDisposable
 {
-    private readonly string _value;
+    // N-5 (0.7.1): a character buffer that Dispose overwrites; hidden from the debugger's variable views.
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private char[]? _value;
 
-    private WorkerSecretText(string value) => _value = value;
+    private WorkerSecretText(string value) => _value = value.ToCharArray();
 
     /// <summary>Wraps a secret value (not empty, at most 5 KiB as UTF-8, Cloudflare's limit for variables).</summary>
     public static WorkerSecretText From(string value)
@@ -28,7 +32,14 @@ public sealed class WorkerSecretText
         return new(value);
     }
 
-    internal string Reveal() => _value;
+    internal string Reveal() => _value is { } v ? new string(v) : throw new ObjectDisposedException(nameof(WorkerSecretText));
+
+    /// <summary>Overwrites the internal buffer. The string passed to <see cref="From"/> cannot be wiped by .NET.</summary>
+    public void Dispose()
+    {
+        if (_value is { } v) Array.Clear(v);
+        _value = null;
+    }
 
     public override string ToString() => $"WorkerSecretText({P1.Redacted})";
 }
@@ -253,13 +264,19 @@ public sealed partial class WorkersClient
 
     // ---- custom domains ----
 
-    public CloudflareChangePreview PreviewAttachDomain(string hostname, string scriptName, string? zoneId = null, string environment = "production") =>
-        new("PUT", AccountPath(null, "workers", "domains"), DomainBody(hostname, scriptName, zoneId, environment),
-            $"Serve {hostname} with Worker \"{scriptName}\" (Cloudflare creates the DNS record and certificate).");
+    public CloudflareChangePreview PreviewAttachDomain(string hostname, string scriptName, string? zoneId = null, string environment = "production", string? accountId = null) =>
+        new("PUT", AccountPath(accountId, "workers", "domains"), DomainBody(hostname, scriptName, zoneId, environment),
+            $"Serve {hostname} with Worker \"{scriptName}\" (Cloudflare creates the DNS record and certificate). WARNING: an existing site on this hostname is replaced by the Worker.");
 
-    /// <summary>Attaches a hostname to a Worker (PUT, idempotent).</summary>
-    public Task<WorkerDomain> AttachDomainAsync(string hostname, string scriptName, string? zoneId = null, string environment = "production", string? accountId = null, CancellationToken ct = default) =>
-        Api.PutAsync<WorkerDomain>(AccountPath(accountId, "workers", "domains"), DomainBody(hostname, scriptName, zoneId, environment), ct);
+    /// <summary>
+    /// Attaches a hostname to a Worker (PUT, idempotent). The Worker answers every request of the hostname at once (an existing origin or record is taken over),
+    /// so this needs <paramref name="allowDeploy"/> (M-8, 0.7.1).
+    /// </summary>
+    public Task<WorkerDomain> AttachDomainAsync(string hostname, string scriptName, string? zoneId = null, string environment = "production", string? accountId = null, bool allowDeploy = false, CancellationToken ct = default)
+    {
+        P2.Allow(allowDeploy, "attaching a domain makes the Worker answer every request of that hostname at once", nameof(allowDeploy));
+        return Api.PutAsync<WorkerDomain>(AccountPath(accountId, "workers", "domains"), DomainBody(hostname, scriptName, zoneId, environment), ct);
+    }
 
     /// <summary>Detaches a custom domain: the hostname stops being served by the Worker. Refused unless <paramref name="allowRemoval"/> is true. False when it did not exist.</summary>
     public Task<bool> DetachDomainAsync(string domainId, bool allowRemoval = false, string? accountId = null, CancellationToken ct = default)

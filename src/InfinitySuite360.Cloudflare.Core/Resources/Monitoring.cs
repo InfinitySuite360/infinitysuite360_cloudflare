@@ -43,7 +43,7 @@ public sealed class LogpushJob : CloudflareModel
     public string? Name { get; init; }
     public string Dataset { get; init; } = "";
     public bool Enabled { get; init; }
-    /// <summary>Destination as Cloudflare returns it; it can contain credentials. <see cref="LogpushClient"/> returns it redacted.</summary>
+    /// <summary>Destination with credentials replaced by [redacted] (since 0.7.1, <see cref="LogpushClient.RedactDestination"/>).</summary>
     public string? DestinationConf { get; init; }
     public string? LastError { get; init; }
     public string? ErrorMessage { get; init; }
@@ -129,15 +129,27 @@ public sealed class MonitoringClient(ICloudflareApiConnection api) : CloudflareR
         Api.DeleteAsync(ZonePath(zoneId, "healthchecks", id), ct);
 
     // ---- Logpush (zone) ----
-    public Task<List<LogpushJob>> ListLogpushJobsAsync(string? zoneId = null, CancellationToken ct = default) =>
-        Api.GetAsync<List<LogpushJob>>(ZonePath(zoneId, "logpush", "jobs"), ct);
+    /// <summary>Logpush jobs of the zone. Since 0.7.1 <see cref="LogpushJob.DestinationConf"/> is redacted (<see cref="LogpushClient.RedactDestination"/>).</summary>
+    public async Task<List<LogpushJob>> ListLogpushJobsAsync(string? zoneId = null, CancellationToken ct = default) =>
+        (await Api.GetAsync<List<JsonElement>>(ZonePath(zoneId, "logpush", "jobs"), ct).ConfigureAwait(false) ?? []).Select(RedactJob).ToList();
 
-    /// <summary>Creates a Logpush job (Enterprise). <paramref name="job"/> follows the Cloudflare schema (dataset, destination_conf, …).</summary>
-    public Task<LogpushJob> CreateLogpushJobAsync(object job, string? zoneId = null, CancellationToken ct = default) =>
-        Api.PostAsync<LogpushJob>(ZonePath(zoneId, "logpush", "jobs"), job, ct);
+    /// <summary>Creates a Logpush job (Enterprise). <paramref name="job"/> follows the Cloudflare schema (dataset, destination_conf, …). The answer is redacted (0.7.1).</summary>
+    public async Task<LogpushJob> CreateLogpushJobAsync(object job, string? zoneId = null, CancellationToken ct = default) =>
+        RedactJob(await Api.PostAsync<JsonElement>(ZonePath(zoneId, "logpush", "jobs"), job, ct).ConfigureAwait(false));
 
-    public Task DeleteLogpushJobAsync(int jobId, string? zoneId = null, CancellationToken ct = default) =>
-        Api.DeleteAsync(ZonePath(zoneId, "logpush", "jobs", jobId.ToString(CultureInfo.InvariantCulture)), ct);
+    /// <summary>Always refused since 0.7.1 (no switch in this signature): use <c>Logpush.DeleteJobAsync(jobId, allowRemoval: true)</c>.</summary>
+    [Obsolete("Always refused since 0.7.1: deleting a Logpush job needs an explicit switch. Use Logpush.DeleteJobAsync(jobId, allowRemoval: true). Removed in 1.0.")]
+    public async Task DeleteLogpushJobAsync(int jobId, string? zoneId = null, CancellationToken ct = default) =>
+        await new LogpushClient(Api).DeleteJobAsync(jobId, LogpushScope.Zone, zoneId, allowRemoval: false, ct).ConfigureAwait(false);
+
+    private static LogpushJob RedactJob(JsonElement e)
+    {
+        if (e.ValueKind != JsonValueKind.Object) return new LogpushJob();
+        var node = System.Text.Json.Nodes.JsonNode.Parse(e.GetRawText())!.AsObject();
+        if (node["destination_conf"] is System.Text.Json.Nodes.JsonValue v && v.TryGetValue<string>(out var dest)) node["destination_conf"] = LogpushClient.RedactDestination(dest);
+        node.Remove("ownership_challenge");
+        return JsonSerializer.Deserialize<LogpushJob>(node.ToJsonString(), CloudflareJson.Options) ?? new LogpushJob();
+    }
 
     // ---- Audit logs (account) ----
     /// <summary>Latest audit log entries of the account.</summary>

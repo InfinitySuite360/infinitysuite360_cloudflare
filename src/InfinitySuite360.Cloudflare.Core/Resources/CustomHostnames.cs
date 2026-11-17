@@ -146,19 +146,21 @@ public sealed class CustomHostnamesClient(ICloudflareApiConnection api) : Cloudf
 
     /// <summary>Plan of a new custom hostname (sends nothing).</summary>
     /// <param name="allowEmailValidation">Email validation makes Cloudflare write to the WHOIS contacts and admin@/hostmaster@… of the customer's domain.</param>
-    public CloudflareChangePreview PreviewCreate(CustomHostnameInput input, bool allowEmailValidation = false, string? zoneId = null) =>
-        new("POST", ZonePath(zoneId, "custom_hostnames"), CreateBody(input, allowEmailValidation),
+    /// <param name="allowWeaken">A minimum TLS version 1.0 or 1.1 accepts outdated protocol versions (M-8, 0.7.1).</param>
+    public CloudflareChangePreview PreviewCreate(CustomHostnameInput input, bool allowEmailValidation = false, string? zoneId = null, bool allowWeaken = false) =>
+        new("POST", ZonePath(zoneId, "custom_hostnames"), CreateBody(input, allowEmailValidation, allowWeaken),
             $"Add custom hostname {input.Hostname} with a DV certificate validated by {input.ValidationMethod}.");
 
     /// <summary>Adds a custom hostname and requests its certificate (POST, not retried; see <see cref="EnsureAsync"/>). The answer carries the validation records.</summary>
     /// <inheritdoc cref="PreviewCreate" path="/param"/>
-    public Task<CustomHostname> CreateAsync(CustomHostnameInput input, bool allowEmailValidation = false, string? zoneId = null, CancellationToken ct = default) =>
-        P1.SendStrippedAsync<CustomHostname>(Api, HttpMethod.Post, ZonePath(zoneId, "custom_hostnames"), CreateBody(input, allowEmailValidation), ct, Secret);
+    public Task<CustomHostname> CreateAsync(CustomHostnameInput input, bool allowEmailValidation = false, string? zoneId = null, bool allowWeaken = false, CancellationToken ct = default) =>
+        P1.SendStrippedAsync<CustomHostname>(Api, HttpMethod.Post, ZonePath(zoneId, "custom_hostnames"), CreateBody(input, allowEmailValidation, allowWeaken), ct, Secret);
 
     /// <summary>Idempotent: returns the existing hostname of this name (unchanged) or adds it. Survives a concurrent create (409).</summary>
-    public async Task<(CustomHostname Hostname, bool Created)> EnsureAsync(CustomHostnameInput input, bool allowEmailValidation = false, string? zoneId = null, CancellationToken ct = default)
+    /// <inheritdoc cref="PreviewCreate" path="/param"/>
+    public async Task<(CustomHostname Hostname, bool Created)> EnsureAsync(CustomHostnameInput input, bool allowEmailValidation = false, string? zoneId = null, bool allowWeaken = false, CancellationToken ct = default)
     {
-        var body = CreateBody(input, allowEmailValidation);
+        var body = CreateBody(input, allowEmailValidation, allowWeaken);
         EnsureWritable(HttpMethod.Post, ZonePath(zoneId, "custom_hostnames"));
         var existing = await FindAsync(input.Hostname, zoneId, ct).ConfigureAwait(false);
         if (existing is not null) return (existing, false);
@@ -174,12 +176,14 @@ public sealed class CustomHostnamesClient(ICloudflareApiConnection api) : Cloudf
         }
     }
 
-    public CloudflareChangePreview PreviewUpdate(string customHostnameId, CustomHostnameChange change, bool allowEmailValidation = false, string? zoneId = null) =>
-        new("PATCH", ZonePath(zoneId, "custom_hostnames", customHostnameId), ChangeBody(change, allowEmailValidation), $"Change custom hostname {customHostnameId}.");
+    /// <inheritdoc cref="PreviewCreate" path="/param"/>
+    public CloudflareChangePreview PreviewUpdate(string customHostnameId, CustomHostnameChange change, bool allowEmailValidation = false, string? zoneId = null, bool allowWeaken = false) =>
+        new("PATCH", ZonePath(zoneId, "custom_hostnames", customHostnameId), ChangeBody(change, allowEmailValidation, allowWeaken), $"Change custom hostname {customHostnameId}.");
 
     /// <summary>Changes validation method, minimum TLS version, origin or metadata (PATCH). Sending the same validation method again restarts validation.</summary>
-    public Task<CustomHostname> UpdateAsync(string customHostnameId, CustomHostnameChange change, bool allowEmailValidation = false, string? zoneId = null, CancellationToken ct = default) =>
-        P1.SendStrippedAsync<CustomHostname>(Api, HttpMethod.Patch, ZonePath(zoneId, "custom_hostnames", customHostnameId), ChangeBody(change, allowEmailValidation), ct, Secret);
+    /// <inheritdoc cref="PreviewCreate" path="/param"/>
+    public Task<CustomHostname> UpdateAsync(string customHostnameId, CustomHostnameChange change, bool allowEmailValidation = false, string? zoneId = null, bool allowWeaken = false, CancellationToken ct = default) =>
+        P1.SendStrippedAsync<CustomHostname>(Api, HttpMethod.Patch, ZonePath(zoneId, "custom_hostnames", customHostnameId), ChangeBody(change, allowEmailValidation, allowWeaken), ct, Secret);
 
     public CloudflareChangePreview PreviewDelete(string customHostnameId, string? zoneId = null) =>
         new("DELETE", ZonePath(zoneId, "custom_hostnames", customHostnameId), null,
@@ -214,27 +218,27 @@ public sealed class CustomHostnamesClient(ICloudflareApiConnection api) : Cloudf
         return DeleteIfExistsAsync(ZonePath(zoneId, "custom_hostnames", "fallback_origin"), null, ct);
     }
 
-    private static JsonObject CreateBody(CustomHostnameInput input, bool allowEmailValidation)
+    private static JsonObject CreateBody(CustomHostnameInput input, bool allowEmailValidation, bool allowWeaken)
     {
         var body = new JsonObject { ["hostname"] = P1.Hostname(input.Hostname, nameof(input), allowWildcard: true) };
         var ssl = new JsonObject { ["method"] = Method(input.ValidationMethod, allowEmailValidation), ["type"] = "dv" };
         if (input.BundleMethod is { } bm) ssl["bundle_method"] = bm is "ubiquitous" or "optimal" or "force" ? bm : throw new ArgumentException("Bundle method must be ubiquitous, optimal or force.", nameof(input));
         if (input.CertificateAuthority is { } ca) ssl["certificate_authority"] = ca is "google" or "lets_encrypt" or "ssl_com" ? ca : throw new ArgumentException("Certificate authority must be google, lets_encrypt or ssl_com.", nameof(input));
         if (input.Hostname.StartsWith("*.", StringComparison.Ordinal)) ssl["wildcard"] = true;
-        if (input.MinTlsVersion is { } tls) ssl["settings"] = new JsonObject { ["min_tls_version"] = Tls(tls) };
+        if (input.MinTlsVersion is { } tls) ssl["settings"] = new JsonObject { ["min_tls_version"] = MinTls(tls, allowWeaken) };
         body["ssl"] = ssl;
         Origin(body, input.CustomOriginServer, input.CustomOriginSni, input.CustomMetadata);
         return body;
     }
 
-    private static JsonObject ChangeBody(CustomHostnameChange c, bool allowEmailValidation)
+    private static JsonObject ChangeBody(CustomHostnameChange c, bool allowEmailValidation, bool allowWeaken)
     {
         var body = new JsonObject();
         if (c.ValidationMethod is not null || c.MinTlsVersion is not null)
         {
             var ssl = new JsonObject { ["type"] = "dv" };
             if (c.ValidationMethod is { } m) ssl["method"] = Method(m, allowEmailValidation);
-            if (c.MinTlsVersion is { } tls) ssl["settings"] = new JsonObject { ["min_tls_version"] = Tls(tls) };
+            if (c.MinTlsVersion is { } tls) ssl["settings"] = new JsonObject { ["min_tls_version"] = MinTls(tls, allowWeaken) };
             body["ssl"] = ssl;
         }
         Origin(body, c.CustomOriginServer, c.CustomOriginSni, c.CustomMetadata);
@@ -260,6 +264,14 @@ public sealed class CustomHostnamesClient(ICloudflareApiConnection api) : Cloudf
         if (method == "email" && !allowEmailValidation)
             throw new ArgumentException("Email validation makes Cloudflare send mail to the domain's WHOIS and admin addresses. Use http or txt, or pass allowEmailValidation: true.", nameof(method));
         return method;
+    }
+
+    private static string MinTls(string version, bool allowWeaken)
+    {
+        Tls(version);
+        if (version is "1.0" or "1.1" && !allowWeaken)
+            throw new ArgumentException($"Minimum TLS {version} accepts outdated protocol versions. Use 1.2 or pass allowWeaken: true deliberately.", nameof(version));
+        return version;
     }
 
     internal static string Tls(string version) =>

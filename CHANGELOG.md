@@ -1,5 +1,75 @@
 # Changelog
 
+## 0.7.1 – unreleased
+
+Security hardening after an independent review of 0.7.0. Defaults are cautious: where an older method had no switch for a risk, it now refuses (and names the
+guarded replacement) instead of writing. All findings are covered by tests with the fake handler (no network, no real token).
+
+* **H-1 path traversal (high):** `Uri.EscapeDataString` does not encode `.`, and `new Uri(base, path)` resolves dot segments, so an id `..` turned
+  `DELETE zones/{zone}/dns_records/..` into `DELETE zones/{zone}/`. `CloudflarePath.Of` now refuses `.`, `..` (also percent-encoded, also double-encoded), empty
+  segments, control characters, `/` and `\` inside a segment (`ArgumentException`, nothing sent). New `CloudflarePath.Append` for free-form names that may contain `/`
+  (KV keys, sent as `%2F`). The connection refuses such paths for reads and writes (`CloudflarePath.EnsureSafe`, also for raw `Api` calls), and
+  `CloudflareWritePolicy.EnsureAllowed` checks the path as Cloudflare resolves it: a path that resolves elsewhere is refused, `WriteFilter` sees the resolved path.
+  Regression test: every public method of every curated client is called with `..` and `%2e%2e` for every string; no path with a dot segment reaches the connection.
+* **H-2 load balancing (high):** changing one origin rebuilt the pool from the typed model and dropped `header` (`Host`) and `virtual_network_id` of every origin.
+  `SetOriginEnabledAsync`, `UpsertOriginAsync` and `RemoveOriginAsync` now work on the origins as Cloudflare returned them and change only the one origin
+  (`UpsertOriginAsync` keeps members the input cannot express).
+* **M-1 old methods around the switches:** `Zones.SetSettingAsync`/`SetSettingsAsync` apply the TLS guards (weaker `ssl`/`min_tls_version`, TLS 1.3 only,
+  `tls_1_3`/`always_use_https`/`opportunistic_encryption` off are refused); `Zones.Purge…Async` use the checks of `Cache.Purge…Async`, `Zones.PurgeEverythingAsync` is always
+  refused; `Dns.UpdateAsync`/`PatchAsync`/`UpsertAsync` never switch a proxied record to DNS-only (`UpsertAsync` is `SafeUpsertAsync` without `allowUnproxy`);
+  `Rulesets.PutPhaseEntrypointAsync`, `PutAccountPhaseEntrypointAsync`, `UpsertRuleByRefAsync`, `RemoveRuleByRefAsync`, `AddRuleAsync`, `UpdateRuleAsync`, `DeleteRuleAsync`
+  refuse new skip rules, blocking every request, loosening managed overrides and, in the WAF phases, removing, disabling or "log instead of act" (compared with the
+  current phase; unchanged rules never count); `R2.DeleteBucketAsync`, `Workers.UploadModuleAsync`, `Workers.DeleteScriptAsync` and the newly obsolete
+  `Monitoring.DeleteLogpushJobAsync` are always refused; `R2.PutLifecycleAsync` refuses deleting rules, `R2.PutCorsAsync` wildcard origins;
+  `Monitoring.ListLogpushJobsAsync`/`CreateLogpushJobAsync` redact the destination. The README marks `Api`/`OpenApi` as "only `AllowWrites`/`WriteFilter`".
+* **M-2:** cache rule `ExtraParameters` may not set `cache`, `edge_ttl` or `browser_ttl` (they bypassed `allowBroadCache`/`allowLongTtl`).
+* **M-3:** Spectrum checks `OriginDirect` ports and `OriginPort` against the sensitive ports (`allowSensitivePort`).
+* **M-4:** R2 CORS: `https://*`, `http://*` and `https://*.com` count as `*` (`allowAnyOrigin`); a wildcard is only valid as a leading `*.` before at least two labels.
+* **M-5:** D1: PRAGMAs are read-only only in their reading form (`user_version(5)` and `= 5` write; `schema_version`/`writable_schema` set = destructive; `journal_mode`
+  is no longer read-only); DELETE/UPDATE with a WHERE part without a column (`WHERE 1`, `1=1`, `?`, `… OR 'a'='a'`) or a self-comparison (`id = id`) are destructive; the
+  top-level WHERE counts (a selective subquery no longer hides `WHERE 1 OR …`); triggers that delete or update are destructive.
+* **M-6:** `Dns.SafeUpsertAsync` (and `UpdateAsync`) keep the current `proxied` value when `Proxied` is null (the PUT made the record DNS-only before).
+* **M-7:** `ApiTokens.UpdateAsync` refuses to change the token the client uses unless `allowSelf` (one verify call).
+* **M-8 new switches** (each refuses locally without a request; the previews name the risk): `ApiShield.RevokeClientCertificateAsync` (`allowRevoke`),
+  `ReplaceTokenValidationKeysAsync` (a key set that drops a current key, read first: `allowKeyRemoval`), `SetOverrideActionAsync("none")` (`allowLoosen`),
+  `DeleteTokenValidationConfigAsync`/`DeleteTokenValidationRuleAsync` (`allowRemoval`); `Workers.AttachDomainAsync` (`allowDeploy`); `Waf.RemoveCustomRuleAsync` (`allowLoosen`);
+  `Tls.SetSwitchAsync` off for `tls_1_3`, `always_use_https`, `opportunistic_encryption` (`allowWeaken`); minimum TLS 1.0/1.1 in `CustomHostnames.Create/Ensure/Update…`
+  and `R2.EnsureCustomDomainAsync` (`allowWeaken`); `Logpush.SetJobEnabledAsync(false)`/`DeleteJobAsync` (`allowRemoval`).
+* **N-1:** `PUT …/tokens/{id}/value` (rolling a token) is never retried (`CloudflareWritePolicy.IsIdempotent(method, path)`, also in the generated client's retry handler).
+* **N-2:** in the last-healthy-pool check a pool without monitor or health report is "unknown" and no longer counts as healthy fallback; origins with weight 0 or without
+  address count as unusable (also in `UpsertOriginAsync`).
+* **N-3:** upserts (`Dns.SafeUpsertAsync`, the ruleset phase clients) check the allow-list again with the method and path of the actual plan before writing;
+  `Dns.SafeUpsertAsync` checks the two possible plans (POST of a new record, PUT below `dns_records/`) before the read.
+* **N-4:** `MatchesAll` recognises `not false`, `!false`, `1 == 1`, `"a" eq "a"`, `http.host ne ""`, `len(…) ge 0`, `starts_with(http.request.uri.path, "/")`,
+  `matches ".*"`, `ip.src in {0.0.0.0/0 ::/0}` and these behind a top-level `or`. Limit documented: syntactic, no evaluation.
+* **N-5:** `ApiTokenSecret`, `WorkerSecretText`, `OriginPullKeyPair` and `JwtKeySet` carry `[DebuggerDisplay]` without the value, hide their buffer from the debugger
+  (`[DebuggerBrowsable(Never)]`) and overwrite it on `Dispose`/`TakeValue` (the last three are now `IDisposable`).
+* **N-6:** Logpush redaction also replaces query parameters without `=` and the path of every destination except r2/s3/gs/azure (for example `splunk://`, `datadog://`).
+* **N-7:** `Kv.ListKeysAsync` stops on an empty page, a repeated cursor and after a page limit; `ListAllAsync` stops on a repeated cursor.
+* **N-8:** `CloudflareOptions.Validate()` (called by `CloudflareClient.Create`, `CloudflareOpenApi.CreateClient` and the DI registration): absolute HTTPS base address
+  (HTTP only for loopback; `http://localhost.evil…` no longer passes), no user info, `MaxRetries` 0 to 10 (`MaxRetriesLimit`), `RetryBaseDelay` not negative. New
+  `MaxResponseBytes` (default 32 MiB): larger answers fail with `CloudflareApiException`.
+* **N-9:** documented: `CloudflareNotEntitledException`/`CloudflareConflictException` are recognised from status and message text; use them for messages, not for
+  security decisions.
+* **N-10:** `Workers.PreviewAttachDomain` takes `accountId` (it always used the default account); the README lists which previews read (the `Preview…Async` ones).
+* Also found by the new reflective guard test: `Lists.EnsureAsync` read before the write guard; it now checks the guard first.
+* Tests: 107 new (317 in total): `PathTraversalTests`, `SecurityHardeningTests` (all findings), the guard tests the review missed (`SetDiscoveryStatesAsync`,
+  `UpdateTokenValidationConfigAsync`, `DeleteTokenValidationConfigAsync`, `UpdateTokenValidationRuleAsync`, user labels, `RemoveLabelsFromOperationsAsync`,
+  `ReactivateClientCertificateAsync`, `SetDefaultActionAsync`, `SetOperationActionAsync`, Page Shield `Create/UpdatePolicyAsync`, Bots leaked credential detection,
+  `CustomHostnames.UpdateAsync`, `OriginPulls.DeleteHostnameCertificateAsync`, `ApiTokens.UpdateAsync`) and a reflective test: every public method of every curated
+  client, called with sample arguments and `AllowWrites = false`, sends no write, and a method that hits the guard has sent nothing before.
+* **Breaking (behaviour):** the methods listed under M-1 refuse what they wrote before (always-refused ones: `Zones.PurgeEverythingAsync`, `R2.DeleteBucketAsync`,
+  `Workers.UploadModuleAsync`, `Workers.DeleteScriptAsync`, `Monitoring.DeleteLogpushJobAsync`); the M-8 methods need their switch; `Dns.UpsertAsync` writes only on change;
+  ids with `/` are refused instead of encoded (`CloudflarePath.Append` for names); `journal_mode` and other PRAGMAs now need `allowWriteSql`; pools without monitor block
+  the last-healthy check (pass `allowLastHealthyPool` after checking); invalid options throw at creation.
+* **Breaking (source, rare):** new optional parameters, each placed after the zone/account/scope parameter and before the `CancellationToken`, so positional calls keep
+  compiling unless they pass the token positionally: `Tls.SetSwitchAsync(…, allowWeaken)`, `ApiTokens.UpdateAsync(…, allowSelf)`, `Logpush.SetJobEnabledAsync`/`DeleteJobAsync(…, allowRemoval)`,
+  `ApiShield.SetOverrideActionAsync(…, allowLoosen)`, `ReplaceTokenValidationKeysAsync(…, allowKeyRemoval)`, `DeleteTokenValidationConfigAsync`/`DeleteTokenValidationRuleAsync(…, allowRemoval)`,
+  `RevokeClientCertificateAsync(…, allowRevoke)`, `Workers.AttachDomainAsync(…, allowDeploy)`, `Waf.RemoveCustomRuleAsync(…, allowLoosen)`,
+  `R2.EnsureCustomDomainAsync(…, allowWeaken)`, `CustomHostnames.PreviewCreate/CreateAsync/EnsureAsync/PreviewUpdate/UpdateAsync(…, allowWeaken)`,
+  `Workers.PreviewAttachDomain(…, accountId)`. `Zones.SetSettingAsync`/`SetSettingsAsync`, `Dns.UpdateAsync`/`PatchAsync`, `Rulesets.PutPhaseEntrypointAsync` and the other
+  ruleset writes are now `async` (same return types). `Monitoring.DeleteLogpushJobAsync` is obsolete.
+
 ## 0.7.0 – unreleased
 
 Priority 2: Workers, KV, D1, Queues, R2, cache, load balancing, Spectrum and Argo as typed clients, with the patterns of 0.5.0/0.6.0: every write checks
