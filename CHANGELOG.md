@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.6.0 – unreleased
+
+Rest of priority 1: typed clients for rate limiting, WAF, bots, custom hostnames, Authenticated Origin Pulls, TLS settings, Logpush and API token
+management, plus DNS helpers. Same rules as 0.5.0: every write checks `AllowWrites`/`WriteFilter` (methods that read before writing check it **before**
+the read, so with `AllowWrites = false` nothing is sent), has a `Preview…` sister that sends nothing, checks its input locally, and risky options need an
+explicit `allow…` switch. Endpoints from the API schema `cloudflare/api-schemas@650bd71`; plans and limits from developers.cloudflare.com (retrieved
+17.11.2026, sources in the XML documentation of each client).
+
+* New `RateLimiting` (`RateLimitingClient`): rate limiting rules of phase `http_ratelimit` typed (`RateLimitRuleInput`: period, requests, mitigation timeout,
+  characteristics with `cf.colo.id` added, counting expression), `ListRulesAsync`, `PreviewUpsertRuleAsync`/`UpsertRuleAsync` (by ref, writes only on change),
+  `RemoveRuleAsync`; local check of the supported periods; the action has no default, `block` on a match-all expression needs `allowBroadMatch`.
+  Deprecated classic rate limits: `ListLegacyRateLimitsAsync`, `DeleteLegacyRateLimitAsync` (for the migration).
+* New `Waf` (`WafClient`): custom rules (`UpsertCustomRuleAsync`, `RemoveCustomRuleAsync`; `skip` needs `allowSkip`, blocking everything `allowBroadMatch`),
+  managed rules (`ListManagedRulesetsAsync`, `ListManagedDeploymentsAsync`, `DeployManagedRulesetAsync` with `ManagedRulesetOverrides` for ruleset, categories,
+  rules and OWASP sensitivity; disabling, `log`/`skip` or low sensitivity need `allowLoosen`; `RemoveManagedDeploymentAsync` refuses without `allowLoosen`),
+  `ManagedRulesetIds`. Both build on the new base `RulesetPhaseClient`, which changes **one** rule (PATCH by rule id, POST to append, PUT only for a new entry
+  point) instead of replacing the phase like `Rulesets.UpsertRuleByRefAsync`, so concurrent edits of other rules are not lost. `Rulesets` itself is unchanged.
+* New `Bots` (`BotsClient`): typed `BotManagementSettings` (Bot Fight Mode, Super Bot Fight Mode, Bot Management, AI bots), `UpdateSettingsAsync` with
+  `BotManagementChange` (only set fields are sent). Bot Fight Mode on and `block`/`managed_challenge` for (likely) automated traffic need
+  `allowChallengeAutomation` (they hit your own API clients; Bot Fight Mode cannot be skipped), blocking verified bots needs `allowBlockVerifiedBots`.
+  Feedback reports, leaked credential checks (`Get/SetLeakedCredentialChecksAsync`) and custom detection locations (list, create, `Ensure…`, update, delete).
+* New `CustomHostnames` (`CustomHostnamesClient`, Cloudflare for SaaS): list (filter, `MaxItems`), get, find, create, `EnsureAsync` (survives a concurrent
+  create), update, delete (idempotent), fallback origin get/set/remove (`RemoveFallbackOriginAsync` needs `allowRemoval`). Email validation needs
+  `allowEmailValidation`. Custom certificates with a private key are deliberately not supported; `custom_key`/`private_key` are stripped from every answer.
+* New `OriginPulls` (`OriginPullsClient`, `origin_tls_client_auth`): zone-level setting and certificates, per-hostname certificates and associations.
+  `OriginPullKeyPair.FromPem` checks certificate and key locally (PEM, not encrypted, key matches); the key is only written into the request body, never into
+  previews, `ToString`, models or errors, and `private_key` is stripped from every answer. Lock-out protection like mTLS: switching AOP off, deleting a
+  certificate and disabling/invalidating a hostname need `allowDisable`.
+* New `Tls` (`TlsSettingsClient`): `GetOverviewAsync` (SSL mode, minimum TLS, TLS 1.3, HTTPS rewrites, ECH, HTTP/3, 0-RTT, HSTS in one call),
+  `SetSslModeAsync` and `SetMinTlsVersionAsync` (read the current value first; weakening needs `allowWeaken`, TLS 1.3 only `allowTls13Only`),
+  `SetHstsAsync` (max-age above one day, includeSubDomains or preload need `allowLongLivedHsts`), `SetSwitchAsync` (with warnings, for example 0-RTT replay).
+* New `Logpush` (`LogpushClient`, zone and account scope): jobs typed as `LogpushJobInfo` with the **destination redacted** (credentials in query, user info,
+  path of HTTP destinations), dataset fields, create, `EnsureJobAsync` (by name and dataset), enable/disable, delete, ownership challenge, destination check;
+  `LogpushClient.RedactDestination` for own logs. `Monitoring.LogpushJob.DestinationConf` stays unredacted (documented).
+* New `ApiTokens` (`ApiTokensClient`): user and account-owned tokens: list, get, verify, permission groups (filter), create, update, enable/disable, roll and
+  revoke. The token value of `CreateAsync`/`RollAsync` exists only in `ApiTokenSecret` (`TakeValue` hands it over once; `ToString` and JSON write
+  `[redacted]`), never in `ApiToken`, `AdditionalData`, previews or errors. Least privilege: wildcard resources need `allowBroadResources`, a token
+  without expiry `allowNoExpiry`; rolling, disabling or revoking the token the client itself uses needs `allowSelf`. Create is never repeated after a server
+  error (it could create a second token).
+* `Dns`: `PreviewCreate`, `PreviewUpdate`, `PreviewDelete`, `DeleteIfExistsAsync` (false on 404), `PreviewUpsertAsync` and `SafeUpsertAsync` (writes only on change,
+  refuses to switch a proxied record to DNS-only without `allowUnproxy`, because that publishes the origin address). `DnsClient` is now `partial`.
+* **Obsolete:** `Certificates.CreateClientCertificateAsync` (no local checks) → `ApiShield.CreateClientCertificateAsync` (CSR only, private keys refused,
+  preview). With `TreatWarningsAsErrors` callers have to switch or suppress CS0618. Removed in 1.0.
+* **Breaking (source, rare):** `ICloudflareClient` has the new members `RateLimiting`, `Waf`, `Bots`, `CustomHostnames`, `OriginPulls`, `Tls`, `Logpush`,
+  `ApiTokens` (own implementations of the interface, in practice test doubles, must add them). No other public signature changed.
+* Not included (reachable through `OpenApi`): per-hostname TLS settings (Advanced Certificate Manager), custom certificates for custom hostnames,
+  account-level rate limiting rulesets, GraphQL analytics additions (the owner's 0.2.1 changes to `Analytics`/`Rulesets` are pending and were not touched).
+* Tests: 17 new (`Priority1Tests`, `ApiTokenTests`) with the fake handler: success, errors, rate limit, not entitled, conflict, previews send nothing,
+  `AllowWrites = false` sends nothing (36 write methods), token value, origin pull key and Logpush credentials never in outputs.
+
 ## 0.5.0 – unreleased
 
 Shield writes. Every new write method checks `AllowWrites`/`WriteFilter`, has a `Preview…` sister that sends nothing, validates its input locally and goes through the
