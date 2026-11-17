@@ -1,5 +1,52 @@
 # Changelog
 
+## 0.9.0 – unreleased
+
+Stage P6 of the plan: cross-cutting work and the rest of the API. Contains 0.8.1. Defaults are cautious; no real Cloudflare call in any test (fake handler only).
+
+* **Coverage matrix as a tool:** `dotnet run tools/coverage.cs` writes [openapi/COVERAGE.md](openapi/COVERAGE.md) from the schema and from reflection over every
+  curated client (each public method is called with sample arguments against a fake handler, each request is matched against the schema): per product area the
+  operations, how many are curated (GET and writes), how many are only reachable through `OpenApi`, and the priority. It replaces the hand-maintained file. The
+  test `CoverageReportTests.Coverage_md_is_current` fails when the file is stale; `--check` does the same locally. New `openapi/operations.tsv`: compact index
+  (method, path template) of the pinned schema `cloudflare/api-schemas@650bd71`, written by `coverage.cs --index` (called by `generate.cs`). The former contents of
+  COVERAGE.md (schema counts, normalization) moved to `openapi/GENERATION.md`. The weekly update workflow regenerates COVERAGE.md before the tests.
+* **Contract tests against the schema:** every method and path a curated client sends must be an operation of the schema; deliberate exceptions are listed with
+  their reason (GraphQL; generic Radar dataset). The test found two endpoints that are not in the schema and are kept for compatibility (open points):
+  `IpAccess.GetAsync` (GET of a single zone IP access rule) and `Tunnels.ListConnectorsAsync` (connector list; use `ListConnectionsAsync`).
+* **`ICloudflareClientFactory` for several tenants:** one client per tenant with its own copy of the options, a shared HTTP connection pool, a cached client is
+  never reused for another token or changed settings, `Dispose`. Registration: `AddCloudflareTenant(name, section | configure)` and `AddCloudflareClientFactory()`
+  (core), `AddCloudflareTenants(section, resolve)` with `ValidateOnStart` and `HttpContext.GetCloudflareClient()` (AspNetCore package). Tenant names: letters,
+  digits, `.`, `_`, `-`, at most 64.
+* **Request budget per token:** `CloudflareRateBudget` counts the requests of all clients that share a token in a sliding window (default 1200 per five minutes)
+  and delays a request before it is sent when the share of its kind is used up (reads 80 %, writes 95 %); a 429 blocks the budget until `Retry-After`;
+  `MaxDelay` (default five minutes) bounds the wait (`CloudflareRateBudgetExceededException`, nothing sent). Events `Delayed`/`Throttled`, `Snapshot()`, meter
+  `InfinitySuite360.Cloudflare`. Registry keyed by an HMAC of the token with a random key per process; labels are the tenant name or a short keyed hash.
+  `CloudflareRateBudgetHandler` puts the generated client on the same budget.
+* **Narrow wrappers for priority-3 areas:** `Images`, `Stream`, `Registrar`, `Members`, `AuditLogs` (v2), `Radar`, `Pages`, `Hyperdrive`, `Workflows`,
+  `DurableObjects`, `SecretsStore`: typed reads; writes only where sensible (deletes with `allowDelete`, auto-renew off with `allowDisableAutoRenew`, member removal
+  with `allowRemoval` and protection of the last super administrator, Pages rollback with `allowDeploy`, Workflows terminate/restart with `allowTerminate`), each
+  with `Preview…`; secrets removed from every answer (Hyperdrive password and access secret, Pages environment variables, Secrets Store values, Workflows
+  parameters and step outputs). What stays `OpenApi` only, and why, is listed in the README with plans and limits (developers.cloudflare.com, retrieved 17.11.2026).
+* **One helper base:** the helper classes `P1`, `P2` and `ZT` are merged into `ResourceKit` without a change of behaviour (`ZT.Strip` → `StripSecrets`,
+  `ZT.SendAsync` → `SendSecretFreeAsync`, `ZT.ResultAsync` → `SecretFreeResultAsync`, `ZT.GetListAsync`/`ListAllAsync`/`GetOrNullAsync` → `…SecretFree…`); the
+  record `CloudflareChangePreview` has its own file; `CloudflareResourceClient` gained `Preview`, `GuardedWriteAsync` and `GuardedDeleteAsync`. The reflective
+  guard tests (no write without `AllowWrites`, no preparing read before the guard, no `..` path) cover the new clients automatically.
+* **Options:** `CloudflareOptions.RateBudget`, `Clone()`, and `ToString()` without the token (`[redacted]`); `CloudflareApiConnection.RateBudget` (init) and
+  `ToString()`.
+* Tests: 50 new (`CoverageReportTests`, `ClientFactoryTests`, `RateBudgetTests`, `Priority3Tests`), 445 in total; the reflective sample arguments know domain names and
+  start times.
+
+**Breaking changes**
+
+* `ICloudflareClient` has eleven new members (`Images`, `Stream`, `Registrar`, `Members`, `AuditLogs`, `Radar`, `Pages`, `Hyperdrive`, `Workflows`,
+  `DurableObjects`, `SecretsStore`): only own implementations of the interface are affected (in practice test doubles).
+* Behaviour: clients from dependency injection (`AddCloudflareInfinitySuite360`, `AddCloudflareInfinitySuite360Core`) now count against the request budget and
+  **wait** instead of running into 429 once 960 reads or 1140 writes were sent in five minutes with one token. Switch it off with `Cloudflare:RateBudget:Enabled =
+  false`. `CloudflareClient.Create` without a registry is unchanged.
+* `CloudflareOptions.Validate` also checks `RateBudget` (a null `RateBudget` or shares outside (0, 1] are refused).
+* `openapi/COVERAGE.md` has a new format; the old counts are in `openapi/GENERATION.md`.
+* Internal only (no public API): `P1`, `P2`, `ZT` no longer exist.
+
 ## 0.8.1 – unreleased
 
 Security hardening of the Zero Trust clients after an independent review of 0.8.0; contains 0.7.1 (merged). Defaults are cautious: every finding refuses locally
