@@ -284,12 +284,12 @@ public sealed partial class AccessClient
             $"Delete Access application {appId}. WARNING: its hostname is no longer protected by an Access login.");
 
     /// <summary>Deletes an application. This always loosens (the hostname loses its login), so it needs <paramref name="allowUnprotect"/>. False when it did not exist.</summary>
-    public Task<bool> RemoveApplicationAsync(string appId, bool allowUnprotect = false, string? accountId = null, CancellationToken ct = default)
+    public async Task<bool> RemoveApplicationAsync(string appId, bool allowUnprotect = false, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "access", "apps", ResourceKit.Required(appId, nameof(appId)));
         EnsureWritable(HttpMethod.Delete, path);
         ResourceKit.Allow(allowUnprotect, "deleting an Access application removes the login protection of its hostname", nameof(allowUnprotect));
-        return DeleteIfExistsAsync(path, null, ct);
+        return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 
     public CloudflareChangePreview PreviewRevokeApplicationTokens(string appId, string? accountId = null) =>
@@ -398,11 +398,11 @@ public sealed partial class AccessClient
     /// Adds a policy to an application (POST, not retried after a server error). A policy that admits everyone (bypass, or allow/non_identity for
     /// "everyone" without a require rule) needs <paramref name="allowLoosen"/>; a deny for everyone needs <paramref name="allowBlock"/>.
     /// </summary>
-    public Task<AccessPolicy> AddApplicationPolicyAsync(string appId, AccessPolicyInput policy, bool allowLoosen = false, bool allowBlock = false, string? accountId = null, CancellationToken ct = default)
+    public async Task<AccessPolicy> AddApplicationPolicyAsync(string appId, AccessPolicyInput policy, bool allowLoosen = false, bool allowBlock = false, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "access", "apps", ResourceKit.Required(appId, nameof(appId)), "policies");
         EnsureWritable(HttpMethod.Post, path);
-        return Api.PostAsync<AccessPolicy>(path, PolicyBody(policy, allowLoosen, allowBlock, null), ct);
+        return await Api.PostAsync<AccessPolicy>(path, PolicyBody(policy, allowLoosen, allowBlock, null), ct).ConfigureAwait(false);
     }
 
     /// <summary>Plan of a policy change: reads the current policy and names the loosening, if any (sends no write).</summary>

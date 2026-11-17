@@ -214,12 +214,12 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
     }
 
     /// <summary>Deletes a custom profile; its devices fall back to the default profile, so this always needs <paramref name="allowDelete"/>. False when it did not exist.</summary>
-    public Task<bool> RemoveProfileAsync(string policyId, bool allowDelete = false, string? accountId = null, CancellationToken ct = default)
+    public async Task<bool> RemoveProfileAsync(string policyId, bool allowDelete = false, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "devices", "policy", ResourceKit.Required(policyId, nameof(policyId)));
         EnsureWritable(HttpMethod.Delete, path);
         ResourceKit.Allow(allowDelete, "deleting a device profile moves its devices to the default profile", nameof(allowDelete));
-        return DeleteIfExistsAsync(path, null, ct);
+        return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 
     // ------------------------------------------------------------------ split tunnel, fallback domains

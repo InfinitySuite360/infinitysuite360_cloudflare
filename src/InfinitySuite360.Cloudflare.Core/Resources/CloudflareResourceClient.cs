@@ -47,7 +47,13 @@ public abstract class CloudflareResourceClient(ICloudflareApiConnection api)
     /// Checks the write guard before a method reads the current state to decide what to write (Ensure/guarded methods), so that with
     /// <c>AllowWrites = false</c> nothing is sent at all, not even the preparing read.
     /// </summary>
-    protected void EnsureWritable(HttpMethod method, string path) => CloudflareWritePolicy.EnsureAllowed(method, path, Api.Options);
+    /// <remarks>0.9.1 (L-2): also marks the current asynchronous flow as a write operation, so the preparing reads count against the write share of the
+    /// request budget until the write is sent (<see cref="CloudflareWriteOperation"/>). Callers are <c>async</c> methods, so the mark stays inside them.</remarks>
+    protected void EnsureWritable(HttpMethod method, string path)
+    {
+        CloudflareWritePolicy.EnsureAllowed(method, path, Api.Options);
+        CloudflareWriteOperation.Begin();
+    }
 
     /// <summary>
     /// Before a preparing read whose write target is not known yet (an upsert decides between POST and PUT): passes when the guard allows at least one of the

@@ -406,24 +406,24 @@ public sealed partial class TunnelsClient
     }
 
     /// <summary>Points a route at another tunnel (PATCH). Clients lose the path through the old tunnel, so this always needs <paramref name="allowDisconnect"/>.</summary>
-    public Task<TunnelRoute> MoveRouteAsync(string routeId, string tunnelId, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
+    public async Task<TunnelRoute> MoveRouteAsync(string routeId, string tunnelId, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "teamnet", "routes", ResourceKit.Required(routeId, nameof(routeId)));
         EnsureWritable(HttpMethod.Patch, path);
         ResourceKit.Allow(allowDisconnect, "moving a route sends its traffic through another tunnel", nameof(allowDisconnect));
-        return Api.PatchAsync<TunnelRoute>(path, new JsonObject { ["tunnel_id"] = ResourceKit.Required(tunnelId, nameof(tunnelId)) }, ct);
+        return await Api.PatchAsync<TunnelRoute>(path, new JsonObject { ["tunnel_id"] = ResourceKit.Required(tunnelId, nameof(tunnelId)) }, ct).ConfigureAwait(false);
     }
 
     public CloudflareChangePreview PreviewRemoveRoute(string routeId, string? accountId = null) =>
         new("DELETE", AccountPath(accountId, "teamnet", "routes", routeId), null, $"Delete private route {routeId}. WARNING: WARP clients can no longer reach that network.");
 
     /// <summary>Deletes a private route; clients lose access to the network, so this always needs <paramref name="allowDisconnect"/>. False when it did not exist.</summary>
-    public Task<bool> RemoveRouteAsync(string routeId, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
+    public async Task<bool> RemoveRouteAsync(string routeId, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "teamnet", "routes", ResourceKit.Required(routeId, nameof(routeId)));
         EnsureWritable(HttpMethod.Delete, path);
         ResourceKit.Allow(allowDisconnect, "deleting a private route cuts WARP clients off that network", nameof(allowDisconnect));
-        return DeleteIfExistsAsync(path, null, ct);
+        return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 
     private static JsonObject RouteBody(string network, string tunnelId, string? vnet, string? comment, bool allowBroadRoute)
@@ -454,12 +454,12 @@ public sealed partial class TunnelsClient
     }
 
     /// <summary>Makes a virtual network the account default (every client without a choice uses it); always needs <paramref name="allowDefaultChange"/>.</summary>
-    public Task<VirtualNetwork> SetDefaultVirtualNetworkAsync(string virtualNetworkId, bool allowDefaultChange = false, string? accountId = null, CancellationToken ct = default)
+    public async Task<VirtualNetwork> SetDefaultVirtualNetworkAsync(string virtualNetworkId, bool allowDefaultChange = false, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "teamnet", "virtual_networks", ResourceKit.Required(virtualNetworkId, nameof(virtualNetworkId)));
         EnsureWritable(HttpMethod.Patch, path);
         ResourceKit.Allow(allowDefaultChange, "changing the default virtual network changes the routing of every client", nameof(allowDefaultChange));
-        return Api.PatchAsync<VirtualNetwork>(path, new JsonObject { ["is_default_network"] = true }, ct);
+        return await Api.PatchAsync<VirtualNetwork>(path, new JsonObject { ["is_default_network"] = true }, ct).ConfigureAwait(false);
     }
 
     /// <summary>

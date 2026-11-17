@@ -549,12 +549,12 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
             $"Delete DNS location {locationId}. WARNING: resolvers pointed at it are no longer filtered.");
 
     /// <summary>Deletes a DNS location; resolvers using it lose filtering, so this always needs <paramref name="allowDelete"/>. False when it did not exist.</summary>
-    public Task<bool> RemoveLocationAsync(string locationId, bool allowDelete = false, string? accountId = null, CancellationToken ct = default)
+    public async Task<bool> RemoveLocationAsync(string locationId, bool allowDelete = false, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "gateway", "locations", ResourceKit.Required(locationId, nameof(locationId)));
         EnsureWritable(HttpMethod.Delete, path);
         ResourceKit.Allow(allowDelete, "deleting a DNS location ends the filtering of every resolver pointed at it", nameof(allowDelete));
-        return DeleteIfExistsAsync(path, null, ct);
+        return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 
     private static JsonObject LocationBody(string name, IEnumerable<string>? networks, bool ecs)
@@ -690,12 +690,12 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     }
 
     /// <summary>Deletes a proxy endpoint; browsers configured with it lose their proxy, so this always needs <paramref name="allowDelete"/>.</summary>
-    public Task<bool> RemoveProxyEndpointAsync(string endpointId, bool allowDelete = false, string? accountId = null, CancellationToken ct = default)
+    public async Task<bool> RemoveProxyEndpointAsync(string endpointId, bool allowDelete = false, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "gateway", "proxy_endpoints", ResourceKit.Required(endpointId, nameof(endpointId)));
         EnsureWritable(HttpMethod.Delete, path);
         ResourceKit.Allow(allowDelete, "deleting a proxy endpoint ends filtering for every browser that uses it", nameof(allowDelete));
-        return DeleteIfExistsAsync(path, null, ct);
+        return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 
     // ------------------------------------------------------------------ certificates
