@@ -82,11 +82,12 @@ public sealed partial class TunnelsClient
 
     /// <summary>
     /// The run token of a tunnel as a <see cref="CloudflareOneTimeSecret"/>. Reading it is a GET, but Cloudflare requires a write permission for it; anyone
-    /// with the token can run the tunnel.
+    /// with the token can run the tunnel. L4 (0.8.1): reading a secret needs <paramref name="allowReadSecret"/> (refused locally, nothing sent).
     /// </summary>
-    public async Task<CloudflareOneTimeSecret> GetRunTokenAsync(string tunnelId, string? accountId = null, CancellationToken ct = default)
+    public async Task<CloudflareOneTimeSecret> GetRunTokenAsync(string tunnelId, string? accountId = null, bool allowReadSecret = false, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "cfd_tunnel", P1.Required(tunnelId, nameof(tunnelId)), "token");
+        P2.Allow(allowReadSecret, $"reading the run token of tunnel {tunnelId} hands out a secret that lets anybody run the tunnel", nameof(allowReadSecret));
         var result = await P2.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
         if (result.ValueKind != JsonValueKind.String || string.IsNullOrEmpty(result.GetString()))
             throw new CloudflareApiException(HttpStatusCode.OK, "GET", CloudflarePath.Normalize(path), [new CloudflareError { Message = "The answer carries no run token." }]);
@@ -108,15 +109,16 @@ public sealed partial class TunnelsClient
         P2.Allow(allowDisconnect, "after rotating, cloudflared replicas with the old token cannot reconnect", nameof(allowDisconnect));
         var secret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
         await Api.SendAsync<JsonElement>(HttpMethod.Patch, path, new JsonObject { ["tunnel_secret"] = secret }, ct).ConfigureAwait(false);
-        return await GetRunTokenAsync(tunnelId, accountId, ct).ConfigureAwait(false);
+        return await GetRunTokenAsync(tunnelId, accountId, allowReadSecret: true, ct).ConfigureAwait(false);
     }
 
     public CloudflareChangePreview PreviewRemove(string tunnelId, string? accountId = null) =>
         new("DELETE", AccountPath(accountId, "cfd_tunnel", tunnelId), null, $"Delete tunnel {tunnelId} (refused while connectors are connected or routes use it).");
 
     /// <summary>
-    /// Deletes a tunnel after a fresh read of the tunnel, its connectors and its routes. A tunnel that is connected (status healthy/degraded or active
-    /// connections) or that private routes use needs <paramref name="allowDeleteActive"/>; if the state cannot be read the call fails. False when it did not exist.
+    /// Deletes a tunnel after a fresh read of the tunnel, its connectors, its routes and its ingress. A tunnel that is connected (status healthy/degraded
+    /// or active connections), that private routes use or (L7, 0.8.1) whose ingress still serves hostnames – their CNAMEs point at it, also while it is
+    /// "down" – needs <paramref name="allowDeleteActive"/>; if the state cannot be read the call fails. False when it did not exist.
     /// </summary>
     public async Task<bool> RemoveAsync(string tunnelId, bool allowDeleteActive = false, string? accountId = null, CancellationToken ct = default)
     {
@@ -133,6 +135,12 @@ public sealed partial class TunnelsClient
             var routes = await ListRoutesAsync(tunnelId, null, accountId, ct).ConfigureAwait(false);
             if (routes.Count > 0)
                 throw new InvalidOperationException($"Refused: {ZT.Plural(routes.Count, "private route uses", "private routes use")} tunnel \"{tunnel.Name}\". Remove them first or pass allowDeleteActive: true deliberately.");
+            TunnelConfiguration? config;
+            try { config = await GetConfigurationAsync(tunnelId, accountId, ct).ConfigureAwait(false); }
+            catch (CloudflareApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound) { config = null; }
+            var hosts = (config?.Config?.Ingress ?? []).Where(r => r.Hostname is not null).Select(r => r.Hostname!).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            if (hosts.Count > 0)
+                throw new InvalidOperationException($"Refused: tunnel \"{tunnel.Name}\" ({tunnel.Status}) still serves {P1.Join(hosts)}; their DNS records point at it. Remove the ingress rules and records first or pass allowDeleteActive: true deliberately.");
         }
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
@@ -159,14 +167,16 @@ public sealed partial class TunnelsClient
         var rules = Normalize(ingress, true);
         var diff = Diff(current.Config?.Ingress ?? [], rules);
         return new("PUT", AccountPath(accountId, "cfd_tunnel", tunnelId, "configurations"), ConfigBody(current, rules),
-            $"Set {rules.Count} ingress rule(s) of tunnel {tunnelId}: added {P1.Join(diff.Added)}, removed {P1.Join(diff.Removed)}, re-pointed {P1.Join(diff.Changed)}."
-            + (diff.Removed.Count + diff.Changed.Count > 0 ? " WARNING: removed or re-pointed hostnames lose their current service." : ""));
+            $"Set {rules.Count} ingress rule(s) of tunnel {tunnelId}: added {P1.Join(diff.Added)}, removed {P1.Join(diff.Removed)}, re-pointed or shadowed {P1.Join(diff.Changed)}."
+            + (diff.Removed.Count + diff.Changed.Count > 0 ? " WARNING: removed, re-pointed or shadowed hostnames lose their current service or origin settings." : ""));
     }
 
     /// <summary>
     /// Sets the ingress rules after a fresh read; <c>originRequest</c> and <c>warp-routing</c> of the current configuration are kept and a final catch-all
-    /// <c>http_status:404</c> is added when missing. Removing a hostname or pointing it to another service needs <paramref name="allowDisconnect"/>; a catch-all
-    /// that forwards to a service needs <paramref name="allowCatchAllService"/>. Written only on change.
+    /// <c>http_status:404</c> is added when missing. Removing a hostname, pointing it to another service, changing its <c>originRequest</c> or letting another
+    /// rule (a wildcard, a rule without hostname, a new order) answer it first needs <paramref name="allowDisconnect"/>; a catch-all or a path rule without
+    /// hostname that forwards to a service needs <paramref name="allowCatchAllService"/>. Written only on change; the configuration version is read again
+    /// right before the PUT and a concurrent change is a <see cref="CloudflareConflictException"/> (M1, 0.8.1).
     /// </summary>
     public async Task<(TunnelConfiguration Configuration, bool Changed)> SetIngressAsync(string tunnelId, IEnumerable<TunnelIngressRule> ingress, bool allowDisconnect = false,
         bool allowCatchAllService = false, string? accountId = null, CancellationToken ct = default)
@@ -175,23 +185,36 @@ public sealed partial class TunnelsClient
         EnsureWritable(HttpMethod.Put, path);
         var rules = Normalize(ingress, allowCatchAllService);
         var current = await GetConfigurationAsync(tunnelId, accountId, ct).ConfigureAwait(false);
-        return await WriteIngressAsync(path, current, rules, allowDisconnect, ct).ConfigureAwait(false);
+        var (config, changed) = await WriteIngressAsync(path, current, rules, allowDisconnect, ct).ConfigureAwait(false);
+        return (config, changed);
     }
 
-    /// <summary>Adds an ingress rule or replaces the one with the same hostname and path (before the catch-all). Changing the service of an existing hostname needs <paramref name="allowDisconnect"/>.</summary>
+    /// <summary>
+    /// Adds an ingress rule or replaces the one with the same hostname and path (before the catch-all). Changing the service or <c>originRequest</c> of an
+    /// existing hostname needs <paramref name="allowDisconnect"/>; a rule without <c>OriginRequest</c> keeps the origin settings of the rule it replaces.
+    /// </summary>
     public async Task<(TunnelConfiguration Configuration, bool Changed)> UpsertIngressRuleAsync(string tunnelId, TunnelIngressRule rule, bool allowDisconnect = false,
         string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "cfd_tunnel", P1.Required(tunnelId, nameof(tunnelId)), "configurations");
         EnsureWritable(HttpMethod.Put, path);
+        var (config, changed, _) = await UpsertCoreAsync(path, tunnelId, rule, allowDisconnect, accountId, ct).ConfigureAwait(false);
+        return (config, changed);
+    }
+
+    private async Task<(TunnelConfiguration Configuration, bool Changed, TunnelConfiguration Before)> UpsertCoreAsync(string path, string tunnelId, TunnelIngressRule rule,
+        bool allowDisconnect, string? accountId, CancellationToken ct)
+    {
         if (string.IsNullOrWhiteSpace(rule.Hostname)) throw new ArgumentException("An ingress rule needs a hostname (the catch-all is managed for you).", nameof(rule));
         var host = P1.Hostname(rule.Hostname, nameof(rule), allowWildcard: true);
+        var service = CheckService(rule.Service);
         var current = await GetConfigurationAsync(tunnelId, accountId, ct).ConfigureAwait(false);
         var rules = (current.Config?.Ingress ?? []).Where(r => !IsCatchAll(r)).ToList();
         var index = rules.FindIndex(r => SameKey(r, host, rule.Path));
-        var next = new TunnelIngressRule { Hostname = host, Path = rule.Path, Service = CheckService(rule.Service), OriginRequest = rule.OriginRequest };
+        var next = new TunnelIngressRule { Hostname = host, Path = rule.Path, Service = service, OriginRequest = rule.OriginRequest ?? (index >= 0 ? rules[index].OriginRequest : null) };
         if (index >= 0) rules[index] = next; else rules.Add(next);
-        return await WriteIngressAsync(path, current, Normalize(rules.Concat(Tail(current)), true), allowDisconnect, ct).ConfigureAwait(false);
+        var (config, changed) = await WriteIngressAsync(path, current, Normalize(rules.Concat(Tail(current)), true), allowDisconnect, ct).ConfigureAwait(false);
+        return (config, changed, current);
     }
 
     /// <summary>Removes the ingress rule of a hostname. This cuts the hostname off, so it always needs <paramref name="allowDisconnect"/>. False when there was no such rule.</summary>
@@ -210,13 +233,45 @@ public sealed partial class TunnelsClient
 
     /// <summary>
     /// Publishes a hostname through the tunnel: <see cref="UpsertIngressRuleAsync"/> plus a proxied CNAME to <c>&lt;tunnel&gt;.cfargotunnel.com</c> via
-    /// <see cref="DnsClient.SafeUpsertAsync"/>. Re-pointing an existing hostname needs <paramref name="allowDisconnect"/>.
+    /// <see cref="DnsClient.SafeUpsertAsync"/>. Re-pointing an existing hostname – in the ingress or a DNS record that points elsewhere – needs
+    /// <paramref name="allowDisconnect"/>. L8 (0.8.1): the zone must belong to the tunnel's account (read first), the DNS plan is read before the ingress is
+    /// written, and when the DNS write fails the ingress change is rolled back, so the call does not leave half a publication behind.
     /// </summary>
     public async Task PublishAsync(string tunnelId, string hostname, string service, DnsClient dns, bool allowDisconnect = false, string? zoneId = null, string? accountId = null,
         CancellationToken ct = default)
     {
-        await UpsertIngressRuleAsync(tunnelId, new TunnelIngressRule { Hostname = hostname, Service = service }, allowDisconnect, accountId, ct).ConfigureAwait(false);
-        await dns.SafeUpsertAsync(new DnsRecordInput { Type = "CNAME", Name = hostname, Content = $"{tunnelId}.cfargotunnel.com", Proxied = true }, false, zoneId, ct).ConfigureAwait(false);
+        ArgumentNullException.ThrowIfNull(dns);
+        var path = AccountPath(accountId, "cfd_tunnel", P1.Required(tunnelId, nameof(tunnelId)), "configurations");
+        EnsureWritable(HttpMethod.Put, path);
+        var host = P1.Hostname(hostname, nameof(hostname), allowWildcard: true);
+        CheckService(service);
+        var record = new DnsRecordInput { Type = "CNAME", Name = host, Content = $"{tunnelId}.cfargotunnel.com", Proxied = true };
+        var dnsPath = dns.PreviewCreate(record, zoneId).Path;
+        EnsureAnyWritable((HttpMethod.Post, dnsPath), (HttpMethod.Put, dnsPath + "/"));
+
+        var zonePath = dnsPath[..dnsPath.LastIndexOf('/')];
+        var zone = await P2.ResultAsync(Api, HttpMethod.Get, zonePath, null, ct).ConfigureAwait(false);
+        var zoneAccount = zone.ValueKind == JsonValueKind.Object && zone.TryGetProperty("account", out var acc) ? P2.Str(acc, "id") : null;
+        if (!string.Equals(zoneAccount, Account(accountId), StringComparison.Ordinal))
+            throw new InvalidOperationException($"Refused: zone {P2.Str(zone, "name") ?? zonePath} belongs to account {zoneAccount ?? "(unknown)"}, not to the account of tunnel {tunnelId}; a CNAME there would not reach the tunnel.");
+        var plan = await dns.PreviewUpsertAsync(record, zoneId, ct).ConfigureAwait(false);
+        if (plan is { Method: "PUT" })
+            P2.Allow(allowDisconnect, $"{host} already has a CNAME that points elsewhere; publishing re-points it to tunnel {tunnelId}", nameof(allowDisconnect));
+
+        var (_, changed, before) = await UpsertCoreAsync(path, tunnelId, new TunnelIngressRule { Hostname = host, Service = service }, allowDisconnect, accountId, ct).ConfigureAwait(false);
+        try
+        {
+            await dns.SafeUpsertAsync(record, false, zoneId, ct).ConfigureAwait(false);
+        }
+        catch (Exception dnsError) when (changed)
+        {
+            try { await Api.PutAsync<TunnelConfiguration>(path, ConfigBody(before, [.. before.Config?.Ingress ?? []]), CancellationToken.None).ConfigureAwait(false); }
+            catch (Exception rollbackError)
+            {
+                throw new AggregateException($"Publishing {host} failed at the DNS step and the ingress rollback failed as well; check the ingress of tunnel {tunnelId}.", dnsError, rollbackError);
+            }
+            throw;
+        }
     }
 
     private async Task<(TunnelConfiguration, bool)> WriteIngressAsync(string path, TunnelConfiguration current, List<TunnelIngressRule> rules, bool allowDisconnect, CancellationToken ct)
@@ -224,8 +279,12 @@ public sealed partial class TunnelsClient
         var before = current.Config?.Ingress ?? [];
         var diff = Diff(before, rules);
         if (diff.Removed.Count + diff.Changed.Count > 0)
-            P2.Allow(allowDisconnect, $"the ingress change removes {P1.Join(diff.Removed)} and re-points {P1.Join(diff.Changed)}", nameof(allowDisconnect));
+            P2.Allow(allowDisconnect, $"the ingress change removes {P1.Join(diff.Removed)} and re-points or shadows {P1.Join(diff.Changed)}", nameof(allowDisconnect));
         if (JsonNode.DeepEquals(ZT.ToNode(before), ZT.ToNode(rules))) return (current, false);
+        // L6/M1 (0.8.1): the API has no If-Match for tunnel configurations; the version is read again right before the PUT.
+        var again = await Api.GetAsync<TunnelConfiguration>(path, ct).ConfigureAwait(false);
+        if (again.Version != current.Version)
+            throw ZT.Conflict("PUT", path, $"The tunnel configuration changed while it was checked (version {current.Version} → {again.Version}). Read it again and repeat the change.");
         return (await Api.PutAsync<TunnelConfiguration>(path, ConfigBody(current, rules), ct).ConfigureAwait(false), true);
     }
 
@@ -247,14 +306,40 @@ public sealed partial class TunnelsClient
 
     private static string Key(TunnelIngressRule r) => r.Hostname + (string.IsNullOrEmpty(r.Path) ? "" : " " + r.Path);
 
+    /// <summary>
+    /// Added and removed hostname/path keys, and (M1, 0.8.1) every key of <paramref name="before"/> whose first matching rule – as cloudflared evaluates
+    /// the list from the top – answers differently afterwards: another service, other <c>originRequest</c> settings, or another rule (a wildcard, a rule
+    /// without hostname, a new order) that now comes first.
+    /// </summary>
     private static (List<string> Added, List<string> Removed, List<string> Changed) Diff(IReadOnlyList<TunnelIngressRule> before, IReadOnlyList<TunnelIngressRule> after)
     {
-        var b = before.Where(r => !IsCatchAll(r)).GroupBy(Key, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().Service, StringComparer.OrdinalIgnoreCase);
-        var a = after.Where(r => !IsCatchAll(r)).GroupBy(Key, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().Service, StringComparer.OrdinalIgnoreCase);
-        return (a.Keys.Where(k => !b.ContainsKey(k)).ToList(),
-                b.Keys.Where(k => !a.ContainsKey(k)).ToList(),
-                a.Where(kv => b.TryGetValue(kv.Key, out var s) && s != kv.Value).Select(kv => kv.Key).ToList());
+        var b = before.Where(r => !IsCatchAll(r)).GroupBy(Key, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+        var a = after.Where(r => !IsCatchAll(r)).GroupBy(Key, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+        var changed = b.Where(kv => a.ContainsKey(kv.Key) && Answer(before, kv.Value) != Answer(after, kv.Value)).Select(kv => kv.Key).ToList();
+        return (a.Keys.Where(k => !b.ContainsKey(k)).ToList(), b.Keys.Where(k => !a.ContainsKey(k)).ToList(), changed);
     }
+
+    /// <summary>Service and origin settings of the first rule in <paramref name="rules"/> that can answer requests of <paramref name="target"/>.</summary>
+    private static string Answer(IReadOnlyList<TunnelIngressRule> rules, TunnelIngressRule target)
+    {
+        var first = rules.FirstOrDefault(r => Overlaps(r, target));
+        return first is null ? "(none)" : first.Service + "|" + (P1.Node(first.OriginRequest)?.ToJsonString() ?? "");
+    }
+
+    /// <summary>
+    /// True when <paramref name="rule"/> can take requests meant for <paramref name="target"/>: no hostname or an overlapping hostname (equal, or one is a
+    /// wildcard that covers the other), and no path, the same path, or a target without path. Different path expressions are not evaluated (regex).
+    /// </summary>
+    private static bool Overlaps(TunnelIngressRule rule, TunnelIngressRule target)
+    {
+        var hostOverlap = rule.Hostname is null || target.Hostname is null || Covers(rule.Hostname, target.Hostname) || Covers(target.Hostname, rule.Hostname);
+        var pathOverlap = string.IsNullOrEmpty(rule.Path) || string.IsNullOrEmpty(target.Path) || rule.Path == target.Path;
+        return hostOverlap && pathOverlap;
+    }
+
+    private static bool Covers(string pattern, string host) =>
+        string.Equals(pattern, host, StringComparison.OrdinalIgnoreCase)
+        || (pattern.StartsWith("*.", StringComparison.Ordinal) && host.EndsWith(pattern[1..], StringComparison.OrdinalIgnoreCase) && host.Length > pattern.Length - 1);
 
     private static List<TunnelIngressRule> Normalize(IEnumerable<TunnelIngressRule> ingress, bool allowCatchAllService)
     {
@@ -264,6 +349,9 @@ public sealed partial class TunnelsClient
         {
             CheckService(r.Service);
             if (IsCatchAll(r)) { catchAll ??= r; continue; }
+            // M1 (0.8.1): a path rule without hostname answers that path for every hostname of the tunnel, like a catch-all.
+            if (r.Hostname is null && !r.Service.StartsWith("http_status:", StringComparison.Ordinal))
+                P2.Allow(allowCatchAllService, $"the rule for path {r.Path} has no hostname and would forward that path of every hostname to {r.Service}", nameof(allowCatchAllService));
             rules.Add(r.Hostname is null ? r : new TunnelIngressRule { Hostname = P1.Hostname(r.Hostname, nameof(ingress), allowWildcard: true), Path = r.Path, Service = r.Service, OriginRequest = r.OriginRequest });
         }
         if (catchAll is not null && catchAll.Service != CatchAllService && !catchAll.Service.StartsWith("http_status:", StringComparison.Ordinal))

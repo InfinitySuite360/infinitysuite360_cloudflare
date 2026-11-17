@@ -33,8 +33,14 @@ public sealed class CloudflareOptions
     /// </summary>
     public Func<HttpMethod, string, bool>? WriteFilter { get; set; }
 
-    /// <summary>Retries for HTTP 429 and transient server errors (502/503/504, idempotent methods only).</summary>
+    /// <summary>Upper bound of <see cref="MaxRetries"/> (checked by <see cref="Validate"/>; the connection never retries more often).</summary>
+    public const int MaxRetriesLimit = 10;
+
+    /// <summary>Retries for HTTP 429 and transient server errors (502/503/504, idempotent methods only). 0 to <see cref="MaxRetriesLimit"/>.</summary>
     public int MaxRetries { get; set; } = 3;
+
+    /// <summary>Largest answer body the curated client reads (default 32 MiB); a larger answer fails with <see cref="CloudflareApiException"/> instead of filling the memory.</summary>
+    public long MaxResponseBytes { get; set; } = 32L * 1024 * 1024;
 
     /// <summary>Base delay for exponential back-off when Cloudflare sends no <c>Retry-After</c>.</summary>
     public TimeSpan RetryBaseDelay { get; set; } = TimeSpan.FromMilliseconds(500);
@@ -45,6 +51,26 @@ public sealed class CloudflareOptions
 
     /// <summary>Checking the token that Cloudflare Access adds to requests (<c>Cf-Access-Jwt-Assertion</c>); off until team domain and audiences are set.</summary>
     public InfinitySuite360.Cloudflare.AccessJwt.CloudflareAccessJwtOptions AccessJwt { get; set; } = new();
+
+    /// <summary>
+    /// Checks the settings that protect the token and the process (0.7.1): <see cref="BaseAddress"/> must be an absolute <c>https</c> URI (plain <c>http</c> only
+    /// for loopback hosts such as a local test proxy), <see cref="MaxRetries"/> 0 to <see cref="MaxRetriesLimit"/>, <see cref="RetryBaseDelay"/> not negative,
+    /// <see cref="MaxResponseBytes"/> positive. Called by <see cref="CloudflareClient.Create"/> and the dependency injection registration.
+    /// </summary>
+    /// <exception cref="CloudflareConfigurationException">A setting is out of range.</exception>
+    public void Validate()
+    {
+        if (!Uri.TryCreate(BaseAddress, UriKind.Absolute, out var uri) || !(uri.Scheme == Uri.UriSchemeHttps || (uri.Scheme == Uri.UriSchemeHttp && uri.IsLoopback)))
+            throw new CloudflareConfigurationException("Cloudflare: BaseAddress must be an absolute https URI (http only for loopback); otherwise the API token would travel in clear text.");
+        if (!string.IsNullOrEmpty(uri.UserInfo) || !string.IsNullOrEmpty(uri.Query) || !string.IsNullOrEmpty(uri.Fragment))
+            throw new CloudflareConfigurationException("Cloudflare: BaseAddress must not contain user info, query or fragment.");
+        if (MaxRetries is < 0 or > MaxRetriesLimit)
+            throw new CloudflareConfigurationException($"Cloudflare: MaxRetries must be 0 to {MaxRetriesLimit}.");
+        if (RetryBaseDelay < TimeSpan.Zero)
+            throw new CloudflareConfigurationException("Cloudflare: RetryBaseDelay must not be negative.");
+        if (MaxResponseBytes <= 0)
+            throw new CloudflareConfigurationException("Cloudflare: MaxResponseBytes must be positive.");
+    }
 }
 
 /// <summary>Settings for server-side Turnstile validation (siteverify).</summary>

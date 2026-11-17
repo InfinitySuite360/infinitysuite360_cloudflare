@@ -49,5 +49,21 @@ public abstract class CloudflareResourceClient(ICloudflareApiConnection api)
     /// </summary>
     protected void EnsureWritable(HttpMethod method, string path) => CloudflareWritePolicy.EnsureAllowed(method, path, Api.Options);
 
+    /// <summary>
+    /// Before a preparing read whose write target is not known yet (an upsert decides between POST and PUT): passes when the guard allows at least one of the
+    /// candidate writes, so that with <c>AllowWrites = false</c> or an allow-list that allows none of them nothing is sent. The caller checks the actual plan
+    /// with <see cref="EnsureWritable"/> before it writes.
+    /// </summary>
+    protected void EnsureAnyWritable(params (HttpMethod Method, string Path)[] candidates)
+    {
+        CloudflareWriteNotAllowedException? first = null;
+        foreach (var (method, path) in candidates)
+        {
+            try { EnsureWritable(method, path); return; }
+            catch (CloudflareWriteNotAllowedException ex) { first ??= ex; }
+        }
+        if (first is not null) throw first;
+    }
+
     protected static JsonElement ToElement(object value) => JsonSerializer.SerializeToElement(value, value.GetType(), CloudflareJson.Options);
 }

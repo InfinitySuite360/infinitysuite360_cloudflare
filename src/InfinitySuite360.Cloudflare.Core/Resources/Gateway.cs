@@ -193,6 +193,10 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
 {
     private static readonly HashSet<string> Actions = ["on", "off", "allow", "block", "scan", "noscan", "safesearch", "ytrestricted", "isolate", "noisolate", "override", "l4_override", "egress", "resolve", "quarantine", "redirect", "forward"];
     private static readonly HashSet<string> Protective = ["block", "isolate", "scan", "quarantine", "safesearch", "ytrestricted", "on", "redirect"];
+    /// <summary>Actions that let traffic past protective rules or out of inspection (H3, 0.8.1).</summary>
+    private static readonly HashSet<string> Permissive = ["allow", "off", "noscan", "noisolate", "override", "l4_override", "resolve", "egress"];
+    /// <summary>Members of a rule that Cloudflare sets itself; they are not sent back with a PUT.</summary>
+    private static readonly string[] ReadOnlyRuleMembers = ["id", "created_at", "updated_at", "deleted_at", "version", "read_only", "source_account", "sharable", "warning_status", "not_sharable"];
     private static readonly HashSet<string> Filters = ["dns", "http", "l4", "egress", "dns_resolver"];
     private static readonly HashSet<string> ListTypes = ["SERIAL", "URL", "DOMAIN", "EMAIL", "IP", "CATEGORY", "LOCATION", "DEVICE", "AAGUID"];
     private const int MaxListItems = 5000;
@@ -221,14 +225,22 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     public CloudflareChangePreview PreviewEnsureRule(GatewayRuleInput rule, bool allowBroadMatch = false, string? accountId = null) =>
         new("POST", AccountPath(accountId, "gateway", "rules"), RuleBody(rule, allowBroadMatch), Describe("Create", rule));
 
-    /// <summary>Returns the rule with this name or creates it (POST, not retried after a server error); an existing rule is not changed.</summary>
-    public async Task<(GatewayRule Rule, bool Created)> EnsureRuleAsync(GatewayRuleInput rule, bool allowBroadMatch = false, string? accountId = null, CancellationToken ct = default)
+    /// <summary>
+    /// Returns the rule with this name or creates it (POST, not retried after a server error); an existing rule is not changed. H3 (0.8.1): an enabled
+    /// permissive rule (allow, off, noscan, noisolate, override, l4_override, resolve, egress) that matches all traffic, or that would be evaluated before an
+    /// enabled protective rule of the same filter, needs <paramref name="allowLoosen"/> (the rules are read first, fail-closed).
+    /// </summary>
+    public async Task<(GatewayRule Rule, bool Created)> EnsureRuleAsync(GatewayRuleInput rule, bool allowBroadMatch = false, string? accountId = null, bool allowLoosen = false,
+        CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "gateway", "rules");
         EnsureWritable(HttpMethod.Post, path);
         var body = RuleBody(rule, allowBroadMatch);
-        var existing = (await ListRulesAsync(null, accountId, ct).ConfigureAwait(false)).FirstOrDefault(r => r.Name == rule.Name);
+        var all = await ListRulesAsync(null, accountId, ct).ConfigureAwait(false);
+        var existing = all.FirstOrDefault(r => r.Name == rule.Name);
         if (existing is not null) return (existing, false);
+        if (PermissiveRisk(rule.Action, rule.Enabled, rule.Filters[0], rule.Traffic, rule.Identity, rule.DevicePosture, rule.Precedence, all, null) is { } why)
+            P2.Allow(allowLoosen, $"rule \"{rule.Name}\" {why}", nameof(allowLoosen));
         try { return (await ZT.SendAsync<GatewayRule>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), true); }
         catch (CloudflareConflictException)
         {
@@ -241,7 +253,7 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     public async Task<CloudflareChangePreview> PreviewChangeRuleAsync(string ruleId, GatewayRuleInput rule, string? accountId = null, CancellationToken ct = default)
     {
         var current = await GetRuleAsync(ruleId, accountId, ct).ConfigureAwait(false);
-        var (loosen, block) = Compare(current, rule.Action, rule.Enabled, rule.Traffic, rule.Identity, rule.DevicePosture);
+        var (loosen, block) = Compare(current, rule);
         return new("PUT", AccountPath(accountId, "gateway", "rules", ruleId), RuleBody(rule, true),
             Describe($"Change rule \"{current.Name}\" to", rule) + (loosen is null ? "" : $" WARNING: loosens ({loosen}).") + (block is null ? "" : $" WARNING: tightens ({block})."));
     }
@@ -249,6 +261,9 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     /// <summary>
     /// Replaces a rule after a fresh read (written only on change). Read-only rules (managed by a parent account) are refused. Loosening needs
     /// <paramref name="allowLoosen"/>, tightening to block needs <paramref name="allowBlock"/>, a protective rule without selector <paramref name="allowBroadMatch"/>.
+    /// H3 (0.8.1): loosening also covers a protective rule that moves later (precedence) or to another filter, changed rule settings of an enabled rule, and a
+    /// permissive rule that newly matches all traffic or moves before an enabled protective rule. The PUT keeps every member the input does not set
+    /// (<c>schedule</c>, <c>expiration</c>, <c>rule_settings</c>, <c>precedence</c>, <c>description</c>, …) instead of resetting it.
     /// </summary>
     public async Task<(GatewayRule Rule, bool Changed)> ChangeRuleAsync(string ruleId, GatewayRuleInput rule, bool allowLoosen = false, bool allowBlock = false, bool allowBroadMatch = false,
         string? accountId = null, CancellationToken ct = default)
@@ -256,21 +271,35 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
         var path = AccountPath(accountId, "gateway", "rules", P1.Required(ruleId, nameof(ruleId)));
         EnsureWritable(HttpMethod.Put, path);
         var body = RuleBody(rule, allowBroadMatch);
-        var raw = ZT.Strip(await P2.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false));
+        var raw = await ZT.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
         var current = P1.As<GatewayRule>(raw);
         if (current.ReadOnly == true) throw new InvalidOperationException($"Refused: rule \"{current.Name}\" is read-only (managed by another account).");
-        var (loosen, block) = Compare(current, rule.Action, rule.Enabled, rule.Traffic, rule.Identity, rule.DevicePosture);
+        var (loosen, block) = Compare(current, rule);
         if (loosen is not null) P2.Allow(allowLoosen, $"the change loosens rule \"{current.Name}\": {loosen}", nameof(allowLoosen));
         if (block is not null) P2.Allow(allowBlock, $"the change tightens rule \"{current.Name}\": {block}", nameof(allowBlock));
         if (P1.Covers(P1.Node(raw), body)) return (current, false);
-        return (await ZT.SendAsync<GatewayRule>(Api, HttpMethod.Put, path, body, ct).ConfigureAwait(false), true);
+        var widens = !(current.Enabled && Permissive.Contains(current.Action)) || Selector(current) != Selector(rule)
+                     || (rule.Precedence is { } np && current.Precedence is { } cp && np < cp) || !current.Filters.SequenceEqual(rule.Filters);
+        if (widens && rule.Enabled && Permissive.Contains(rule.Action))
+        {
+            var all = await ListRulesAsync(null, accountId, ct).ConfigureAwait(false);
+            if (PermissiveRisk(rule.Action, rule.Enabled, rule.Filters[0], rule.Traffic, rule.Identity, rule.DevicePosture, rule.Precedence ?? current.Precedence, all, current.Id) is { } why)
+                P2.Allow(allowLoosen, $"rule \"{current.Name}\" {why}", nameof(allowLoosen));
+        }
+        var merged = ZT.Merge(raw, body, ReadOnlyRuleMembers);
+        return (await ZT.SendAsync<GatewayRule>(Api, HttpMethod.Put, path, merged, ct).ConfigureAwait(false), true);
     }
 
     public CloudflareChangePreview PreviewSetRuleEnabled(string ruleId, bool enabled, string? accountId = null) =>
         new("PATCH", AccountPath(accountId, "gateway", "rules", ruleId), new JsonObject { ["enabled"] = enabled },
-            enabled ? $"Enable Gateway rule {ruleId}." : $"Disable Gateway rule {ruleId} (refused for a protective rule without allowLoosen).");
+            enabled ? $"Enable Gateway rule {ruleId} (refused for a permissive rule without allowLoosen and a block rule without allowBlock)."
+                : $"Disable Gateway rule {ruleId} (refused for a protective rule without allowLoosen).");
 
-    /// <summary>Enables or disables a rule (PATCH, only on change). Disabling a protective rule needs <paramref name="allowLoosen"/>, enabling a block rule <paramref name="allowBlock"/>.</summary>
+    /// <summary>
+    /// Enables or disables a rule (PATCH, only on change). Disabling a protective rule needs <paramref name="allowLoosen"/>, enabling a block rule
+    /// <paramref name="allowBlock"/>; H3 (0.8.1): enabling a permissive rule (allow, off, noscan, noisolate, override, l4_override, resolve, egress) needs
+    /// <paramref name="allowLoosen"/>.
+    /// </summary>
     public async Task<(GatewayRule Rule, bool Changed)> SetRuleEnabledAsync(string ruleId, bool enabled, bool allowLoosen = false, bool allowBlock = false, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "gateway", "rules", P1.Required(ruleId, nameof(ruleId)));
@@ -279,6 +308,7 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
         if (current.Enabled == enabled) return (current, false);
         if (current.ReadOnly == true) throw new InvalidOperationException($"Refused: rule \"{current.Name}\" is read-only (managed by another account).");
         if (!enabled && Protective.Contains(current.Action)) P2.Allow(allowLoosen, $"disabling {current.Action} rule \"{current.Name}\" loosens Gateway", nameof(allowLoosen));
+        if (enabled && Permissive.Contains(current.Action)) P2.Allow(allowLoosen, $"enabling {current.Action} rule \"{current.Name}\" lets matching traffic past the protective rules", nameof(allowLoosen));
         if (enabled && current.Action == "block") P2.Allow(allowBlock, $"enabling block rule \"{current.Name}\" tightens Gateway", nameof(allowBlock));
         return (await ZT.SendAsync<GatewayRule>(Api, HttpMethod.Patch, path, new JsonObject { ["enabled"] = enabled }, ct).ConfigureAwait(false), true);
     }
@@ -298,27 +328,65 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 
-    private static (string? Loosen, string? Block) Compare(GatewayRule current, string action, bool enabled, string? traffic, string? identity, string? posture)
+    /// <summary>
+    /// Loosening and tightening of a rule change (H3, 0.8.1: also precedence, filters and rule settings): a protective rule that becomes permissive, is
+    /// disabled, gets another selector or filter or moves later; changed rule settings of an enabled rule; a rule that starts to block.
+    /// </summary>
+    private static (string? Loosen, string? Block) Compare(GatewayRule current, GatewayRuleInput next)
     {
         string? loosen = null, block = null;
         var wasProtective = current.Enabled && Protective.Contains(current.Action);
-        var isProtective = enabled && Protective.Contains(action);
-        if (wasProtective && !isProtective) loosen = enabled ? $"action {current.Action} → {action}" : "it would be disabled";
-        else if (wasProtective && (Norm(current.Traffic) != Norm(traffic) || Norm(current.Identity) != Norm(identity) || Norm(current.DevicePosture) != Norm(posture)))
+        var isProtective = next.Enabled && Protective.Contains(next.Action);
+        if (wasProtective && !isProtective) loosen = next.Enabled ? $"action {current.Action} → {next.Action}" : "it would be disabled";
+        else if (wasProtective && Selector(current) != Selector(next))
             loosen = "the selector of a protective rule would change and may match less";
+        else if (wasProtective && !current.Filters.SequenceEqual(next.Filters))
+            loosen = $"a protective rule would move from filter {string.Join("/", current.Filters)} to {string.Join("/", next.Filters)}";
+        else if (wasProtective && next.Precedence is { } np && current.Precedence is { } cp && np > cp)
+            loosen = $"a protective rule would be evaluated later (precedence {cp} → {np})";
+        else if (current.Enabled && next.Enabled && next.RuleSettings is not null && !SameSettings(current.RuleSettings, next.RuleSettings))
+            loosen = "the rule settings of an enabled rule would change (block page, isolation, untrusted certificates, overrides, …)";
         var wasBlocking = current.Enabled && current.Action == "block";
-        if (enabled && action == "block" && !wasBlocking) block = current.Enabled ? $"action {current.Action} → block" : "a disabled rule would block";
+        if (next.Enabled && next.Action == "block" && !wasBlocking) block = current.Enabled ? $"action {current.Action} → block" : "a disabled rule would block";
         return (loosen, block);
     }
 
+    private static bool SameSettings(JsonElement? current, JsonObject next) => P1.Covers(P1.Node(current) ?? new JsonObject(), next);
+
+    private static string Selector(GatewayRule r) => $"{Norm(r.Traffic)}\n{Norm(r.Identity)}\n{Norm(r.DevicePosture)}";
+
+    private static string Selector(GatewayRuleInput r) => $"{Norm(r.Traffic)}\n{Norm(r.Identity)}\n{Norm(r.DevicePosture)}";
+
     private static string Norm(string? s) => (s ?? "").Trim();
+
+    /// <summary>True when the selectors are empty or tautologies (<see cref="ZT.MatchesAll"/>): the rule applies to all traffic of its filter.</summary>
+    private static bool IsBroad(string? traffic, string? identity, string? posture) => ZT.MatchesAll(traffic) && ZT.MatchesAll(identity) && ZT.MatchesAll(posture);
+
+    /// <summary>
+    /// Why an enabled permissive rule is risky, or null: it matches all traffic of its filter, or its precedence puts it before an enabled protective rule of the
+    /// same filter (the first matching rule wins).
+    /// </summary>
+    private static string? PermissiveRisk(string action, bool enabled, string filter, string? traffic, string? identity, string? posture, int? precedence,
+        IReadOnlyList<GatewayRule> all, string? selfId)
+    {
+        if (!enabled || !Permissive.Contains(action)) return null;
+        if (IsBroad(traffic, identity, posture)) return $"would {action} all {filter} traffic (no effective selector)";
+        if (precedence is { } p)
+        {
+            var shadowed = all.Where(r => r.Id != selfId && r.Enabled && Protective.Contains(r.Action) && r.Filters.Contains(filter) && r.Precedence is { } rp && rp > p)
+                .Select(r => $"\"{r.Name}\" ({r.Action})").ToList();
+            if (shadowed.Count > 0) return $"would {action} matching traffic before protective rule(s) {string.Join(", ", shadowed)} (precedence {p})";
+        }
+        return null;
+    }
 
     private static string Describe(string what, GatewayRuleInput r)
     {
-        var broad = string.IsNullOrWhiteSpace(r.Traffic) && string.IsNullOrWhiteSpace(r.Identity) && string.IsNullOrWhiteSpace(r.DevicePosture);
+        var broad = IsBroad(r.Traffic, r.Identity, r.DevicePosture);
         return $"{what} Gateway {string.Join("/", r.Filters)} rule \"{r.Name}\": {r.Action}{(r.Enabled ? "" : " (disabled)")}"
                + (broad ? ", matches all traffic" : "") + "."
-               + (r.Action == "block" && r.Enabled ? " WARNING: blocks matching traffic." : "");
+               + (r.Action == "block" && r.Enabled ? " WARNING: blocks matching traffic." : "")
+               + (Permissive.Contains(r.Action) && r.Enabled ? $" WARNING: {r.Action} lets matching traffic past the protective rules (allowLoosen when broad or placed before them)." : "");
     }
 
     private static JsonObject RuleBody(GatewayRuleInput r, bool allowBroadMatch)
@@ -326,7 +394,7 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
         P1.Required(r.Name, nameof(r), 255);
         if (!Actions.Contains(r.Action)) throw new ArgumentException($"Unknown action \"{r.Action}\".", nameof(r));
         if (r.Filters is not { Count: 1 } || !Filters.Contains(r.Filters[0])) throw new ArgumentException("Exactly one filter: dns, http, l4, egress or dns_resolver.", nameof(r));
-        var broad = string.IsNullOrWhiteSpace(r.Traffic) && string.IsNullOrWhiteSpace(r.Identity) && string.IsNullOrWhiteSpace(r.DevicePosture);
+        var broad = IsBroad(r.Traffic, r.Identity, r.DevicePosture);
         if (broad && r.Enabled && Protective.Contains(r.Action))
             P2.Allow(allowBroadMatch, $"rule \"{r.Name}\" would {r.Action} all {r.Filters[0]} traffic (no traffic, identity or device posture selector)", nameof(allowBroadMatch));
         var body = new JsonObject
@@ -375,8 +443,11 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
         return new("PATCH", AccountPath(accountId, "gateway", "lists", listId), new JsonObject { ["append"] = items }, $"Append {items.Count} entries to Gateway list {listId}.");
     }
 
-    /// <summary>Appends entries (PATCH <c>append</c>; values checked against the list type from a fresh read).</summary>
-    public async Task<GatewayList> AddListItemsAsync(string listId, IEnumerable<string> values, string? accountId = null, CancellationToken ct = default)
+    /// <summary>
+    /// Appends entries (PATCH <c>append</c>; values checked against the list type from a fresh read). M6 (0.8.1): when a rule uses the list, new entries
+    /// change what it matches (an allow list admits more, a block list blocks more), so this needs <paramref name="allowInUse"/> (rules read, fail-closed).
+    /// </summary>
+    public async Task<GatewayList> AddListItemsAsync(string listId, IEnumerable<string> values, string? accountId = null, bool allowInUse = false, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "gateway", "lists", P1.Required(listId, nameof(listId)));
         EnsureWritable(HttpMethod.Patch, path);
@@ -384,6 +455,7 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
         var items = Items(list.Type, values);
         if (items.Count == 0) return list;
         if ((list.Count ?? 0) + items.Count > MaxListItems) throw new ArgumentException($"A list holds at most {MaxListItems} entries (Enterprise).", nameof(values));
+        await RefuseInUseAsync(listId, allowInUse, "adding entries to", accountId, ct).ConfigureAwait(false);
         return await Api.PatchAsync<GatewayList>(path, new JsonObject { ["append"] = items }, ct).ConfigureAwait(false);
     }
 
@@ -413,11 +485,12 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     private async Task RefuseInUseAsync(string listId, bool allowInUse, string what, string? accountId, CancellationToken ct)
     {
         if (allowInUse) return;
+        // M6 (0.8.1): disabled rules count as well – they take the changed list with them when they are enabled again.
         var users = (await ListRulesAsync(null, accountId, ct).ConfigureAwait(false))
-            .Where(r => r.Enabled && $"{r.Traffic} {r.Identity} {r.DevicePosture}".Contains("$" + listId, StringComparison.OrdinalIgnoreCase))
-            .Select(r => $"\"{r.Name}\" ({r.Action})").ToList();
+            .Where(r => $"{r.Traffic} {r.Identity} {r.DevicePosture}".Contains("$" + listId, StringComparison.OrdinalIgnoreCase))
+            .Select(r => $"\"{r.Name}\" ({r.Action}{(r.Enabled ? "" : ", disabled")})").ToList();
         if (users.Count > 0)
-            throw new InvalidOperationException($"Refused: {what} list {listId} changes enabled rule(s) {string.Join(", ", users)}. Pass allowInUse: true deliberately.");
+            throw new InvalidOperationException($"Refused: {what} list {listId} changes rule(s) {string.Join(", ", users)}. Pass allowInUse: true deliberately.");
     }
 
     private static JsonObject ListBody(string name, string type, IEnumerable<string>? values, string? description)

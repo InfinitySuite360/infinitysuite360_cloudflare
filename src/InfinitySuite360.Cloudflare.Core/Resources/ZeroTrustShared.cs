@@ -62,10 +62,41 @@ internal static class ZT
         "client_secret", "secret", "token", "tunnel_secret", "credentials_file", "private_key", "password", "api_key", "access_token", "refresh_token", "seed",
     ];
 
-    public static JsonElement Strip(JsonElement e) => P1.Strip(e, SecretMembers);
+    /// <summary>
+    /// Removes every member whose name is a secret (<see cref="IsSecretName"/>: the names of <see cref="SecretMembers"/> and every name that contains
+    /// "secret", "password", "private_key" or "credential"), anywhere in <paramref name="e"/>. L3 (0.8.1): the same rule as <see cref="Redact"/>.
+    /// </summary>
+    public static JsonElement Strip(JsonElement e)
+    {
+        if (e.ValueKind is not (JsonValueKind.Object or JsonValueKind.Array)) return e;
+        var node = JsonNode.Parse(e.GetRawText());
+        StripNode(node);
+        return JsonSerializer.SerializeToElement(node, CloudflareJson.Options);
+    }
 
-    public static async Task<T> SendAsync<T>(ICloudflareApiConnection api, HttpMethod method, string path, object? body, CancellationToken ct) =>
-        await P1.SendStrippedAsync<T>(api, method, path, body, ct, SecretMembers).ConfigureAwait(false);
+    private static void StripNode(JsonNode? node)
+    {
+        switch (node)
+        {
+            case JsonObject o:
+                foreach (var name in o.Select(p => p.Key).Where(IsSecretName).ToList()) o.Remove(name);
+                foreach (var child in o.Select(p => p.Value).ToList()) StripNode(child);
+                break;
+            case JsonArray a:
+                foreach (var child in a) StripNode(child);
+                break;
+        }
+    }
+
+    public static async Task<T> SendAsync<T>(ICloudflareApiConnection api, HttpMethod method, string path, object? body, CancellationToken ct)
+    {
+        var response = await api.SendAsync<JsonElement>(method, path, body, ct).ConfigureAwait(false);
+        return P1.As<T>(Strip(response.Result));
+    }
+
+    /// <summary>The <c>result</c> of a call with secret members removed (for checks that work on the raw answer).</summary>
+    public static async Task<JsonElement> ResultAsync(ICloudflareApiConnection api, HttpMethod method, string path, object? body, CancellationToken ct) =>
+        Strip(await P2.ResultAsync(api, method, path, body, ct).ConfigureAwait(false));
 
     public static async Task<List<T>> GetListAsync<T>(ICloudflareApiConnection api, string path, CancellationToken ct)
     {
@@ -74,8 +105,87 @@ internal static class ZT
         return result.EnumerateArray().Select(e => P1.As<T>(Strip(e))).ToList();
     }
 
-    public static Task<IReadOnlyList<T>> ListAllAsync<T>(ICloudflareApiConnection api, string path, int perPage, CancellationToken ct) =>
-        P1.ListStrippedAsync<T>(api, path, perPage, ct, SecretMembers);
+    public static async Task<IReadOnlyList<T>> ListAllAsync<T>(ICloudflareApiConnection api, string path, int perPage, CancellationToken ct)
+    {
+        var list = new List<T>();
+        await foreach (var item in api.ListAllAsync<JsonElement>(path, perPage, ct).ConfigureAwait(false))
+            list.Add(P1.As<T>(Strip(item)));
+        return list;
+    }
+
+    /// <summary>
+    /// The PUT body of a full replacement: the current object as Cloudflare returned it (without read-only members) with <paramref name="changes"/> laid
+    /// over it, so members this package does not model (for example <c>approval_required</c>, <c>mfa_config</c>, <c>schedule</c>, <c>expiration</c>) are
+    /// kept instead of being reset by the PUT (H2e/H3, 0.8.1).
+    /// </summary>
+    public static JsonObject Merge(JsonElement current, JsonObject changes, params string[] readOnly)
+    {
+        var body = current.ValueKind == JsonValueKind.Object ? (JsonObject)JsonNode.Parse(current.GetRawText())! : new JsonObject();
+        foreach (var name in readOnly) body.Remove(name);
+        foreach (var name in body.Select(p => p.Key).Where(IsSecretName).ToList()) body.Remove(name);
+        foreach (var (name, value) in changes) body[name] = value?.DeepClone();
+        return body;
+    }
+
+    /// <summary>
+    /// True for a Zero Trust wirefilter expression that selects everything (Gateway traffic/identity/posture, device profile match): the tautologies of
+    /// <see cref="RulesetRisk.MatchesAll"/> plus <c>any</c>, a field compared with <c>matches ".*"</c>/<c>".+"</c>/<c>"^"</c> or <c>ne ""</c>, a membership in
+    /// <c>{0.0.0.0/0 ::/0}</c> and an <c>os.name in {…}</c> with every platform, also behind a top-level <c>or</c>. Syntactic only (no evaluation).
+    /// </summary>
+    public static bool MatchesAll(string? expression)
+    {
+        var e = (expression ?? "").Trim();
+        if (RulesetRisk.MatchesAll(e)) return true;
+        foreach (var part in RulesetRisk.TopLevelOr(e))
+        {
+            var compact = new string(RulesetRisk.Unwrap(part).Where(c => !char.IsWhiteSpace(c)).ToArray()).ToLowerInvariant();
+            if (compact.Length == 0 || BroadZt.IsMatch(compact)) return true;
+            if (compact.StartsWith("os.namein{", StringComparison.Ordinal) && Platforms.All(p => compact.Contains($"\"{p}\"", StringComparison.Ordinal))) return true;
+        }
+        return false;
+    }
+
+    private static readonly string[] Platforms = ["windows", "mac", "linux", "android", "ios"];
+
+    private static readonly System.Text.RegularExpressions.Regex BroadZt = new(
+        "^(any|all|true|1|[a-z0-9_.\\[\\]*]+(matches|~)\"(\\^|\\.\\*|\\.\\+|\\^\\.\\*|\\^\\.\\+|\\.\\*\\$|\\.\\+\\$|\\^\\.\\*\\$|\\^\\.\\+\\$)\"|"
+        + "[a-z0-9_.\\[\\]*]+(ne|!=)\"\"|any\\([a-z0-9_.\\[\\]*]+(ne|!=)\"\"\\)|any\\([a-z0-9_.\\[\\]*]+(matches|~)\"(\\.\\*|\\^\\.\\*\\$|\\.\\+)\"\\)|"
+        + "[a-z0-9_.\\[\\]*]+(in|eq)\\{(0\\.0\\.0\\.0/0|::/0)(0\\.0\\.0\\.0/0|::/0)?\\}|any\\([a-z0-9_.\\[\\]*]+in\\{(0\\.0\\.0\\.0/0|::/0)(0\\.0\\.0\\.0/0|::/0)?\\}\\))$",
+        System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+
+    /// <summary>A CIDR text that is broad (<see cref="IsBroad"/>); false for anything that is not a CIDR.</summary>
+    public static bool IsBroadCidr(string? value)
+    {
+        try { return IsBroad(Cidr(value, "value")); }
+        catch (ArgumentException) { return false; }
+    }
+
+    /// <summary>
+    /// A Go-style duration ("24h", "30m", "1h30m", "720h", "0s") in seconds; null when it cannot be read. Used to rank session lengths (longer = looser).
+    /// </summary>
+    public static double? Seconds(string? duration)
+    {
+        var d = (duration ?? "").Trim().ToLowerInvariant();
+        if (d.Length == 0) return null;
+        var m = System.Text.RegularExpressions.Regex.Matches(d, @"(\d+(?:\.\d+)?)(ms|s|m|h|d)", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+        if (m.Count == 0 || string.Concat(m.Select(x => x.Value)) != d) return null;
+        double total = 0;
+        foreach (System.Text.RegularExpressions.Match x in m)
+        {
+            var n = double.Parse(x.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+            total += x.Groups[2].Value switch { "ms" => n / 1000, "s" => n, "m" => n * 60, "h" => n * 3600, _ => n * 86400 };
+        }
+        return total;
+    }
+
+    /// <summary>True when <paramref name="next"/> is a longer session than <paramref name="now"/> (or the change cannot be ranked: cautious).</summary>
+    public static bool Longer(string? now, string? next)
+    {
+        if (next is null || string.Equals(now?.Trim(), next.Trim(), StringComparison.OrdinalIgnoreCase)) return false;
+        var a = Seconds(now);
+        var b = Seconds(next);
+        return a is null || b is null || b > a;
+    }
 
     /// <summary>A copy of a JSON value with every member whose name looks like a secret replaced by <c>[redacted]</c> (for previews).</summary>
     public static JsonNode? Redact(JsonNode? node)
@@ -95,10 +205,12 @@ internal static class ZT
         }
     }
 
+    /// <summary>The single rule for secret member names, used by <see cref="Strip"/> (answers) and <see cref="Redact"/> (previews) alike (L3, 0.8.1).</summary>
     public static bool IsSecretName(string name)
     {
         var n = name.ToLowerInvariant();
-        return n.Contains("secret") || n.Contains("password") || n.Contains("private_key") || n is "token" or "api_key" or "access_token" or "refresh_token" or "seed";
+        return SecretMembers.Contains(n) || n.Contains("secret") || n.Contains("password") || n.Contains("private_key") || n.Contains("credential")
+               || n is "token" or "api_key" or "access_token" or "refresh_token" or "seed" or "id_token" or "bearer_token" or "auth_token";
     }
 
     public static JsonNode? ToNode(object? value) => value switch

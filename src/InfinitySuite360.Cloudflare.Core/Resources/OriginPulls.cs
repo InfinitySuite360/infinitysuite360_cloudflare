@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -15,14 +16,17 @@ namespace InfinitySuite360.Cloudflare.Resources;
 /// <see cref="FromPem"/> checks locally that the certificate is a PEM certificate without key material, that the key is a PEM private key and that both
 /// belong together (RSA and ECDSA). Use a dedicated key pair for origin pulls, never the key of your edge or origin server certificate.
 /// </remarks>
-public sealed class OriginPullKeyPair
+[DebuggerDisplay("OriginPullKeyPair({Subject}, key [redacted])")]
+public sealed class OriginPullKeyPair : IDisposable
 {
-    private readonly string _privateKeyPem;
+    // N-5 (0.7.1): the private key as a character buffer that Dispose overwrites; hidden from the debugger's variable views.
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private char[]? _privateKeyPem;
 
     private OriginPullKeyPair(string certificatePem, string privateKeyPem, string subject, DateTimeOffset notAfter, string sha256)
     {
         CertificatePem = certificatePem;
-        _privateKeyPem = privateKeyPem;
+        _privateKeyPem = privateKeyPem.ToCharArray();
         Subject = subject;
         NotAfter = notAfter;
         Sha256 = sha256;
@@ -65,7 +69,18 @@ public sealed class OriginPullKeyPair
         }
     }
 
-    internal JsonObject ToBody() => new() { ["certificate"] = CertificatePem, ["private_key"] = _privateKeyPem };
+    internal JsonObject ToBody() => new()
+    {
+        ["certificate"] = CertificatePem,
+        ["private_key"] = _privateKeyPem is { } k ? new string(k) : throw new ObjectDisposedException(nameof(OriginPullKeyPair)),
+    };
+
+    /// <summary>Overwrites the private key buffer. Strings passed to <see cref="FromPem"/> cannot be wiped by .NET.</summary>
+    public void Dispose()
+    {
+        if (_privateKeyPem is { } k) Array.Clear(k);
+        _privateKeyPem = null;
+    }
 
     internal JsonObject ToRedactedBody() => new()
     {

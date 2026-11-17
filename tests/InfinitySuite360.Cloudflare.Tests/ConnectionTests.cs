@@ -1,4 +1,3 @@
-#pragma warning disable CS0618 // the tests of the old, unguarded Zones.PurgeEverythingAsync stay until it is removed
 using System.Net;
 using System.Text.Json;
 using InfinitySuite360.Cloudflare.Http;
@@ -14,7 +13,7 @@ public class ConnectionTests
     public async Task Writes_are_blocked_by_default_and_nothing_is_sent()
     {
         var (cf, handler, _) = FakeHandler.Create();
-        var ex = await Assert.ThrowsAsync<CloudflareWriteNotAllowedException>(() => cf.Zones.PurgeEverythingAsync());
+        var ex = await Assert.ThrowsAsync<CloudflareWriteNotAllowedException>(() => cf.Cache.PurgeEverythingAsync(allowPurgeAll: true));
         Assert.Equal("zones/zone1/purge_cache", ex.Path);
         Assert.Empty(handler.Requests);
     }
@@ -28,7 +27,7 @@ public class ConnectionTests
             o.WriteFilter = (m, p) => m == HttpMethod.Post && p.EndsWith("/purge_cache", StringComparison.Ordinal);
         });
         handler.Responses.Enqueue(FakeHandler.Ok("""{"id":"p1"}"""));
-        Assert.Equal("p1", (await cf.Zones.PurgeEverythingAsync()).Id);
+        Assert.Equal("p1", (await cf.Cache.PurgeEverythingAsync(allowPurgeAll: true)).Id);
         await Assert.ThrowsAsync<CloudflareWriteNotAllowedException>(() => cf.Dns.DeleteAsync("r1"));
         Assert.Single(handler.Requests);
         Assert.Equal("""{"purge_everything":true}""", handler.Requests[0].Body);
@@ -73,7 +72,7 @@ public class ConnectionTests
     {
         var (cf, handler, _) = FakeHandler.Create(o => o.AllowWrites = true);
         handler.Responder = (_, _) => FakeHandler.Json("""{"success":false,"errors":[]}""", HttpStatusCode.ServiceUnavailable);
-        await Assert.ThrowsAsync<CloudflareApiException>(() => cf.Zones.PurgeEverythingAsync());
+        await Assert.ThrowsAsync<CloudflareApiException>(() => cf.Cache.PurgeEverythingAsync(allowPurgeAll: true));
         Assert.Single(handler.Requests);
     }
 
@@ -93,8 +92,11 @@ public class ConnectionTests
     {
         var (cf, handler, _) = FakeHandler.Create();
         handler.Responses.Enqueue(FakeHandler.Ok("""{"id":"x"}"""));
-        await cf.Dns.GetAsync("../../accounts/evil");
-        Assert.Equal("https://api.cloudflare.com/client/v4/zones/zone1/dns_records/..%2F..%2Faccounts%2Fevil", handler.Requests[0].Url);
+        await cf.Dns.GetAsync("a b?c#d");
+        Assert.EndsWith("/zones/zone1/dns_records/a b%3Fc%23d", handler.Requests[0].Url); // Uri.ToString shows %20 as a space
+        // Since 0.7.1 a slash inside an id is refused instead of encoded (see PathTraversalTests).
+        await Assert.ThrowsAsync<ArgumentException>(() => cf.Dns.GetAsync("../../accounts/evil"));
+        Assert.Single(handler.Requests);
     }
 
     [Fact]

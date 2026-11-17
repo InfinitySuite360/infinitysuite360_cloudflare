@@ -44,24 +44,52 @@ public sealed partial class R2Client(ICloudflareApiConnection api) : CloudflareR
         return Api.PostAsync<R2Bucket>(AccountPath(accountId, "r2", "buckets"), body, ct);
     }
 
-    [Obsolete("Deleting data needs an explicit switch. Use RemoveBucketAsync(name, allowDelete) (0.7.0). Removed in 1.0.")]
-    public Task DeleteBucketAsync(string name, string? accountId = null, CancellationToken ct = default) =>
-        Api.DeleteAsync(AccountPath(accountId, "r2", "buckets", name), ct);
+    /// <summary>Always refused since 0.7.1 (no switch in this signature): use <see cref="RemoveBucketAsync"/> with <c>allowDelete: true</c>.</summary>
+    [Obsolete("Always refused since 0.7.1: deleting data needs an explicit switch. Use RemoveBucketAsync(name, allowDelete: true). Removed in 1.0.")]
+    public async Task DeleteBucketAsync(string name, string? accountId = null, CancellationToken ct = default) =>
+        await RemoveBucketAsync(name, allowDelete: false, accountId, ct).ConfigureAwait(false);
 
     public Task<JsonElement> GetLifecycleAsync(string bucket, string? accountId = null, CancellationToken ct = default) =>
         Api.GetAsync<JsonElement>(AccountPath(accountId, "r2", "buckets", bucket, "lifecycle"), ct);
 
-    /// <summary>Sets lifecycle rules (body for example <c>{ "rules": [ … ] }</c>).</summary>
-    [Obsolete("Untyped, no checks for rules that delete objects. Use SetLifecycleAsync (0.7.0). Removed in 1.0.")]
-    public Task<JsonElement> PutLifecycleAsync(string bucket, object rules, string? accountId = null, CancellationToken ct = default) =>
-        Api.PutAsync<JsonElement>(AccountPath(accountId, "r2", "buckets", bucket, "lifecycle"), rules, ct);
+    /// <summary>
+    /// Sets lifecycle rules (body for example <c>{ "rules": [ … ] }</c>). Since 0.7.1 a rule that deletes objects (<c>deleteObjectsTransition</c>) is refused
+    /// (use <see cref="SetLifecycleAsync"/> with <c>allowDeletion</c>).
+    /// </summary>
+    [Obsolete("Untyped. Rules that delete objects are refused since 0.7.1; use SetLifecycleAsync (0.7.0). Removed in 1.0.")]
+    public Task<JsonElement> PutLifecycleAsync(string bucket, object rules, string? accountId = null, CancellationToken ct = default)
+    {
+        var node = ToNode(rules);
+        if (node is JsonObject o && o["rules"] is JsonArray arr && arr.OfType<JsonObject>().Any(r => r["deleteObjectsTransition"] is not null && r["enabled"]?.GetValueKind() != JsonValueKind.False))
+            P2.Allow(false, "a lifecycle rule deletes objects automatically (use SetLifecycleAsync with allowDeletion)", "allowDeletion");
+        return Api.PutAsync<JsonElement>(AccountPath(accountId, "r2", "buckets", BucketName(bucket), "lifecycle"), node, ct);
+    }
 
     public Task<JsonElement> GetCorsAsync(string bucket, string? accountId = null, CancellationToken ct = default) =>
         Api.GetAsync<JsonElement>(AccountPath(accountId, "r2", "buckets", bucket, "cors"), ct);
 
-    [Obsolete("Untyped, no check for wildcard origins. Use SetCorsAsync (0.7.0). Removed in 1.0.")]
-    public Task<JsonElement> PutCorsAsync(string bucket, object cors, string? accountId = null, CancellationToken ct = default) =>
-        Api.PutAsync<JsonElement>(AccountPath(accountId, "r2", "buckets", bucket, "cors"), cors, ct);
+    /// <summary>
+    /// Sets CORS rules (untyped). Since 0.7.1 the origins are checked like in <see cref="SetCorsAsync"/> without <c>allowAnyOrigin</c>: <c>*</c>, <c>https://*</c>
+    /// and other wildcards that cover every site are refused.
+    /// </summary>
+    [Obsolete("Untyped. Wildcard origins are refused since 0.7.1; use SetCorsAsync (0.7.0). Removed in 1.0.")]
+    public Task<JsonElement> PutCorsAsync(string bucket, object cors, string? accountId = null, CancellationToken ct = default)
+    {
+        var node = ToNode(cors);
+        if (node is JsonObject o && o["rules"] is JsonArray arr)
+            foreach (var origin in arr.OfType<JsonObject>().Select(r => r["allowed"]?["origins"]).OfType<JsonArray>().SelectMany(a => a).OfType<JsonValue>())
+                CheckCorsOrigin(origin.TryGetValue<string>(out var text) ? text : "", allowAnyOrigin: false, allowHttp: true);
+        return Api.PutAsync<JsonElement>(AccountPath(accountId, "r2", "buckets", BucketName(bucket), "cors"), node, ct);
+    }
+
+    private static JsonNode? ToNode(object value) => value switch
+    {
+        null => throw new ArgumentNullException(nameof(value)),
+        JsonNode n => n,
+        string s => JsonNode.Parse(s),
+        JsonElement e => JsonNode.Parse(e.GetRawText()),
+        _ => JsonSerializer.SerializeToNode(value, value.GetType(), CloudflareJson.Options),
+    };
 }
 
 public sealed class WorkerScript : CloudflareModel
@@ -104,26 +132,15 @@ public sealed partial class WorkersClient(ICloudflareApiConnection api) : Cloudf
     public Task<string> GetScriptContentAsync(string scriptName, string? accountId = null, CancellationToken ct = default) =>
         Api.GetRawAsync(AccountPath(accountId, "workers", "scripts", scriptName), ct);
 
-    /// <summary>Uploads or replaces an ES module Worker.</summary>
-    [Obsolete("Deploying code needs an explicit switch. Use UploadScriptAsync(..., allowDeploy: true) (0.7.0). Removed in 1.0.")]
-    public Task<CloudflareResponse<WorkerScript>> UploadModuleAsync(string scriptName, string moduleSource, WorkerMetadata? metadata = null, string? accountId = null, CancellationToken ct = default)
-    {
-        var meta = metadata ?? new WorkerMetadata();
-        var metaJson = JsonSerializer.Serialize(meta, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
-        return Api.SendContentAsync<WorkerScript>(HttpMethod.Put, AccountPath(accountId, "workers", "scripts", scriptName), () =>
-        {
-            var form = new MultipartFormDataContent();
-            form.Add(new StringContent(metaJson, Encoding.UTF8, "application/json"), "metadata");
-            var module = new StringContent(moduleSource, Encoding.UTF8);
-            module.Headers.ContentType = new MediaTypeHeaderValue("application/javascript+module");
-            form.Add(module, meta.MainModule, meta.MainModule);
-            return form;
-        }, ct);
-    }
+    /// <summary>Always refused since 0.7.1 (no switch in this signature): use <see cref="UploadScriptAsync"/> with <c>allowDeploy: true</c>.</summary>
+    [Obsolete("Always refused since 0.7.1: deploying code needs an explicit switch. Use UploadScriptAsync(..., allowDeploy: true). Removed in 1.0.")]
+    public Task<CloudflareResponse<WorkerScript>> UploadModuleAsync(string scriptName, string moduleSource, WorkerMetadata? metadata = null, string? accountId = null, CancellationToken ct = default) =>
+        UploadScriptAsync(scriptName, moduleSource, metadata, allowDeploy: false, accountId, ct);
 
-    [Obsolete("Deleting a Worker needs an explicit switch. Use RemoveScriptAsync(name, allowDelete) (0.7.0). Removed in 1.0.")]
-    public Task DeleteScriptAsync(string scriptName, bool force = false, string? accountId = null, CancellationToken ct = default) =>
-        Api.DeleteAsync(CloudflarePath.WithQuery(AccountPath(accountId, "workers", "scripts", scriptName), ("force", force ? "true" : null)), ct);
+    /// <summary>Always refused since 0.7.1 (no switch in this signature): use <see cref="RemoveScriptAsync"/> with <c>allowDelete: true</c>.</summary>
+    [Obsolete("Always refused since 0.7.1: deleting a Worker needs an explicit switch. Use RemoveScriptAsync(name, allowDelete: true). Removed in 1.0.")]
+    public async Task DeleteScriptAsync(string scriptName, bool force = false, string? accountId = null, CancellationToken ct = default) =>
+        await RemoveScriptAsync(scriptName, allowDelete: false, force, allowForce: false, accountId, ct).ConfigureAwait(false);
 
     public Task<List<WorkerRoute>> ListRoutesAsync(string? zoneId = null, CancellationToken ct = default) =>
         Api.GetAsync<List<WorkerRoute>>(ZonePath(zoneId, "workers", "routes"), ct);

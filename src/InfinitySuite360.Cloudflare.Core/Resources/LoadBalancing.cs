@@ -23,7 +23,7 @@ public sealed class LbPool : CloudflareModel
     public string? Description { get; init; }
     public bool Enabled { get; init; } = true;
     public int? MinimumOrigins { get; init; }
-    /// <summary>Id of the monitor; null = no health checks (the pool counts as healthy).</summary>
+    /// <summary>Id of the monitor; null = no health checks (Cloudflare treats the pool as healthy, the outage protection of this package as <b>unknown</b>).</summary>
     public string? Monitor { get; init; }
     public string? NotificationEmail { get; init; }
     /// <summary>Health as Cloudflare reports it on the pool object (not in every schema version).</summary>
@@ -136,7 +136,8 @@ public sealed class LoadBalancerInput
 /// monitors, intervals, regions) depend on the plan: Cloudflare answers, nothing is guessed here (developers.cloudflare.com/load-balancing/, retrieved 17.11.2026).
 /// <para>Outage protection: switching off or removing the <b>last healthy pool</b> of a load balancer (<see cref="SetPoolEnabledAsync"/>, <see cref="SetOriginEnabledAsync"/>,
 /// <see cref="RemoveOriginAsync"/>) is refused unless <c>allowLastHealthyPool</c> is true; the check reads the load balancers of the zone (pass the zone or configure
-/// a default zone) and refuses when a load balancer outside it uses the pool and cannot be checked. Disabling or deleting an <b>enabled</b> load balancer needs
+/// a default zone) and refuses when a load balancer outside it uses the pool and cannot be checked. Only a pool known to be healthy counts as fallback: a pool without monitor or
+/// health report is <b>unknown</b> and does not count; an origin with weight 0 or without address counts as unusable (0.7.1). Disabling or deleting an <b>enabled</b> load balancer needs
 /// <c>allowDisableActive</c> / <c>allowDeleteActive</c>, a monitor that skips the certificate check <c>allowInsecureTls</c>. A pool in use and a monitor in use are not deleted.</para>
 /// Token permission "Account: Load Balancing: Monitors and Pools: Edit", "Zone: Load Balancers: Edit". Endpoints from cloudflare/api-schemas@650bd71.
 /// </summary>
@@ -227,15 +228,28 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
         return (await Api.PatchAsync<LbPool>(path, new JsonObject { ["enabled"] = enabled }, ct).ConfigureAwait(false), true);
     }
 
-    /// <summary>Enables or disables one origin of a pool. When the pool is left without enough enabled origins (below <c>minimum_origins</c>, at least one) the last-healthy-pool check applies.</summary>
+    /// <summary>
+    /// Enables or disables one origin of a pool. When the pool is left without enough usable origins (below <c>minimum_origins</c>, at least one) the
+    /// last-healthy-pool check applies. Only <c>enabled</c> of this origin changes; every other member of every origin (headers such as <c>Host</c>,
+    /// <c>virtual_network_id</c>, port, weight) is sent back exactly as Cloudflare returned it (0.7.1).
+    /// </summary>
     public Task<(LbPool Pool, bool Changed)> SetOriginEnabledAsync(string poolId, string originName, bool enabled, bool allowLastHealthyPool = false, string? zoneId = null, string? accountId = null, CancellationToken ct = default) =>
-        ChangeOriginsAsync(poolId, originName, o => o.Enabled == enabled ? null : new LbOriginInput(o.Name, o.Address, enabled, o.Weight ?? 1, o.Port), allowLastHealthyPool, zoneId, accountId, ct, mustExist: true);
+        ChangeOriginsAsync(poolId, originName, o =>
+        {
+            if (o is null) return null;
+            o["enabled"] = enabled;
+            return o;
+        }, allowLastHealthyPool, zoneId, accountId, ct, mustExist: true);
 
-    /// <summary>Adds an origin or replaces the one with the same name (PATCH of the origin list).</summary>
+    /// <summary>
+    /// Adds an origin or changes the one with the same name (PATCH of the origin list). Name, address, enabled and weight come from <paramref name="origin"/>;
+    /// port and Host header only when set there. Members the input cannot express (other headers, <c>virtual_network_id</c>, ...) are kept, as are all other
+    /// origins. An origin with weight 0 or without address counts as unusable for the last-healthy-pool check.
+    /// </summary>
     public Task<(LbPool Pool, bool Changed)> UpsertOriginAsync(string poolId, LbOriginInput origin, bool allowLastHealthyPool = false, string? zoneId = null, string? accountId = null, CancellationToken ct = default)
     {
         CheckOrigin(origin);
-        return ChangeOriginsAsync(poolId, origin.Name, _ => origin, allowLastHealthyPool, zoneId, accountId, ct, mustExist: false);
+        return ChangeOriginsAsync(poolId, origin.Name, o => MergeOrigin(o, origin), allowLastHealthyPool, zoneId, accountId, ct, mustExist: false);
     }
 
     /// <summary>Removes an origin from a pool (same protection as <see cref="SetOriginEnabledAsync"/>). False when the pool has no such origin.</summary>
@@ -315,33 +329,68 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
 
     // ---- outage protection ----
 
-    private async Task<(LbPool Pool, bool Changed)> ChangeOriginsAsync(string poolId, string originName, Func<LbOrigin, LbOriginInput?> change, bool allowLast, string? zoneId, string? accountId, CancellationToken ct, bool mustExist, bool remove = false)
+    // Works on the origins as Cloudflare returned them (JSON), so members this package does not model (header, virtual_network_id, ...) survive (H-2, 0.7.1).
+    // `change` gets a copy of the origin (null when it does not exist yet) and returns the new origin, or null for "no change".
+    private async Task<(LbPool Pool, bool Changed)> ChangeOriginsAsync(string poolId, string originName, Func<JsonObject?, JsonObject?> change, bool allowLast, string? zoneId, string? accountId, CancellationToken ct, bool mustExist, bool remove = false)
     {
         var path = AccountPath(accountId, "load_balancers", "pools", P1.Required(poolId, nameof(poolId)));
         EnsureWritable(HttpMethod.Patch, path);
-        var pool = await GetPoolAsync(poolId, accountId, ct).ConfigureAwait(false);
-        var current = pool.Origins.FirstOrDefault(o => o.Name == originName);
-        if (current is null && mustExist) return (pool, false);
-        var origins = new List<LbOriginInput>();
+        var raw = await Api.GetAsync<JsonElement>(path, ct).ConfigureAwait(false);
+        var pool = P1.As<LbPool>(raw) ?? throw new InvalidOperationException($"Pool {poolId} was not returned.");
+        var current = new List<JsonObject>();
+        if (P2.TryGet(raw, "origins", out var arr) && arr.ValueKind == JsonValueKind.Array)
+            foreach (var e in arr.EnumerateArray())
+                current.Add(JsonNode.Parse(e.GetRawText()) as JsonObject ?? throw new InvalidOperationException($"Pool {poolId} has an origin that is not an object."));
+        var existing = current.FirstOrDefault(o => OriginName(o) == originName);
+        if (existing is null && mustExist) return (pool, false);
+
+        var next = new List<JsonObject>();
         var changed = false;
-        foreach (var o in pool.Origins)
+        foreach (var o in current)
         {
-            if (o.Name != originName) { origins.Add(new(o.Name, o.Address, o.Enabled, o.Weight ?? 1, o.Port)); continue; }
+            if (OriginName(o) != originName) { next.Add(o); continue; }
             if (remove) { changed = true; continue; }
-            var next = change(o);
-            if (next is null) { origins.Add(new(o.Name, o.Address, o.Enabled, o.Weight ?? 1, o.Port)); continue; }
-            changed |= next != new LbOriginInput(o.Name, o.Address, o.Enabled, o.Weight ?? 1, o.Port);
-            origins.Add(next);
+            var updated = change(o.DeepClone().AsObject());
+            if (updated is null || JsonNode.DeepEquals(updated, o)) { next.Add(o); continue; }
+            changed = true;
+            next.Add(updated);
         }
-        if (current is null && !remove) { var added = change(new LbOrigin { Name = originName }); if (added is not null) { origins.Add(added); changed = true; } }
+        if (existing is null && !remove && change(null) is { } added) { next.Add(added); changed = true; }
         if (!changed) return (pool, false);
 
         var needed = Math.Max(1, pool.MinimumOrigins ?? 1);
-        var wasUsable = pool.Origins.Count(o => o.Enabled) >= needed;
-        if (pool.Enabled && wasUsable && origins.Count(o => o.Enabled) < needed)
+        var wasUsable = current.Count(IsUsable) >= needed;
+        if (pool.Enabled && wasUsable && next.Count(IsUsable) < needed)
             await AssertNotLastHealthyAsync(pool, allowLast, zoneId, accountId, ct).ConfigureAwait(false);
-        var body = new JsonObject { ["origins"] = new JsonArray(origins.Select(OriginJson).ToArray()) };
+        var body = new JsonObject { ["origins"] = new JsonArray(next.Select(o => (JsonNode?)o.DeepClone()).ToArray()) };
         return (await Api.PatchAsync<LbPool>(path, body, ct).ConfigureAwait(false), true);
+    }
+
+    private static string? OriginName(JsonObject o) => o["name"] is JsonValue v && v.TryGetValue<string>(out var s) ? s : null;
+
+    // Usable = enabled (missing counts as enabled, Cloudflare's default), weight above 0 (missing = 1) and an address (N-2, 0.7.1).
+    private static bool IsUsable(JsonObject o)
+    {
+        if (o["enabled"] is JsonValue en && en.TryGetValue<bool>(out var enabled) && !enabled) return false;
+        if (o["weight"] is JsonValue w && w.TryGetValue<double>(out var weight) && weight <= 0) return false;
+        return o["address"] is JsonValue a && a.TryGetValue<string>(out var address) && !string.IsNullOrWhiteSpace(address);
+    }
+
+    private static JsonObject MergeOrigin(JsonObject? existing, LbOriginInput input)
+    {
+        var o = existing ?? new JsonObject();
+        o["name"] = input.Name;
+        o["address"] = input.Address;
+        o["enabled"] = input.Enabled;
+        o["weight"] = input.Weight;
+        if (input.Port is { } port) o["port"] = port;
+        if (input.HostHeader is not null)
+        {
+            var header = o["header"] as JsonObject ?? new JsonObject();
+            header["Host"] = new JsonArray(input.HostHeader);
+            o["header"] = header;
+        }
+        return o;
     }
 
     private async Task AssertNotLastHealthyAsync(LbPool pool, bool allow, string? zoneId, string? accountId, CancellationToken ct)
@@ -371,21 +420,23 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
             throw new InvalidOperationException($"Refused: pool \"{pool.Name}\" is the last healthy pool of {string.Join(", ", atRisk)}; taking it out ends the traffic of those load balancers. Pass allowLastHealthyPool: true deliberately.");
     }
 
+    // Only a pool that is known to be healthy counts as a fallback. Without monitor or without a health report the state is unknown and the pool does not
+    // count (N-2, 0.7.1: conservative; pass allowLastHealthyPool after checking yourself).
     private async Task<bool> IsHealthyAsync(LbPool pool, string? accountId, CancellationToken ct)
     {
         if (!pool.Enabled) return false;
         if (pool.Healthy is { } h) return h;
-        if (pool.Monitor is null) return true;
-        var health = await GetPoolHealthAsync(pool.Id, accountId, ct).ConfigureAwait(false);
-        if (!P2.TryGet(health, "pop_health", out var pops) || pops.ValueKind != JsonValueKind.Object) return true;
-        var any = false;
+        if (pool.Monitor is null) return false;
+        JsonElement health;
+        try { health = await GetPoolHealthAsync(pool.Id, accountId, ct).ConfigureAwait(false); }
+        catch (CloudflareApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound) { return false; }
+        if (!P2.TryGet(health, "pop_health", out var pops) || pops.ValueKind != JsonValueKind.Object) return false;
         foreach (var p in pops.EnumerateObject())
         {
             if (p.Value.ValueKind != JsonValueKind.Object || !p.Value.TryGetProperty("healthy", out var ok) || ok.ValueKind is not (JsonValueKind.True or JsonValueKind.False)) continue;
-            any = true;
             if (ok.GetBoolean()) return true;
         }
-        return !any;
+        return false;
     }
 
     private static HashSet<string> PoolIds(LoadBalancer lb)

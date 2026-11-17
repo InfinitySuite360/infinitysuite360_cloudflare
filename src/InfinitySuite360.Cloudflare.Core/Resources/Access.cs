@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Text.Json;
 using InfinitySuite360.Cloudflare.Http;
 
@@ -14,6 +15,8 @@ public sealed class AccessApplication : CloudflareModel
     public string? Aud { get; init; }
     public string? SessionDuration { get; init; }
     public List<string> SelfHostedDomains { get; init; } = [];
+    /// <summary>Identity providers allowed for this application (empty: all of them).</summary>
+    public List<string> AllowedIdps { get; init; } = [];
     public List<JsonElement> Policies { get; init; } = [];
     public DateTimeOffset? CreatedAt { get; init; }
     public DateTimeOffset? UpdatedAt { get; init; }
@@ -140,83 +143,143 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
     public Task<AccessApplication> GetApplicationAsync(string appId, string? accountId = null, CancellationToken ct = default) =>
         ZT.SendAsync<AccessApplication>(Api, HttpMethod.Get, AccountPath(accountId, "access", "apps", appId), null, ct);
 
-    [Obsolete("No checks and no preview: an application without policies denies everyone. Use EnsureApplicationAsync (0.8.0). Removed in 1.0.")]
-    public Task<AccessApplication> CreateApplicationAsync(AccessApplicationInput app, string? accountId = null, CancellationToken ct = default) =>
-        Api.PostAsync<AccessApplication>(AccountPath(accountId, "access", "apps"), app, ct);
+    // M7 (0.8.1): the obsolete write methods below no longer write unguarded. Each one either goes through its guarded replacement with every allow
+    // switch off (so a risky call is refused locally and names the switch), or is always refused where the old signature cannot be made safe (it would
+    // put a secret into a model or replace an object without a check). None of them returns a secret.
 
-    [Obsolete("No checks and no preview. Use EnsureApplicationAsync or the policy methods (0.8.0). Removed in 1.0.")]
-    public Task<AccessApplication> UpdateApplicationAsync(string appId, AccessApplicationInput app, string? accountId = null, CancellationToken ct = default) =>
-        Api.PutAsync<AccessApplication>(AccountPath(accountId, "access", "apps", appId), app, ct);
+    /// <summary>Since 0.8.1 the checks of <see cref="EnsureApplicationAsync"/> (policy required, inline policies validated, referenced policies read) and a POST.</summary>
+    [Obsolete("Use EnsureApplicationAsync (0.8.0). Since 0.8.1 this applies the same checks with every allow switch off. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task<AccessApplication> CreateApplicationAsync(AccessApplicationInput app, string? accountId = null, CancellationToken ct = default)
+    {
+        var path = AccountPath(accountId, "access", "apps");
+        EnsureWritable(HttpMethod.Post, path);
+        var (body, _) = AppBody(app, allowNoPolicy: false, allowLoosen: false, allowBlock: false);
+        await CheckReferencedPoliciesAsync(app, allowLoosen: false, accountId, ct).ConfigureAwait(false);
+        return await ZT.SendAsync<AccessApplication>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false);
+    }
 
-    [Obsolete("Deleting an application removes the login protection of its hostname. Use RemoveApplicationAsync(appId, allowUnprotect) (0.8.0). Removed in 1.0.")]
-    public Task DeleteApplicationAsync(string appId, string? accountId = null, CancellationToken ct = default) =>
-        Api.DeleteAsync(AccountPath(accountId, "access", "apps", appId), ct);
+    /// <summary>Always refused since 0.8.1: a full replacement can drop the policies or the login of an application without any check.</summary>
+    [Obsolete("Always refused since 0.8.1. Use EnsureApplicationAsync and the policy methods, or the OpenApi client deliberately. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Task<AccessApplication> UpdateApplicationAsync(string appId, AccessApplicationInput app, string? accountId = null, CancellationToken ct = default)
+    {
+        EnsureWritable(HttpMethod.Put, AccountPath(accountId, "access", "apps", appId));
+        return Task.FromException<AccessApplication>(AlwaysRefused("UpdateApplicationAsync", "replacing an application can drop its policies and login protection", "EnsureApplicationAsync and the policy methods"));
+    }
+
+    /// <summary>Since 0.8.1 <see cref="RemoveApplicationAsync"/> without <c>allowUnprotect</c>: always refused.</summary>
+    [Obsolete("Always refused since 0.8.1. Use RemoveApplicationAsync(appId, allowUnprotect: true) (0.8.0). Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task DeleteApplicationAsync(string appId, string? accountId = null, CancellationToken ct = default) =>
+        await RemoveApplicationAsync(appId, allowUnprotect: false, accountId, ct).ConfigureAwait(false);
 
     // ---- Application policies ----
     public Task<List<AccessPolicy>> ListApplicationPoliciesAsync(string appId, string? accountId = null, CancellationToken ct = default) =>
         Api.GetAsync<List<AccessPolicy>>(AccountPath(accountId, "access", "apps", appId, "policies"), ct);
 
-    [Obsolete("No loosening check. Use AddApplicationPolicyAsync (0.8.0). Removed in 1.0.")]
+    /// <summary>Since 0.8.1 <see cref="AddApplicationPolicyAsync"/> with every allow switch off.</summary>
+    [Obsolete("Use AddApplicationPolicyAsync (0.8.0); since 0.8.1 this applies its checks with every allow switch off. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public Task<AccessPolicy> CreateApplicationPolicyAsync(string appId, AccessPolicyInput policy, string? accountId = null, CancellationToken ct = default) =>
-        Api.PostAsync<AccessPolicy>(AccountPath(accountId, "access", "apps", appId, "policies"), policy, ct);
+        AddApplicationPolicyAsync(appId, policy, allowLoosen: false, allowBlock: false, accountId, ct);
 
-    [Obsolete("No loosening check. Use ChangeApplicationPolicyAsync (0.8.0). Removed in 1.0.")]
-    public Task<AccessPolicy> UpdateApplicationPolicyAsync(string appId, string policyId, AccessPolicyInput policy, string? accountId = null, CancellationToken ct = default) =>
-        Api.PutAsync<AccessPolicy>(AccountPath(accountId, "access", "apps", appId, "policies", policyId), policy, ct);
+    /// <summary>Since 0.8.1 <see cref="ChangeApplicationPolicyAsync"/> with every allow switch off.</summary>
+    [Obsolete("Use ChangeApplicationPolicyAsync (0.8.0); since 0.8.1 this applies its checks with every allow switch off. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task<AccessPolicy> UpdateApplicationPolicyAsync(string appId, string policyId, AccessPolicyInput policy, string? accountId = null, CancellationToken ct = default) =>
+        (await ChangeApplicationPolicyAsync(appId, policyId, policy, allowLoosen: false, allowBlock: false, accountId, ct).ConfigureAwait(false)).Policy;
 
-    [Obsolete("Can remove the last policy of an application. Use RemoveApplicationPolicyAsync(appId, policyId, allowRemoveLast, allowLoosen) (0.8.0). Removed in 1.0.")]
-    public Task DeleteApplicationPolicyAsync(string appId, string policyId, string? accountId = null, CancellationToken ct = default) =>
-        Api.DeleteAsync(AccountPath(accountId, "access", "apps", appId, "policies", policyId), ct);
+    /// <summary>Since 0.8.1 <see cref="RemoveApplicationPolicyAsync"/> with every allow switch off.</summary>
+    [Obsolete("Use RemoveApplicationPolicyAsync(appId, policyId, allowRemoveLast, allowLoosen) (0.8.0); since 0.8.1 this applies its checks with every switch off. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task DeleteApplicationPolicyAsync(string appId, string policyId, string? accountId = null, CancellationToken ct = default) =>
+        await RemoveApplicationPolicyAsync(appId, policyId, allowRemoveLast: false, allowLoosen: false, accountId, ct).ConfigureAwait(false);
 
     // ---- Reusable policies ----
     public Task<IReadOnlyList<AccessPolicy>> ListPoliciesAsync(string? accountId = null, CancellationToken ct = default) =>
         Api.ListAllToListAsync<AccessPolicy>(AccountPath(accountId, "access", "policies"), 50, ct);
 
-    [Obsolete("No loosening check. Use EnsurePolicyAsync (0.8.0). Removed in 1.0.")]
-    public Task<AccessPolicy> CreatePolicyAsync(AccessPolicyInput policy, string? accountId = null, CancellationToken ct = default) =>
-        Api.PostAsync<AccessPolicy>(AccountPath(accountId, "access", "policies"), policy, ct);
+    /// <summary>Since 0.8.1 the checks of <see cref="EnsurePolicyAsync"/> with every allow switch off, then a POST.</summary>
+    [Obsolete("Use EnsurePolicyAsync (0.8.0); since 0.8.1 this applies its checks with every allow switch off. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Task<AccessPolicy> CreatePolicyAsync(AccessPolicyInput policy, string? accountId = null, CancellationToken ct = default)
+    {
+        var path = AccountPath(accountId, "access", "policies");
+        EnsureWritable(HttpMethod.Post, path);
+        return Api.PostAsync<AccessPolicy>(path, PolicyBody(policy, allowLoosen: false, allowBlock: false, null), ct);
+    }
 
-    [Obsolete("Can remove the last policy of applications. Use RemovePolicyAsync(policyId, allowRemoveLast, allowLoosen) (0.8.0). Removed in 1.0.")]
-    public Task DeletePolicyAsync(string policyId, string? accountId = null, CancellationToken ct = default) =>
-        Api.DeleteAsync(AccountPath(accountId, "access", "policies", policyId), ct);
+    /// <summary>Since 0.8.1 <see cref="RemovePolicyAsync"/> with every allow switch off.</summary>
+    [Obsolete("Use RemovePolicyAsync(policyId, allowRemoveLast, allowLoosen) (0.8.0); since 0.8.1 this applies its checks with every switch off. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task DeletePolicyAsync(string policyId, string? accountId = null, CancellationToken ct = default) =>
+        await RemovePolicyAsync(policyId, allowRemoveLast: false, allowLoosen: false, accountId, ct).ConfigureAwait(false);
 
     // ---- Groups ----
     public Task<IReadOnlyList<AccessGroup>> ListGroupsAsync(string? accountId = null, CancellationToken ct = default) =>
         Api.ListAllToListAsync<AccessGroup>(AccountPath(accountId, "access", "groups"), 50, ct);
 
-    /// <summary>Creates a group that includes the given email addresses.</summary>
-    [Obsolete("No checks and no preview. Use EnsureGroupAsync (0.8.0). Removed in 1.0.")]
-    public Task<AccessGroup> CreateGroupAsync(string name, IEnumerable<string> emails, string? accountId = null, CancellationToken ct = default) =>
-        Api.PostAsync<AccessGroup>(AccountPath(accountId, "access", "groups"), new { name, include = emails.Select(AccessRules.Email).ToList() }, ct);
+    /// <summary>Creates a group that includes the given email addresses (since 0.8.1 with the checks of <see cref="EnsureGroupAsync"/>).</summary>
+    [Obsolete("Use EnsureGroupAsync (0.8.0); since 0.8.1 this applies its checks with every allow switch off. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Task<AccessGroup> CreateGroupAsync(string name, IEnumerable<string> emails, string? accountId = null, CancellationToken ct = default)
+    {
+        var path = AccountPath(accountId, "access", "groups");
+        EnsureWritable(HttpMethod.Post, path);
+        var body = GroupBody(new AccessGroupInput { Name = name, Include = emails.Select(AccessRules.Email).ToList() }, allowLoosen: false, null);
+        return Api.PostAsync<AccessGroup>(path, body, ct);
+    }
 
-    [Obsolete("Drops exclude/require rules and has no loosening check. Use ChangeGroupAsync (0.8.0). Removed in 1.0.")]
-    public Task<AccessGroup> UpdateGroupAsync(string groupId, string name, IEnumerable<JsonElement> include, string? accountId = null, CancellationToken ct = default) =>
-        Api.PutAsync<AccessGroup>(AccountPath(accountId, "access", "groups", groupId), new { name, include = include.ToList() }, ct);
+    /// <summary>
+    /// Since 0.8.1 <see cref="ChangeGroupAsync"/> with every switch off: the old signature has no exclude/require rules, so a group that has some is
+    /// refused (removing them loosens), and a group in use is refused.
+    /// </summary>
+    [Obsolete("Use ChangeGroupAsync (0.8.0); since 0.8.1 this applies its checks with every switch off. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task<AccessGroup> UpdateGroupAsync(string groupId, string name, IEnumerable<JsonElement> include, string? accountId = null, CancellationToken ct = default) =>
+        (await ChangeGroupAsync(groupId, new AccessGroupInput { Name = name, Include = include.ToList() }, allowLoosen: false, accountId, allowInUse: false, ct).ConfigureAwait(false)).Group;
 
-    [Obsolete("No check for policies that use the group. Use RemoveGroupAsync(groupId, allowInUse) (0.8.0). Removed in 1.0.")]
-    public Task DeleteGroupAsync(string groupId, string? accountId = null, CancellationToken ct = default) =>
-        Api.DeleteAsync(AccountPath(accountId, "access", "groups", groupId), ct);
+    /// <summary>Since 0.8.1 <see cref="RemoveGroupAsync"/> without <c>allowInUse</c>.</summary>
+    [Obsolete("Use RemoveGroupAsync(groupId, allowInUse) (0.8.0); since 0.8.1 this applies its checks with the switch off. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task DeleteGroupAsync(string groupId, string? accountId = null, CancellationToken ct = default) =>
+        await RemoveGroupAsync(groupId, allowInUse: false, accountId, ct).ConfigureAwait(false);
 
     // ---- Service tokens ----
     public Task<IReadOnlyList<AccessServiceToken>> ListServiceTokensAsync(string? accountId = null, CancellationToken ct = default) =>
         ZT.ListAllAsync<AccessServiceToken>(Api, AccountPath(accountId, "access", "service_tokens"), 50, ct);
 
-    /// <summary>Creates a service token; <paramref name="duration"/> for example "8760h" (one year) or "forever".</summary>
-    [Obsolete("Puts the client secret into a model. Use IssueServiceTokenAsync (0.8.0): the secret is only in a CloudflareOneTimeSecret. Removed in 1.0.")]
-    public Task<AccessServiceToken> CreateServiceTokenAsync(string name, string duration = "8760h", string? accountId = null, CancellationToken ct = default) =>
-        Api.PostAsync<AccessServiceToken>(AccountPath(accountId, "access", "service_tokens"), new { name, duration }, ct);
+    /// <summary>Always refused since 0.8.1: the old return type would carry the client secret in a model.</summary>
+    [Obsolete("Always refused since 0.8.1. Use IssueServiceTokenAsync (0.8.0): the secret is only in a CloudflareOneTimeSecret. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Task<AccessServiceToken> CreateServiceTokenAsync(string name, string duration = "8760h", string? accountId = null, CancellationToken ct = default)
+    {
+        EnsureWritable(HttpMethod.Post, AccountPath(accountId, "access", "service_tokens"));
+        return Task.FromException<AccessServiceToken>(AlwaysRefused("CreateServiceTokenAsync", "its result would carry the client secret in a model", "IssueServiceTokenAsync"));
+    }
 
-    [Obsolete("Invalidates the old secret at once and puts the new one into a model. Use RotateServiceTokenSecretAsync (0.8.0). Removed in 1.0.")]
-    public Task<AccessServiceToken> RotateServiceTokenAsync(string tokenId, string? accountId = null, CancellationToken ct = default) =>
-        Api.PostAsync<AccessServiceToken>(AccountPath(accountId, "access", "service_tokens", tokenId, "rotate"), null, ct);
+    /// <summary>Always refused since 0.8.1: it invalidated the old secret at once and put the new one into a model.</summary>
+    [Obsolete("Always refused since 0.8.1. Use RotateServiceTokenSecretAsync (0.8.0). Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Task<AccessServiceToken> RotateServiceTokenAsync(string tokenId, string? accountId = null, CancellationToken ct = default)
+    {
+        EnsureWritable(HttpMethod.Post, AccountPath(accountId, "access", "service_tokens", tokenId, "rotate"));
+        return Task.FromException<AccessServiceToken>(AlwaysRefused("RotateServiceTokenAsync", "it invalidates the old secret at once and its result would carry the new secret in a model", "RotateServiceTokenSecretAsync"));
+    }
+
+    private static InvalidOperationException AlwaysRefused(string method, string why, string replacement) =>
+        new($"Refused: {method} is obsolete and always refused since 0.8.1 ({why}). Use {replacement}.");
 
     /// <summary>Extends the expiry without changing the secret.</summary>
     public Task<AccessServiceToken> RefreshServiceTokenAsync(string tokenId, string? accountId = null, CancellationToken ct = default) =>
         ZT.SendAsync<AccessServiceToken>(Api, HttpMethod.Post, AccountPath(accountId, "access", "service_tokens", tokenId, "refresh"), null, ct);
 
-    [Obsolete("Cuts off every machine that uses the token. Use RemoveServiceTokenAsync(tokenId, allowDisconnect) (0.8.0). Removed in 1.0.")]
-    public Task DeleteServiceTokenAsync(string tokenId, string? accountId = null, CancellationToken ct = default) =>
-        Api.DeleteAsync(AccountPath(accountId, "access", "service_tokens", tokenId), ct);
+    /// <summary>Since 0.8.1 <see cref="RemoveServiceTokenAsync"/> without <c>allowDisconnect</c>.</summary>
+    [Obsolete("Use RemoveServiceTokenAsync(tokenId, allowDisconnect) (0.8.0); since 0.8.1 this applies its checks with the switch off. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task DeleteServiceTokenAsync(string tokenId, string? accountId = null, CancellationToken ct = default) =>
+        await RemoveServiceTokenAsync(tokenId, allowDisconnect: false, accountId, ct).ConfigureAwait(false);
 
     // ---- Identity providers ----
     /// <summary>Identity providers; secret members of <c>config</c> and <c>scim_config</c> are removed (0.8.0).</summary>
@@ -226,19 +289,30 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
     public Task<AccessIdentityProvider> GetIdentityProviderAsync(string providerId, string? accountId = null, CancellationToken ct = default) =>
         ZT.SendAsync<AccessIdentityProvider>(Api, HttpMethod.Get, AccountPath(accountId, "access", "identity_providers", providerId), null, ct);
 
-    /// <summary>Creates an identity provider. <paramref name="config"/> depends on the type (for example <c>new { }</c> for "onetimepin").</summary>
-    [Obsolete("No preview (the config carries the client secret). Use EnsureIdentityProviderAsync (0.8.0). Removed in 1.0.")]
-    public Task<AccessIdentityProvider> CreateIdentityProviderAsync(string name, string type, object? config = null, string? accountId = null, CancellationToken ct = default) =>
-        ZT.SendAsync<AccessIdentityProvider>(Api, HttpMethod.Post, AccountPath(accountId, "access", "identity_providers"), new { name, type, config = config ?? new { } }, ct);
+    /// <summary>Creates an identity provider (since 0.8.1 write guard first, type checked, secrets stripped from the answer).</summary>
+    [Obsolete("Use EnsureIdentityProviderAsync (0.8.0); since 0.8.1 this checks the write guard and the type first. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Task<AccessIdentityProvider> CreateIdentityProviderAsync(string name, string type, object? config = null, string? accountId = null, CancellationToken ct = default)
+    {
+        var path = AccountPath(accountId, "access", "identity_providers");
+        EnsureWritable(HttpMethod.Post, path);
+        return ZT.SendAsync<AccessIdentityProvider>(Api, HttpMethod.Post, path, IdpBody(name, type, config), ct);
+    }
 
-    /// <summary>Replaces an identity provider (PUT: send the complete configuration).</summary>
-    [Obsolete("No preview. Use EnsureIdentityProviderAsync or the OpenApi client (0.8.0). Removed in 1.0.")]
-    public Task<AccessIdentityProvider> UpdateIdentityProviderAsync(string providerId, string name, string type, object? config = null, string? accountId = null, CancellationToken ct = default) =>
-        ZT.SendAsync<AccessIdentityProvider>(Api, HttpMethod.Put, AccountPath(accountId, "access", "identity_providers", providerId), new { name, type, config = config ?? new { } }, ct);
+    /// <summary>Always refused since 0.8.1: a full replacement of a login method without any check can lock everybody out.</summary>
+    [Obsolete("Always refused since 0.8.1. Use the OpenApi client deliberately. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Task<AccessIdentityProvider> UpdateIdentityProviderAsync(string providerId, string name, string type, object? config = null, string? accountId = null, CancellationToken ct = default)
+    {
+        EnsureWritable(HttpMethod.Put, AccountPath(accountId, "access", "identity_providers", providerId));
+        return Task.FromException<AccessIdentityProvider>(AlwaysRefused("UpdateIdentityProviderAsync", "replacing a login method without a check can lock everybody out", "the OpenApi client deliberately"));
+    }
 
-    [Obsolete("Can remove the last login method. Use RemoveIdentityProviderAsync(providerId, allowRemoveLast) (0.8.0). Removed in 1.0.")]
-    public Task DeleteIdentityProviderAsync(string providerId, string? accountId = null, CancellationToken ct = default) =>
-        Api.DeleteAsync(AccountPath(accountId, "access", "identity_providers", providerId), ct);
+    /// <summary>Since 0.8.1 <see cref="RemoveIdentityProviderAsync"/> without <c>allowRemoveLast</c>.</summary>
+    [Obsolete("Use RemoveIdentityProviderAsync(providerId, allowRemoveLast) (0.8.0); since 0.8.1 this applies its checks with the switch off. Removed in 1.0.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task DeleteIdentityProviderAsync(string providerId, string? accountId = null, CancellationToken ct = default) =>
+        await RemoveIdentityProviderAsync(providerId, allowRemoveLast: false, accountId, ct).ConfigureAwait(false);
 
     // ---- Request logs ----
     /// <summary>Latest Access request log entries (newest first by default).</summary>
