@@ -103,8 +103,15 @@ var events = await cloudflare.Analytics.GetSecurityEventsAsync(DateTimeOffset.Ut
 | Cloudflare Tunnel | `Tunnels` |
 | Zero Trust Access | `Access` |
 | Email Routing | `EmailRouting` |
-| R2 buckets | `R2` |
-| Workers scripts and routes | `Workers` |
+| R2 buckets, custom domains, CORS, lifecycle | `R2` |
+| Workers scripts, routes, domains, cron triggers, versions, deployments, secret names | `Workers` |
+| Workers KV namespaces, keys, bulk operations | `Kv` |
+| D1 databases and SQL (read-only unless allowed) | `D1` |
+| Queues, consumers, publishing | `Queues` |
+| Cache rules, purge, Cache Reserve, regional tiered cache | `Cache` |
+| Argo Smart Routing and tiered caching | `Argo` |
+| Load balancing: monitors, pools, load balancers | `LoadBalancing` |
+| Spectrum applications (TCP/UDP proxy) | `Spectrum` |
 | Health Checks, Logpush, audit logs, notifications | `Monitoring` |
 | Page Shield, Security Center, API Shield, bots (older, untyped parts) | `Security` |
 | Page Shield: settings, scripts, connections, cookies, content security rules | `PageShield` |
@@ -239,6 +246,80 @@ on all plans (100 included), custom certificates Enterprise; Authenticated Origi
 throws `CloudflareNotEntitledException` with Cloudflare's text.
 
 `Certificates.CreateClientCertificateAsync` is obsolete since 0.6.0; use `ApiShield.CreateClientCertificateAsync` (CSR only, private keys refused, preview).
+
+Workers, storage, cache and load balancing (0.7.0). Same pattern again: every write checks `AllowWrites`/`WriteFilter` first (methods that read before they write check it
+**before** the read, so with `AllowWrites = false` nothing is sent), has a `Preview…` sister, checks its input locally, and risky options need an explicit `allow…`:
+
+```csharp
+// Workers: deploying code and changing secrets change what runs on the edge at once, so they need allowDeploy: true.
+var preview = writer.Workers.PreviewUploadScript("api", source);                  // size and SHA-256, never the source; WARNING in the summary
+await writer.Workers.UploadScriptAsync("api", source, allowDeploy: true);         // existing secrets are kept (keep_bindings)
+await writer.Workers.PutSecretAsync("api", "API_KEY", WorkerSecretText.From(value), allowDeploy: true);   // the value is only in the request body
+var names = await cloudflare.Workers.ListSecretsAsync("api");                     // names and types; Cloudflare never returns values
+await writer.Workers.SetSchedulesAsync("api", ["*/15 * * * *"]);                  // read first, written only on change; an empty list needs allowClear
+await writer.Workers.DeployVersionsAsync("api", [new(oldId, 90), new(newId, 10)], allowDeploy: true);   // gradual rollout; rollback = deploy the old version
+
+// KV: namespaces, keys, bulk operations with Cloudflare's limits checked locally.
+var (ns, _) = await writer.Kv.EnsureNamespaceAsync("cache");
+await writer.Kv.PutValueAsync(ns.Id, "greeting", "hello", expirationTtl: 3600, allowOverwrite: false);
+await writer.Kv.RemoveNamespaceAsync(ns.Id, allowDelete: true);                   // a namespace with keys additionally needs allowNonEmpty: true
+
+// D1: parameters are bound, never concatenated; writes and destructive SQL need their own switch.
+var rows = await writer.D1.QueryAsync(dbId, "SELECT id, name FROM users WHERE id = ?", [42]);
+await writer.D1.QueryAsync(dbId, "DELETE FROM sessions WHERE expires < ?", [now], allowWriteSql: true);   // DELETE/UPDATE without WHERE, DROP, ALTER: allowDestructiveSql
+
+// R2: buckets are private; a custom domain or the r2.dev address publishes every object.
+await writer.R2.EnsureBucketAsync("assets", locationHint: "weur");
+await writer.R2.EnsureCustomDomainAsync("assets", "cdn.example.com", zoneId, allowPublicAccess: true);
+await writer.R2.SetLifecycleAsync("assets", [new R2LifecycleRule("ia", Prefix: "logs/", InfrequentAccessAfter: TimeSpan.FromDays(30))]);   // deleting rules: allowDeletion
+
+// Cache: one rule at a time (phase http_request_cache_settings), purge in batches of 100, purge everything only deliberately.
+await writer.Cache.UpsertRuleAsync(new CacheRuleInput { Ref = "static", Expression = "starts_with(http.request.uri.path, \"/static/\")", Cache = true, EdgeTtl = new("override_origin", 3600) });
+await writer.Cache.PurgeUrlsAsync(["https://example.com/static/app.css"]);
+await writer.Cache.PurgeEverythingAsync(allowPurgeAll: true);
+
+// Load balancing: the last healthy pool of a load balancer is protected.
+await writer.LoadBalancing.SetPoolEnabledAsync(poolId, false);                    // refused when it is the last healthy pool of a load balancer in the zone
+await writer.LoadBalancing.SetPoolEnabledAsync(poolId, false, allowLastHealthyPool: true);
+```
+
+| Write | Default | Explicit opt-in | Risk |
+|---|---|---|---|
+| Upload a Worker, deploy a version, set or delete a secret | refused | `allowDeploy: true` | new code or configuration runs on the edge at once |
+| Delete a Worker, also with `force` | refused | `allowDelete` / `allowForce` | code, versions, triggers, bindings gone |
+| Route with a wildcard host (`*.example.com/*`) | refused | `allowBroadRoute: true` | Worker in front of every subdomain |
+| Detach a Worker custom domain | refused | `allowRemoval: true` | hostname no longer served |
+| Remove every cron trigger | refused | `allowClear: true` | scheduled work stops |
+| Delete a KV namespace / with keys / bulk delete | refused | `allowDelete` / `allowNonEmpty` / `allowBulkDelete` | data lost |
+| D1 write SQL / DROP, ALTER, DELETE or UPDATE without WHERE | refused | `allowWriteSql` / `allowDestructiveSql` | data or schema changed |
+| Delete a D1 database, a queue, a Spectrum application | refused | `allowDelete: true` | data or service gone |
+| Purge a queue, pause its delivery | refused | `allowPurge` / `allowPause` | messages lost, consumers idle |
+| R2 custom domain or r2.dev address on | refused | `allowPublicAccess: true` | every object readable by anyone |
+| R2 CORS origin `*` | refused | `allowAnyOrigin: true` | any website may call the bucket |
+| R2 lifecycle rule that deletes objects | refused | `allowDeletion: true` | objects removed automatically |
+| Delete an R2 bucket, remove a custom domain | refused | `allowDelete` (and the bucket must be empty) / `allowRemoval` | name may be taken, hostname dark |
+| Cache rule that caches everything / edge TTL above one day | refused | `allowBroadCache` / `allowLongTtl` | private pages cached, stale content |
+| Purge everything | refused | `allowPurgeAll: true` | whole load on the origin |
+| Cache Reserve, Argo Smart Routing on | refused | `allowBilling: true` | usage-based charges |
+| Last healthy pool disabled or emptied | refused | `allowLastHealthyPool: true` | load balancer without a target |
+| Disable or delete an enabled load balancer | refused | `allowDisableActive` / `allowDeleteActive` | hostname no longer balanced |
+| Monitor without certificate check | refused | `allowInsecureTls: true` | broken origin certificate stays unseen |
+| Spectrum on SSH, RDP, SMB, database ports … | refused | `allowSensitivePort: true` | management port on the internet |
+
+Secrets: Worker secret values exist only in `WorkerSecretText` (`ToString` and JSON write `[redacted]`) and in the one request body; secret bindings in upload
+metadata are refused. Load balancer monitor header values (often an `Authorization` header) are redacted in every model and preview. KV values, D1 parameters
+and queue message bodies are user data: previews show sizes and counts only.
+Reading many KV keys, D1 queries and the like are `POST` calls on the API, so the write guard applies to them: with `AllowWrites = false` nothing is sent.
+Not included (reachable through `OpenApi`): Durable Objects, Secrets Store, Hyperdrive, Workflows, Pages, D1 export/import and Time Travel restore, Queues pull/acknowledge,
+R2 buckets with a jurisdiction, bucket locks, event notifications, Cache Reserve clear, Argo analytics, account-level load balancers and monitor groups.
+Plans and limits (developers.cloudflare.com/kv, d1, queues, r2, workers, cache, load-balancing, spectrum, argo-smart-routing, retrieved 17.11.2026): KV key 512 B, value 25 MiB,
+10 000 pairs per bulk write; D1 SQL 100 KB, 100 parameters, 10 databases on Free; queue message 128 KB, batch 100 messages; purge 100 items per request on all plans;
+Spectrum custom TCP/UDP needs Enterprise with the add-on. Cloudflare decides: a missing feature throws `CloudflareNotEntitledException` with Cloudflare's text.
+Token permissions (check names in the dashboard): "Workers Scripts", "Workers KV Storage", "D1", "Queues", "Workers R2 Storage" (Account, Edit; reading "Read"),
+"Workers Routes", "Cache Purge", "Cache Rules", "Load Balancers", "Zone Settings" (Zone).
+
+Obsolete since 0.7.0 (removed in 1.0): `Workers.UploadModuleAsync`, `DeleteScriptAsync`, `CreateRouteAsync`, `DeleteRouteAsync`; `R2.CreateBucketAsync`, `DeleteBucketAsync`,
+`PutLifecycleAsync`, `PutCorsAsync`; `Zones.PurgeEverythingAsync`. They keep working but have no allow switches; the guarded replacements are named above.
 
 Edge status and lists (0.3.0):
 

@@ -1,3 +1,4 @@
+#pragma warning disable CS0618 // the tests of the old, unguarded Zones.PurgeEverythingAsync stay until it is removed
 using System.Net;
 using System.Text.Json;
 using InfinitySuite360.Cloudflare.Http;

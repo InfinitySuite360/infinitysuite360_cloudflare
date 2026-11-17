@@ -55,6 +55,20 @@ public interface ICloudflareClient
     LogpushClient Logpush { get; }
     /// <summary>API token management (create, roll, revoke; the value only once in the result).</summary>
     ApiTokensClient ApiTokens { get; }
+    /// <summary>Workers KV: namespaces, keys, values, bulk operations.</summary>
+    KvClient Kv { get; }
+    /// <summary>D1 databases and SQL (read-only unless <c>allowWriteSql</c>).</summary>
+    D1Client D1 { get; }
+    /// <summary>Cloudflare Queues: queues, consumers, publishing.</summary>
+    QueuesClient Queues { get; }
+    /// <summary>Cache rules, purging and cache settings.</summary>
+    CacheClient Cache { get; }
+    /// <summary>Argo Smart Routing and Argo tiered caching.</summary>
+    ArgoClient Argo { get; }
+    /// <summary>Load balancing: monitors, pools, load balancers with outage protection.</summary>
+    LoadBalancingClient LoadBalancing { get; }
+    /// <summary>Spectrum applications (TCP/UDP proxy).</summary>
+    SpectrumClient Spectrum { get; }
 }
 
 public sealed class CloudflareClient : ICloudflareClient
@@ -89,6 +103,13 @@ public sealed class CloudflareClient : ICloudflareClient
         Tls = new(api);
         Logpush = new(api);
         ApiTokens = new(api);
+        Kv = new(api);
+        D1 = new(api);
+        Queues = new(api);
+        Cache = new(api);
+        Argo = new(api);
+        LoadBalancing = new(api);
+        Spectrum = new(api);
     }
 
     /// <summary>Creates a client without dependency injection (console tools, scripts, tests).</summary>
@@ -126,4 +147,11 @@ public sealed class CloudflareClient : ICloudflareClient
     public TlsSettingsClient Tls { get; }
     public LogpushClient Logpush { get; }
     public ApiTokensClient ApiTokens { get; }
+    public KvClient Kv { get; }
+    public D1Client D1 { get; }
+    public QueuesClient Queues { get; }
+    public CacheClient Cache { get; }
+    public ArgoClient Argo { get; }
+    public LoadBalancingClient LoadBalancing { get; }
+    public SpectrumClient Spectrum { get; }
 }

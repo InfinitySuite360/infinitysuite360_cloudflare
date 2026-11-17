@@ -1,5 +1,54 @@
 # Changelog
 
+## 0.7.0 – unreleased
+
+Priority 2: Workers, KV, D1, Queues, R2, cache, load balancing, Spectrum and Argo as typed clients, with the patterns of 0.5.0/0.6.0: every write checks
+`AllowWrites`/`WriteFilter` (methods that read before writing check it **before** the read, so with `AllowWrites = false` nothing is sent), has a `Preview…` sister that
+sends nothing, validates input locally, and risky options need an explicit `allow…` switch. POST is never repeated after a server error. Endpoints from the API schema
+`cloudflare/api-schemas@650bd71`; plans and limits from developers.cloudflare.com (retrieved 17.11.2026, sources in the XML documentation of each client).
+
+* `Workers` (extended): `ListSecretsAsync` (names and types only), `GetScriptSettingsAsync`, `ListSchedulesAsync`, `ListVersionsAsync`, `GetVersionAsync`, `ListDeploymentsAsync`,
+  `ListDomainsAsync`. Writes: `UploadScriptAsync` (needs `allowDeploy`; the preview shows size and SHA-256, never the source; `keep_bindings` defaults to the secret types so a
+  redeploy does not drop secrets; secret bindings in metadata are refused), `RemoveScriptAsync` (`allowDelete`, `force` needs `allowForce`), `EnsureRouteAsync` (wildcard host needs
+  `allowBroadRoute`; a pattern of another Worker is a `CloudflareConflictException`), `RemoveRouteAsync`, `AttachDomainAsync`/`DetachDomainAsync` (`allowRemoval`),
+  `SetSchedulesAsync` (cron checked locally, written only on change, an empty list needs `allowClear`), `DeployVersionsAsync` (one version or a 90/10 style split, percentages
+  checked, `allowDeploy`), `PutSecretAsync`/`RemoveSecretAsync` (`allowDeploy`: Cloudflare deploys a secret change at once).
+  **Secret values** exist only in the new `WorkerSecretText` (`ToString` and JSON write `[redacted]`) and in the request body; no model has a value, `text` is stripped from
+  every answer, previews show `[redacted]`.
+* New `Kv` (`KvClient`): namespaces (list, get, `EnsureNamespaceAsync`, rename, `RemoveNamespaceAsync` with `allowDelete` and, for a namespace with keys, `allowNonEmpty`), keys
+  (`ListKeysAsync` with prefix and cursor paging, `GetValueAsync`, `GetMetadataAsync`, `PutValueAsync` text/binary with TTL, expiration, metadata and `allowOverwrite: false`,
+  `DeleteKeyAsync`), bulk (`PutBulkAsync`, `GetBulkAsync`, `DeleteBulkAsync` with `allowBulkDelete`). Limits checked locally: key 512 bytes, value 25 MiB, metadata 1024 bytes,
+  TTL at least 60 s, 10 000 pairs and 100 MB per bulk write, 100 keys per bulk read.
+* New `D1` (`D1Client`): databases (list, get, `EnsureDatabaseAsync`, `RemoveDatabaseAsync` with `allowDelete`), Time Travel bookmark, `QueryAsync`/`PreviewQuery` with **bound
+  parameters**. The SQL is classified locally (`D1Sql.Classify`: read-only, write, destructive; comments and string literals are ignored): by default only reads are sent,
+  writes need `allowWriteSql`, DROP/ALTER/VACUUM/ATTACH and DELETE or UPDATE without WHERE need `allowDestructiveSql`; previews show the SQL and the parameter count, not the values.
+  The query endpoint is a POST, so the write guard applies to SELECT too. Export, import and restore are not included.
+* New `Queues` (`QueuesClient`): list, find, `EnsureAsync`, `UpdateSettingsAsync` (pausing needs `allowPause`), `RemoveAsync` (`allowDelete`), `PurgeAsync` (`allowPurge`), backlog,
+  consumers (`EnsureConsumerAsync`, `RemoveConsumerAsync`), `PushAsync`/`PushBatchAsync` (128 KB per message, 100 per batch, delay up to 24 h; previews show sizes only).
+* `R2` (extended): `EnsureBucketAsync`, `RemoveBucketAsync` (`allowDelete` and the bucket must be empty), custom domains (`EnsureCustomDomainAsync` needs `allowPublicAccess`,
+  `RemoveCustomDomainAsync` needs `allowRemoval`), r2.dev address (`SetManagedDomainAsync`, enabling needs `allowPublicAccess`), CORS typed (`GetCorsRulesAsync`, `SetCorsAsync`
+  with origin check, `*` needs `allowAnyOrigin`, `DeleteCorsAsync`), lifecycle typed (`GetLifecycleRulesAsync`, `SetLifecycleAsync`, deleting rules need `allowDeletion`).
+* New `Cache` (`CacheClient`, based on `RulesetPhaseClient`): cache rules of phase `http_request_cache_settings` (`UpsertRuleAsync` changes one rule; caching a match-all
+  expression needs `allowBroadCache`, an edge TTL override above one day `allowLongTtl`), purge by URL, hostname, tag and prefix (split into requests of 100, at most 1000 per
+  call, inputs checked), `PurgeEverythingAsync` (`allowPurgeAll`), Cache Reserve (enabling needs `allowBilling`), regional tiered cache.
+* New `Argo` (`ArgoClient`): smart routing (enabling needs `allowBilling`) and tiered caching.
+* New `LoadBalancing` (`LoadBalancingClient`): monitors (header values **redacted** in models and previews, `allowInsecureTls` for a monitor without certificate check, a monitor in
+  use is not deleted), pools (`EnsurePoolAsync`, `SetPoolEnabledAsync`, `SetOriginEnabledAsync`, `UpsertOriginAsync`, `RemoveOriginAsync`, `RemovePoolAsync` refuses a pool in use),
+  load balancers (`EnsureLoadBalancerAsync`, `SetLoadBalancerEnabledAsync` and `RemoveLoadBalancerAsync` need `allowDisableActive`/`allowDeleteActive` for an enabled one).
+  **Outage protection:** taking the last healthy pool of a load balancer out (disable the pool, disable or remove its last enabled origin) is refused unless
+  `allowLastHealthyPool` is true; the check reads the load balancers of the zone and the pool's references and refuses when a load balancer outside the zone cannot be checked.
+* New `Spectrum` (`SpectrumClient`): list, get, `EnsureAppAsync`, `UpdateAppAsync`, `RemoveAppAsync` (`allowDelete`); management and database ports (SSH, RDP, SMB, SQL, Redis …,
+  also inside a port range) need `allowSensitivePort`. Custom TCP/UDP applications need Enterprise with the add-on: Cloudflare answers with `CloudflareNotEntitledException`.
+* **Obsolete** (still working, removed in 1.0): `Workers.UploadModuleAsync`, `DeleteScriptAsync`, `CreateRouteAsync`, `DeleteRouteAsync`; `R2.CreateBucketAsync`, `DeleteBucketAsync`,
+  `PutLifecycleAsync`, `PutCorsAsync`; `Zones.PurgeEverythingAsync`. With `TreatWarningsAsErrors` callers have to switch to the guarded replacements or suppress CS0618.
+* **Breaking (source, rare):** `ICloudflareClient` has the new members `Kv`, `D1`, `Queues`, `Cache`, `Argo`, `LoadBalancing`, `Spectrum` (own implementations of the interface, in
+  practice test doubles, must add them). `WorkerMetadata` has the new optional property `KeepBindings`. `WorkersClient` and `R2Client` are now `partial`. No other public signature changed.
+* Not included (reachable through `OpenApi`): Durable Objects, Secrets Store, Hyperdrive, Workflows, Pages, D1 export/import and Time Travel restore, Queues pull/acknowledge,
+  R2 buckets with a jurisdiction, bucket locks, event notifications, Cache Reserve clear, Argo analytics, account-level load balancers and monitor groups.
+* Tests: 55 new (`Priority2Tests`, 210 in total) with the fake handler: success, errors, rate limit (429 retried), not entitled, conflict, previews send nothing,
+  `AllowWrites = false` sends nothing (64 write methods), `WriteFilter` before the preparing read, every allow switch refuses locally without a request, secret values, KV values,
+  D1 parameters, queue messages, monitor headers and Worker source never in previews, models or errors, last-healthy-pool protection (five scenarios), POST not repeated after a server error.
+
 ## 0.6.0 – unreleased
 
 Rest of priority 1: typed clients for rate limiting, WAF, bots, custom hostnames, Authenticated Origin Pulls, TLS settings, Logpush and API token
