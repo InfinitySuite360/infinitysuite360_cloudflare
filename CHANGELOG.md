@@ -1,5 +1,56 @@
 # Changelog
 
+## 0.8.1 – unreleased
+
+Security hardening of the Zero Trust clients after an independent review of 0.8.0; contains 0.7.1 (merged). Defaults are cautious: every finding refuses locally
+(or after the fresh read) and names the switch. All findings are covered by tests with the fake handler (no network, no real token).
+
+* **H1 path traversal (high):** with the 0.7.1 fix an id `..` (also `%2e%2e`, `.`) is refused in every Access, Gateway, Tunnels and Devices method before anything is
+  sent. Regression tests per client (reflective over every public method) and for the reviewed calls (`ChangeApplicationPolicyAsync("..", …)`,
+  `RemoveApplicationPolicyAsync("..", …)`, `Tunnels.RemoveAsync("..")` and others).
+* **H2 Access loosening (high):** a) added include rules of an allow/bypass/non_identity policy (also `ip 0.0.0.0/0`, `email_domain`, `any_valid_service_token`)
+  are loosening; b) a deny policy that gets exclude or require rules matches fewer requests (loosening); c) "admits everyone" also with a require rule that does not
+  narrow (`everyone`, 0.0.0.0/0), with `ip` shorter than /8 (IPv6 /16, 0.0.0.0/0, ::/0), `any_valid_service_token` and the `email_domain` of a public mail provider;
+  d) an earlier precedence (admitting) or a later one (deny) and a longer `session_duration` are loosening; e) `ChangeApplicationPolicyAsync`/`ChangePolicyAsync` lay
+  the change over the current policy, so `approval_required`, `approval_groups`, `isolation_required`, `purpose_justification_required`, `mfa_config`,
+  `connection_rules` are kept instead of being reset by the PUT.
+* **H3 Gateway (high):** permissive actions (`allow`, `off`, `noscan`, `noisolate`, `override`, `l4_override`, `resolve`, `egress`) that match all traffic (empty or
+  tautological selector) or that would run before an enabled protective rule of the same filter need `allowLoosen` (`EnsureRuleAsync` – new parameter –, `ChangeRuleAsync`);
+  `SetRuleEnabledAsync(true)` of a permissive rule needs `allowLoosen`; the rule comparison covers precedence (protective later), filters and `rule_settings`; the PUT of
+  `ChangeRuleAsync` keeps `schedule`, `expiration`, `rule_settings`, `precedence` and other members the input does not set.
+* **M1 ingress:** `originRequest` per rule counts in the diff and is kept by `UpsertIngressRuleAsync`; a path rule without hostname is treated like a catch-all
+  (`allowCatchAllService`); the diff compares the first matching rule before and after (a wildcard or a new order that answers first is "shadowed", `allowDisconnect`);
+  the configuration version is read again right before the PUT (concurrent change: `CloudflareConflictException`).
+* **M2 device profiles:** loosening settings already at `EnsureProfileAsync` need `allowLoosen` (new parameter); the broad-match check knows `identity.email matches ".*"`,
+  `ne ""`, `os.name in {…}` with every platform, `… or true`; changing the match of a profile is loosening.
+* **M3 Split Tunnel:** exclusions shorter than /8 (IPv6 /16, 0.0.0.0/0, ::/0) need `allowBroadRoute` (new parameter); the profile is read and Include mode is refused.
+* **M4:** `EnsureApplicationAsync` validates inline policy objects like `AddApplicationPolicyAsync` and reads policies referenced by id (admitting everyone:
+  `allowLoosen`, deny for everyone: `allowBlock`, new parameters; fail-closed); unknown policy entries are refused.
+* **M5:** changing the rules of a group that policies, applications or groups use needs `allowInUse` (new parameter of `ChangeGroupAsync`); the PUT keeps unknown members.
+* **M6:** `Gateway.AddListItemsAsync` checks the rules that use the list (`allowInUse`, new parameter); removing entries or lists reports disabled rules as well.
+* **M7 obsolete methods:** the 17 obsolete Access and 6 obsolete Tunnels methods carry `[EditorBrowsable(Never)]` and go through the guarded methods with every
+  `allow…` switch off (`PublishHostnameAsync` is `PublishAsync` with `SafeUpsertAsync`, `PutConfigurationAsync` is `SetIngressAsync`); `UpdateApplicationAsync`,
+  `UpdateIdentityProviderAsync`, `CreateServiceTokenAsync`, `RotateServiceTokenAsync` and `GetTokenAsync` are always refused. No obsolete method returns a secret.
+* **M8:** `RemoveIdentityProviderAsync` refuses (`allowRemoveLast`) when an application allows only this provider.
+* **L1:** `RemoveServiceTokenAsync` also checks groups and policies bound to applications. **L2:** longer `session_duration`/`warp_auth_session_duration`,
+  `allow_authenticate_via_warp` on and `is_ui_read_only` off need `allowLoosen`. **L3:** one rule for secret member names in `Strip` and `Redact` (names of
+  `ZT.SecretMembers` plus everything with "secret", "password", "private_key", "credential"). **L4:** `GetRunTokenAsync` needs `allowReadSecret` (new parameter).
+  **L5:** `UpdatePostureRuleAsync` writes only on change, keeps `expiration`, and counts device profile matches as users. **L6:** version re-check for tunnel
+  configurations; the other Zero Trust endpoints offer no `If-Match` (documented). **L7:** a tunnel whose ingress still serves hostnames is not deleted without
+  `allowDeleteActive`, also when it is "down". **L8:** `PublishAsync` checks that the zone belongs to the tunnel's account, refuses to re-point an existing CNAME
+  without `allowDisconnect`, reads the DNS plan before the ingress write and rolls the ingress back when the DNS write fails.
+* Tests: 37 new (`ZeroTrustHardeningTests`, 395 in total), among them the ones the review missed: `WriteFilter` before every preparing read of the Zero Trust clients
+  (reflective), the async previews send no write, allow switch refusals of `SetCertificateHostnamesAsync`/`RemoveCertificateAsync`, `ChangeGroupAsync`,
+  `RemoveVirtualNetworkAsync` with routes, `ChangeRuleAsync`, `SetLoggingAsync`, `UpdateProfileAsync` with a match change, `PublishAsync` with a redirect;
+  `originRequest`, Gateway permissive rules, Split Tunnel. Test infrastructure: `ClientSurface` uses a `NullabilityInfoContext` per thread (the reflective tests run
+  in parallel) and builds value tuples.
+* **Breaking (behaviour):** the methods above refuse what 0.8.0 wrote; the obsolete methods listed under M7 refuse or check; `GetRunTokenAsync` without
+  `allowReadSecret` is refused; `UpdatePostureRuleAsync`, `PublishAsync`, `RemoveAsync`, `SetSplitTunnelExcludeAsync` and the ingress writes send additional GET requests.
+* **Breaking (source, rare):** new optional parameters after the account parameter and before the `CancellationToken`: `Access.EnsureApplicationAsync(…, allowLoosen,
+  allowBlock)`, `ChangeGroupAsync(…, allowInUse)`, `Gateway.EnsureRuleAsync(…, allowLoosen)`, `AddListItemsAsync(…, allowInUse)`, `Devices.EnsureProfileAsync(…, allowLoosen)`,
+  `SetSplitTunnelExcludeAsync(…, allowBroadRoute)`, `Tunnels.GetRunTokenAsync(…, allowReadSecret)`; calls that pass the token positionally need `ct:`.
+  `AccessApplication` has the new property `AllowedIdps`.
+
 ## 0.8.0 – unreleased
 
 Zero Trust: Access, Gateway, Tunnels and WARP devices as typed, guarded clients, DLP and risk scoring read-only. Same rules as 0.5.0–0.7.0: every write checks

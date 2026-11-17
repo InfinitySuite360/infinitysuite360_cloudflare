@@ -392,7 +392,7 @@ await writer.Gateway.UpdateConfigurationAsync(new GatewaySettingsChange { Antivi
 
 // Tunnels: ingress changes that remove or re-point a hostname (maybe your own gateway) need allowDisconnect; originRequest and warp-routing are kept.
 await writer.Tunnels.UpsertIngressRuleAsync(tunnelId, new TunnelIngressRule { Hostname = "app.example.com", Service = "http://localhost:8080" });
-using var runToken = await writer.Tunnels.GetRunTokenAsync(tunnelId);             // CloudflareOneTimeSecret
+using var runToken = await writer.Tunnels.GetRunTokenAsync(tunnelId, allowReadSecret: true);   // CloudflareOneTimeSecret (0.8.1: needs the switch)
 await writer.Tunnels.RemoveAsync(tunnelId);                                        // refused while connected or used by routes: allowDeleteActive
 
 // WARP: the default profile reaches every device (allowBroadProfile); loosening (switch off, leave, mode switch, new Split Tunnel exclusions) allowLoosen.
@@ -403,29 +403,33 @@ await writer.Devices.UpdateDefaultProfileAsync(new DeviceProfileSettings { Switc
 |---|---|---|---|
 | Access application without policies | refused | `allowNoPolicy: true` | nobody gets in |
 | Delete an Access application | refused | `allowUnprotect: true` | hostname without login |
-| Policy or group that admits everyone (bypass, allow/non_identity for "everyone" without require) | refused | `allowLoosen: true` | public application |
-| Loosen a policy or group (more permissive decision, remove require/exclude rules, narrower deny), remove a deny policy | refused | `allowLoosen: true` | more people get in |
+| Policy or group that admits (nearly) everyone: bypass, or allow/non_identity with `everyone`, an IP range shorter than /8 (IPv6 /16, 0.0.0.0/0, ::/0), `any_valid_service_token` or the `email_domain` of a public mail provider, unless a require rule narrows it (0.8.1); also inline policies of `EnsureApplicationAsync` and reusable policies it refers to | refused | `allowLoosen: true` | public application |
+| Loosen a policy or group: more permissive decision, added include rules, removed require/exclude rules, earlier precedence, longer session; for a deny: removed include, added exclude/require rules, later precedence; remove a deny policy (0.8.1) | refused | `allowLoosen: true` | more people get in |
+| Change the rules of a group that policies, applications or groups use (0.8.1) | refused | `allowInUse: true` | every user of the group changes |
+| Longer Access or WARP sessions, login through a WARP session, "UI read-only" off (organization, 0.8.1) | refused | `allowLoosen: true` | sessions and dashboard changes outside the API |
 | Deny for everyone, "deny unmatched requests" on, MFA for all applications on | refused | `allowBlock: true` | lock-out |
 | Remove the last policy of an application (or the last that admits anyone) | refused | `allowRemoveLast: true` | lock-out |
-| Remove the last identity provider | refused | `allowRemoveLast: true` | nobody can log in |
-| Group used by policies, applications or groups / posture rule used by Access or Gateway / Gateway list used by an enabled rule | refused | `allowInUse: true` | other rules change their effect |
-| Rotate a service token without grace, delete a used service token, revoke tokens of an application or a user, change the team domain | refused | `allowDisconnect: true` | machines or users cut off |
+| Remove the last identity provider, or the only allowed provider of an application (0.8.1) | refused | `allowRemoveLast: true` | nobody can log in |
+| Delete a group used by policies, applications or groups / change or delete a posture rule used by Access, Gateway or a device profile match / add or remove entries of a Gateway list used by a rule, also a disabled one (0.8.1) | refused | `allowInUse: true` | other rules change their effect |
+| Rotate a service token without grace, delete a used service token or one referenced by a policy, group or application (0.8.1), revoke tokens of an application or a user, change the team domain | refused | `allowDisconnect: true` | machines or users cut off |
 | Service token that never expires | refused | `allowNoExpiry: true` | long-lived credential |
 | Remove hostnames from an mTLS certificate, delete a certificate with hostnames | refused | `allowRemovals: true` | mTLS ends there |
-| Gateway protective rule without selector | refused | `allowBroadMatch: true` | all traffic blocked or isolated |
-| Gateway block → allow, disable/delete/re-match a protective rule; inspection, antivirus or activity log off; less logging | refused | `allowLoosen: true` | traffic no longer filtered or logged |
+| Gateway protective rule without selector (or with a selector that matches everything) | refused | `allowBroadMatch: true` | all traffic blocked or isolated |
+| Gateway block → allow, disable/delete/re-match a protective rule, move it later or to another filter, change the rule settings of an enabled rule; inspection, antivirus or activity log off; less logging | refused | `allowLoosen: true` | traffic no longer filtered or logged |
+| Gateway permissive rule (allow, off, noscan, noisolate, override, l4_override, resolve, egress) that matches all traffic or comes before an enabled protective rule; enabling a permissive rule (0.8.1) | refused | `allowLoosen: true` | traffic passes the protective rules |
 | Gateway allow → block, enable a block rule; antivirus fail-closed | refused | `allowBlock: true` | legitimate traffic blocked |
 | TLS decryption on, another inspection certificate | refused | `allowTlsDecrypt: true` | pinned applications break |
 | PII redaction off | refused | `allowPii: true` | personal data in logs |
 | Delete a DNS location, a proxy endpoint, a custom device profile | refused | `allowDelete: true` | clients no longer filtered |
 | Deactivate or delete an inspection certificate in use | refused | `allowDisable: true` | certificate errors on devices |
-| Ingress change that removes or re-points a hostname, remove an ingress rule, rotate the run token, disconnect connectors, move or delete a private route, delete a virtual network with routes, revoke device registrations, remove Split Tunnel exclusions | refused | `allowDisconnect: true` | hostname, network or device cut off |
-| Catch-all ingress that forwards instead of 404 | refused | `allowCatchAllService: true` | every hostname routed to the tunnel reaches the service |
-| Delete a connected tunnel or one with routes | refused | `allowDeleteActive: true` | outage |
-| Route shorter than /8 (IPv4) or /16 (IPv6) | refused | `allowBroadRoute: true` | most traffic into the tunnel |
+| Ingress change that removes, re-points or shadows a hostname (another service, other `originRequest`, a wildcard or a new order that answers first, 0.8.1), remove an ingress rule, publish over a CNAME that points elsewhere, rotate the run token, disconnect connectors, move or delete a private route, delete a virtual network with routes, revoke device registrations, remove Split Tunnel exclusions | refused | `allowDisconnect: true` | hostname, network or device cut off |
+| Catch-all ingress, or a path rule without hostname (0.8.1), that forwards instead of 404 | refused | `allowCatchAllService: true` | every hostname routed to the tunnel reaches the service |
+| Delete a connected tunnel, one with routes, or one whose ingress still serves hostnames (also when "down", 0.8.1) | refused | `allowDeleteActive: true` | outage |
+| Route or Split Tunnel exclusion shorter than /8 (IPv4) or /16 (IPv6), including 0.0.0.0/0 and ::/0 | refused | `allowBroadRoute: true` | most traffic into the tunnel / out of WARP |
 | Change the default virtual network | refused | `allowDefaultChange: true` | routing of every client changes |
-| Change the default device profile or a profile that matches every device | refused | `allowBroadProfile: true` | every device affected |
-| Loosen a device profile, add Split Tunnel exclusions, un-revoke registrations | refused | `allowLoosen: true` | traffic bypasses Gateway, revoked device back |
+| Change the default device profile or a profile that matches every device (also `identity.email matches ".*"`, `os.name in {all platforms}`, `… or true`) | refused | `allowBroadProfile: true` | every device affected |
+| Loosen a device profile (also when it is created, and a changed match, 0.8.1), add Split Tunnel exclusions, un-revoke registrations | refused | `allowLoosen: true` | traffic bypasses Gateway, revoked device back |
+| Read a tunnel run token (0.8.1) | refused | `allowReadSecret: true` | anybody with it can run the tunnel |
 
 Secrets: service token client secrets and tunnel run tokens only in `CloudflareOneTimeSecret`; `client_secret`, `secret`, `token`, `tunnel_secret`, `credentials_file`
 and similar members are removed from every Zero Trust answer before a model is built (also in the older `List…`/`Get…` methods of `Access` and `Tunnels`); identity
@@ -439,10 +443,19 @@ per day; 1000 tunnels, 25 replicas, 1 MB tunnel configuration, 1000 virtual netw
 developers.cloudflare.com/tunnel/reference/tunnel-tokens/). Token permissions: "Access: Apps and Policies", "Access: Organizations, Identity Providers, and Groups",
 "Access: Service Tokens", "Access: Mutual TLS Certificates", "Zero Trust", "Cloudflare Tunnel" (Account; Read for reading, Edit for writes).
 
-Obsolete since 0.8.0 (removed in 1.0): `Access.CreateApplicationAsync`, `UpdateApplicationAsync`, `DeleteApplicationAsync`, `CreateApplicationPolicyAsync`,
+Full replacements keep what this package does not model (0.8.1): `ChangeApplicationPolicyAsync`, `ChangePolicyAsync`, `ChangeGroupAsync`, `Gateway.ChangeRuleAsync` and
+`Devices.UpdatePostureRuleAsync` lay the change over the object as Cloudflare returned it, so `approval_required`, `isolation_required`, `purpose_justification_required`,
+`mfa_config`, `connection_rules`, `schedule`, `expiration`, `rule_settings` and the like are kept. The tunnel configuration version is read again right before the PUT (a
+concurrent change is a `CloudflareConflictException`); the other Zero Trust endpoints offer no `If-Match`, so a change between the check and the write stays possible.
+`Tunnels.PublishAsync` checks that the zone belongs to the tunnel's account and rolls the ingress back when the DNS write fails. The breadth checks of selectors and
+matches are syntactic (no evaluation): read the preview.
+
+Obsolete since 0.8.0 (removed in 1.0, hidden from IntelliSense since 0.8.1): `Access.CreateApplicationAsync`, `UpdateApplicationAsync`, `DeleteApplicationAsync`, `CreateApplicationPolicyAsync`,
 `UpdateApplicationPolicyAsync`, `DeleteApplicationPolicyAsync`, `CreatePolicyAsync`, `DeletePolicyAsync`, `CreateGroupAsync`, `UpdateGroupAsync`, `DeleteGroupAsync`,
 `CreateServiceTokenAsync`, `RotateServiceTokenAsync`, `DeleteServiceTokenAsync`, `CreateIdentityProviderAsync`, `UpdateIdentityProviderAsync`, `DeleteIdentityProviderAsync`,
 `AccessServiceToken.ClientSecret`; `Tunnels.CreateAsync`, `DeleteAsync`, `CleanupConnectionsAsync`, `GetTokenAsync`, `PutConfigurationAsync`, `PublishHostnameAsync`.
+Since 0.8.1 they take the guarded paths with every `allow…` switch off; `UpdateApplicationAsync`, `UpdateIdentityProviderAsync`, `CreateServiceTokenAsync`,
+`RotateServiceTokenAsync` and `GetTokenAsync` are always refused (they would replace without a check or hand out a secret).
 
 Edge status and lists (0.3.0):
 
