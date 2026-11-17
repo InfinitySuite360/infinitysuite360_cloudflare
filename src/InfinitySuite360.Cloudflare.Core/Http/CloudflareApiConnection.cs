@@ -151,18 +151,18 @@ public sealed class CloudflareApiConnection : ICloudflareApiConnection
         if (string.IsNullOrWhiteSpace(text))
         {
             if ((int)status is >= 200 and < 300) return new CloudflareResponse<T> { Success = true };
-            throw new CloudflareApiException(status, method.Method, normalized, []);
+            throw CloudflareApiException.Create(status, method.Method, normalized, []);
         }
 
         CloudflareResponse<T>? parsed;
         try { parsed = JsonSerializer.Deserialize<CloudflareResponse<T>>(text, CloudflareJson.Options); }
         catch (JsonException ex)
         {
-            throw new CloudflareApiException(status, method.Method, normalized, [new CloudflareError { Message = "Response is not valid JSON." }], ex);
+            throw CloudflareApiException.Create(status, method.Method, normalized, [new CloudflareError { Message = "Response is not valid JSON." }], ex);
         }
 
         if (parsed is null || !parsed.Success || (int)status is < 200 or >= 300)
-            throw new CloudflareApiException(status, method.Method, normalized, parsed?.Errors ?? []);
+            throw CloudflareApiException.Create(status, method.Method, normalized, parsed?.Errors ?? []);
         return parsed;
     }
 }

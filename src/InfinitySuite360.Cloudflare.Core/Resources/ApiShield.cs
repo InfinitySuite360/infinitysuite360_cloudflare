@@ -54,7 +54,11 @@ public sealed class SchemaValidationOperationSetting : CloudflareModel
     public string? MitigationAction { get; init; }
 }
 
-/// <summary>Token (JWT) validation configuration: where tokens are found and which keys check them. Key material is not modelled on purpose.</summary>
+/// <summary>
+/// Token (JWT) validation configuration: where tokens are found and which keys check them. Key material is not modelled on purpose:
+/// <see cref="Credentials"/> only keeps key id, type and algorithm, the key values (<c>n</c>, <c>e</c>, <c>x</c>, <c>y</c>, <c>k</c>) are dropped while reading
+/// and therefore never reach <see cref="CloudflareModel.AdditionalData"/>, logs or <c>ToString</c>.
+/// </summary>
 public sealed class TokenValidationConfig : CloudflareModel
 {
     public string Id { get; init; } = "";
@@ -62,8 +66,26 @@ public sealed class TokenValidationConfig : CloudflareModel
     public string? Description { get; init; }
     public string TokenType { get; init; } = "";
     public List<string>? TokenSources { get; init; }
+    public TokenValidationCredentialsInfo? Credentials { get; init; }
     public DateTimeOffset? CreatedAt { get; init; }
     public DateTimeOffset? LastUpdated { get; init; }
+}
+
+/// <summary>Keys of a token validation configuration without key material (deliberately no <see cref="CloudflareModel"/>, so unknown fields are discarded).</summary>
+public sealed class TokenValidationCredentialsInfo
+{
+    public List<JwtKeyInfo>? Keys { get; init; }
+}
+
+/// <summary>Identification of a JWT key: id, key type, algorithm and curve. Never carries the key itself.</summary>
+public sealed class JwtKeyInfo
+{
+    public string? Kid { get; init; }
+    public string? Kty { get; init; }
+    public string? Alg { get; init; }
+    public string? Crv { get; init; }
+
+    public override string ToString() => $"{Kty}/{Alg}{(Crv is null ? "" : "/" + Crv)} kid={Kid ?? "-"}";
 }
 
 /// <summary>Token validation rule. <see cref="Action"/> is "log" or "block".</summary>
@@ -91,11 +113,17 @@ public sealed class ApiShieldLabel : CloudflareModel
     public DateTimeOffset? LastUpdated { get; init; }
 }
 
-/// <summary>An mTLS client certificate of the zone (Cloudflare-managed CA). The certificate PEM is returned by Cloudflare; the private key is only visible once on creation and is not modelled here.</summary>
+/// <summary>
+/// An mTLS client certificate of the zone (Cloudflare-managed CA). Cloudflare signs a CSR, so it never sees the private key: the key stays with whoever
+/// created the CSR and is not part of any model or method of this package. <see cref="Certificate"/> is the signed (public) certificate PEM.
+/// </summary>
 public sealed class ZoneClientCertificate : CloudflareModel
 {
     public string Id { get; init; } = "";
+    /// <summary>"active", "pending_reactivation", "pending_revocation" or "revoked".</summary>
     public string? Status { get; init; }
+    /// <summary>Signed certificate (PEM, public).</summary>
+    public string? Certificate { get; init; }
     public string? CommonName { get; init; }
     public string? SerialNumber { get; init; }
     public string? FingerprintSha256 { get; init; }
@@ -119,13 +147,16 @@ public sealed class ApiOperationQuery
 /// <summary>
 /// API Shield: saved operations, API Discovery, schema validation (zone and operation level), JWT token validation, operation labels and mTLS client certificates.
 /// Mostly read-only. Cloudflare decides plan availability (most features need the API Shield add-on on Enterprise; limits and mTLS are explained in the Cloudflare docs),
-/// a missing plan or permission surfaces as <see cref="CloudflareApiException"/>. Write methods respect <c>AllowWrites</c>/<c>WriteFilter</c>;
-/// <c>Preview…</c> methods build the change without sending it. Uploading schemas (multipart) and the mTLS certificate lifecycle (private key handling)
-/// are deliberately not part of this client.
+/// a missing plan surfaces as <see cref="CloudflareNotEntitledException"/>, a missing token permission as <see cref="CloudflareApiException"/>.
+/// Every write method respects <c>AllowWrites</c>/<c>WriteFilter</c> and has a <c>Preview…</c> sister that builds the change without sending it
+/// (writes: <c>ApiShield.Writes.cs</c>, since 0.5.0).
 /// </summary>
-public sealed class ApiShieldClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
+/// <remarks>
+/// <b>Block is never a default.</b> Schema validation and token validation accept <c>"block"</c> only with <c>allowBlock: true</c>: a wrong schema or
+/// key set then rejects legitimate clients (lock-out). Start with <c>"log"</c> (Enterprise) or keep <c>"none"</c>, watch the security events, then tighten.
+/// </remarks>
+public sealed partial class ApiShieldClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
-    private static readonly HashSet<string> Actions = ["log", "block", "none"];
 
     // ---- session identifier configuration (also the cheapest availability probe) ----
     /// <summary>Session identifier ("auth id") characteristics of the zone; raw JSON, because Cloudflare returns a list of header/cookie descriptors.</summary>
@@ -162,23 +193,32 @@ public sealed class ApiShieldClient(ICloudflareApiConnection api) : CloudflareRe
     public Task<IReadOnlyList<SchemaValidationOperationSetting>> ListOperationValidationSettingsAsync(string? zoneId = null, CancellationToken ct = default) =>
         Api.ListAllToListAsync<SchemaValidationOperationSetting>(ZonePath(zoneId, "schema_validation", "settings", "operations"), 50, ct);
 
-    /// <summary>Plan of a change of the zone default action. Validates the value locally.</summary>
-    public CloudflareChangePreview PreviewSetDefaultAction(string action, string? zoneId = null) =>
-        new("PATCH", ZonePath(zoneId, "schema_validation", "settings"), new Dictionary<string, object> { ["validation_default_mitigation_action"] = CheckAction(action) },
-            $"Set the default action of schema validation to \"{action}\".");
+    /// <summary>Plan of a change of the zone default action. Validates the value locally; <c>"block"</c> needs <paramref name="allowBlock"/>.</summary>
+    /// <param name="action"><c>"none"</c> or <c>"log"</c> (Enterprise; below that Cloudflare only offers block). <c>"block"</c> only with <paramref name="allowBlock"/>.</param>
+    /// <param name="allowBlock">
+    /// Warning: <c>true</c> lets schema validation reject every request that does not match the uploaded schema, including legitimate clients when the
+    /// schema is incomplete or out of date. Use only after a <c>"log"</c> phase without false positives, and after an explicit approval.
+    /// </param>
+    public CloudflareChangePreview PreviewSetDefaultAction(string action, string? zoneId = null, bool allowBlock = false) =>
+        new("PATCH", ZonePath(zoneId, "schema_validation", "settings"), new Dictionary<string, object> { ["validation_default_mitigation_action"] = ApiShieldActions.Check(action, allowBlock, nameof(action)) },
+            $"Set the default action of schema validation to \"{action}\".{ApiShieldActions.Warning(action)}");
 
-    public Task<SchemaValidationSettings> SetDefaultActionAsync(string action, string? zoneId = null, CancellationToken ct = default) =>
-        Api.PatchAsync<SchemaValidationSettings>(ZonePath(zoneId, "schema_validation", "settings"), new Dictionary<string, object> { ["validation_default_mitigation_action"] = CheckAction(action) }, ct);
+    /// <inheritdoc cref="PreviewSetDefaultAction"/>
+    public Task<SchemaValidationSettings> SetDefaultActionAsync(string action, string? zoneId = null, bool allowBlock = false, CancellationToken ct = default) =>
+        Api.PatchAsync<SchemaValidationSettings>(ZonePath(zoneId, "schema_validation", "settings"), new Dictionary<string, object> { ["validation_default_mitigation_action"] = ApiShieldActions.Check(action, allowBlock, nameof(action)) }, ct);
 
-    public CloudflareChangePreview PreviewSetOperationAction(string operationId, string action, string? zoneId = null) =>
-        new("PUT", ZonePath(zoneId, "schema_validation", "settings", "operations", operationId), new Dictionary<string, object> { ["mitigation_action"] = CheckAction(action) },
-            $"Set the schema validation action of operation {operationId} to \"{action}\".");
+    /// <summary>Plan of the per-operation action. <paramref name="action"/> null removes the override (the operation inherits the zone default).</summary>
+    /// <param name="allowBlock">See <see cref="PreviewSetDefaultAction"/>: <c>"block"</c> rejects non-matching requests to this operation.</param>
+    public CloudflareChangePreview PreviewSetOperationAction(string operationId, string? action, string? zoneId = null, bool allowBlock = false) =>
+        new("PUT", ZonePath(zoneId, "schema_validation", "settings", "operations", operationId), OperationActionBody(action, allowBlock),
+            $"Set the schema validation action of operation {operationId} to {(action is null ? "the zone default" : $"\"{action}\"")}.{ApiShieldActions.Warning(action)}");
 
-    public Task<SchemaValidationOperationSetting> SetOperationActionAsync(string operationId, string action, string? zoneId = null, CancellationToken ct = default) =>
-        Api.PutAsync<SchemaValidationOperationSetting>(ZonePath(zoneId, "schema_validation", "settings", "operations", operationId), new Dictionary<string, object> { ["mitigation_action"] = CheckAction(action) }, ct);
+    /// <inheritdoc cref="PreviewSetOperationAction"/>
+    public Task<SchemaValidationOperationSetting> SetOperationActionAsync(string operationId, string? action, string? zoneId = null, bool allowBlock = false, CancellationToken ct = default) =>
+        Api.PutAsync<SchemaValidationOperationSetting>(ZonePath(zoneId, "schema_validation", "settings", "operations", operationId), OperationActionBody(action, allowBlock), ct);
 
-    private static string CheckAction(string action) =>
-        Actions.Contains(action) ? action : throw new ArgumentException("Action must be \"log\", \"block\" or \"none\".", nameof(action));
+    private static System.Text.Json.Nodes.JsonObject OperationActionBody(string? action, bool allowBlock) =>
+        new() { ["mitigation_action"] = action is null ? null : ApiShieldActions.Check(action, allowBlock, nameof(action)) };
 
     // ---- token (JWT) validation ----
     public Task<IReadOnlyList<TokenValidationConfig>> ListTokenValidationConfigsAsync(string? zoneId = null, CancellationToken ct = default) =>
