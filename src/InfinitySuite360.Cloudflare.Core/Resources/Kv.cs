@@ -113,28 +113,33 @@ public sealed class KvClient(ICloudflareApiConnection api) : CloudflareResourceC
         if (maxItems is < 1 or > 100_000) throw new ArgumentOutOfRangeException(nameof(maxItems), "Between 1 and 100000.");
         var keys = new List<KvKey>();
         string? cursor = null;
-        do
+        // N-7 (0.7.1): stop on an empty page, on a repeated cursor and after a fixed number of pages, so a faulty answer cannot loop forever.
+        var maxPages = maxItems / 10 + 2;
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        for (var page = 0; page < maxPages; page++)
         {
             var path = CloudflarePath.WithQuery(AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "keys"),
                 ("prefix", prefix), ("limit", Math.Clamp(maxItems - keys.Count, 10, 1000).ToString()), ("cursor", cursor));
             var response = await Api.SendAsync<List<KvKey>>(HttpMethod.Get, path, null, ct).ConfigureAwait(false);
-            keys.AddRange(response.Result ?? []);
+            var items = response.Result ?? [];
+            keys.AddRange(items);
             cursor = response.ResultInfo?.Cursor;
-        } while (!string.IsNullOrEmpty(cursor) && keys.Count < maxItems);
+            if (items.Count == 0 || string.IsNullOrEmpty(cursor) || !seen.Add(cursor) || keys.Count >= maxItems) break;
+        }
         return keys.Take(maxItems).ToList();
     }
 
     /// <summary>The value of a key as text; null when the key does not exist.</summary>
     public async Task<string?> GetValueAsync(string namespaceId, string key, string? accountId = null, CancellationToken ct = default)
     {
-        try { return await Api.GetRawAsync(AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "values", Key(key)), ct).ConfigureAwait(false); }
+        try { return await Api.GetRawAsync(CloudflarePath.Append(AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "values"), Key(key)), ct).ConfigureAwait(false); }
         catch (CloudflareApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound) { return null; }
     }
 
     /// <summary>The metadata of a key; null when the key does not exist.</summary>
     public async Task<JsonElement?> GetMetadataAsync(string namespaceId, string key, string? accountId = null, CancellationToken ct = default)
     {
-        try { return await Api.GetAsync<JsonElement>(AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "metadata", Key(key)), ct).ConfigureAwait(false); }
+        try { return await Api.GetAsync<JsonElement>(CloudflarePath.Append(AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "metadata"), Key(key)), ct).ConfigureAwait(false); }
         catch (CloudflareApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound) { return null; }
     }
 
@@ -143,7 +148,7 @@ public sealed class KvClient(ICloudflareApiConnection api) : CloudflareResourceC
     {
         var bytes = P2.Utf8(value ?? throw new ArgumentNullException(nameof(value)));
         CheckPut(key, bytes, expirationTtl, expiration, metadata);
-        return new("PUT", CloudflarePath.WithQuery(AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "values", key),
+        return new("PUT", CloudflarePath.WithQuery(CloudflarePath.Append(AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "values"), Key(key)),
                 ("expiration_ttl", expirationTtl?.ToString()), ("expiration", expiration?.ToString())), new JsonObject { ["value_bytes"] = bytes },
             $"Write {bytes} bytes to key \"{key}\"{(expirationTtl is null && expiration is null ? "" : " with expiry")}. An existing value is overwritten.");
     }
@@ -160,7 +165,7 @@ public sealed class KvClient(ICloudflareApiConnection api) : CloudflareResourceC
     {
         ArgumentNullException.ThrowIfNull(value);
         CheckPut(key, value.Length, expirationTtl, expiration, metadata);
-        var path = CloudflarePath.WithQuery(AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "values", key),
+        var path = CloudflarePath.WithQuery(CloudflarePath.Append(AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "values"), Key(key)),
             ("expiration_ttl", expirationTtl?.ToString()), ("expiration", expiration?.ToString()));
         if (!allowOverwrite)
         {
@@ -178,11 +183,11 @@ public sealed class KvClient(ICloudflareApiConnection api) : CloudflareResourceC
     }
 
     public CloudflareChangePreview PreviewDeleteKey(string namespaceId, string key, string? accountId = null) =>
-        new("DELETE", AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "values", Key(key)), null, $"Delete key \"{key}\".");
+        new("DELETE", CloudflarePath.Append(AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "values"), Key(key)), null, $"Delete key \"{key}\".");
 
     /// <summary>Deletes a key (idempotent). False when the namespace or key did not exist.</summary>
     public Task<bool> DeleteKeyAsync(string namespaceId, string key, string? accountId = null, CancellationToken ct = default) =>
-        DeleteIfExistsAsync(AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "values", Key(key)), null, ct);
+        DeleteIfExistsAsync(CloudflarePath.Append(AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "values"), Key(key)), null, ct);
 
     // ---- bulk ----
 

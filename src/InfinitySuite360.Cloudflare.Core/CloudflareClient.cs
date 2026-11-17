@@ -113,8 +113,11 @@ public sealed class CloudflareClient : ICloudflareClient
     }
 
     /// <summary>Creates a client without dependency injection (console tools, scripts, tests).</summary>
+    /// <exception cref="CloudflareConfigurationException">The options are invalid (see <see cref="CloudflareOptions.Validate"/>).</exception>
     public static CloudflareClient Create(CloudflareOptions options, HttpClient? httpClient = null)
     {
+        ArgumentNullException.ThrowIfNull(options);
+        options.Validate();
         var http = httpClient ?? new HttpClient { Timeout = options.Timeout };
         return new CloudflareClient(new CloudflareApiConnection(http, options));
     }
