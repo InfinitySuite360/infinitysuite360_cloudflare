@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0 – unreleased
+
+* New: `PageShield` (Page Shield / client-side security): typed settings, detected scripts, connections and cookies (filter by host, URL, status, page, order; `MaxItems` caps the amount),
+  single items, content security rules (policies) with create, replace and delete. Scripts and connections now carry `UrlReportedMalicious`, `DomainReportedMalicious`, `Hash`, scores and `PageUrls`.
+* New: `ApiShield`: saved operations (with optional `feature` details), API Discovery operations (state filter), uploaded schemas (schema text only on request), zone and per-operation schema validation settings
+  (read, set default action, set operation action), JWT token validation configurations and rules (read only, key material is not modelled), operation labels, mTLS client certificates of the zone (read only),
+  session identifier configuration.
+* New: `CloudflareChangePreview` and `Preview…` methods for the Shield write calls: they build method, path, body and a summary and send nothing, so an application can show the change and ask for approval first.
+  Write methods still need `AllowWrites` (and pass `WriteFilter`); actions are checked locally.
+* Fix: `PageShieldResource.IsMalicious` of `Security` ignored `url_reported_malicious` and `domain_reported_malicious`; both are modelled now.
+* Not included on purpose: schema upload (multipart), operation labels writes, token validation writes, mTLS certificate creation (private key). They stay reachable through `OpenApi`.
+
 ## 0.3.0 – unreleased
 
 Release notes. Everything below goes through the same write guard (`AllowWrites`, `WriteFilter`) and retries (429 always, 502/503/504 for idempotent methods) as the existing clients.

@@ -35,6 +35,10 @@ public interface ICloudflareClient
     IpsClient Ips { get; }
     ListsClient Lists { get; }
     IpAccessClient IpAccess { get; }
+    /// <summary>Page Shield (client-side security): settings, scripts, connections, cookies, content security rules.</summary>
+    PageShieldClient PageShield { get; }
+    /// <summary>API Shield: operations, API Discovery, schema validation, token validation, labels, mTLS client certificates.</summary>
+    ApiShieldClient ApiShield { get; }
 }
 
 public sealed class CloudflareClient : ICloudflareClient
@@ -59,6 +63,8 @@ public sealed class CloudflareClient : ICloudflareClient
         Ips = new(api);
         Lists = new(api);
         IpAccess = new(api);
+        PageShield = new(api);
+        ApiShield = new(api);
     }
 
     /// <summary>Creates a client without dependency injection (console tools, scripts, tests).</summary>
@@ -86,4 +92,6 @@ public sealed class CloudflareClient : ICloudflareClient
     public IpsClient Ips { get; }
     public ListsClient Lists { get; }
     public IpAccessClient IpAccess { get; }
+    public PageShieldClient PageShield { get; }
+    public ApiShieldClient ApiShield { get; }
 }
