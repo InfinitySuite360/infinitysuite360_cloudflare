@@ -4,6 +4,7 @@ namespace InfinitySuite360.Cloudflare;
 /// Settings for the Cloudflare client. Bindable from configuration (section <see cref="SectionName"/>).
 /// Write calls are disabled by default (<see cref="AllowWrites"/>): a client must opt in before it can change anything.
 /// </summary>
+[System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
 public sealed class CloudflareOptions
 {
     public const string SectionName = "Cloudflare";
@@ -49,6 +50,13 @@ public sealed class CloudflareOptions
 
     public TurnstileOptions Turnstile { get; set; } = new();
 
+    /// <summary>
+    /// Shared request budget per token (0.9.0, default on: 80 % of Cloudflare's 1200 requests per five minutes for reads, 95 % for writes). Takes effect
+    /// where a <see cref="InfinitySuite360.Cloudflare.Http.CloudflareRateBudgetRegistry"/> is in place: dependency injection and
+    /// <see cref="ICloudflareClientFactory"/>; <see cref="CloudflareClient.Create"/> without a registry does not count.
+    /// </summary>
+    public InfinitySuite360.Cloudflare.Http.CloudflareRateBudgetOptions RateBudget { get; set; } = new();
+
     /// <summary>Checking the token that Cloudflare Access adds to requests (<c>Cf-Access-Jwt-Assertion</c>); off until team domain and audiences are set.</summary>
     public InfinitySuite360.Cloudflare.AccessJwt.CloudflareAccessJwtOptions AccessJwt { get; set; } = new();
 
@@ -70,7 +78,21 @@ public sealed class CloudflareOptions
             throw new CloudflareConfigurationException("Cloudflare: RetryBaseDelay must not be negative.");
         if (MaxResponseBytes <= 0)
             throw new CloudflareConfigurationException("Cloudflare: MaxResponseBytes must be positive.");
+        (RateBudget ?? throw new CloudflareConfigurationException("Cloudflare: RateBudget must not be null.")).Validate();
     }
+
+    /// <summary>A copy for one client (0.9.0): the factory hands every tenant its own options object, so a later change at the source does not leak into a running client.</summary>
+    public CloudflareOptions Clone()
+    {
+        var copy = (CloudflareOptions)MemberwiseClone();
+        copy.RateBudget = RateBudget?.Copy() ?? new();
+        return copy;
+    }
+
+    /// <summary>Describes the settings without the token (0.9.0): the token is shown as <c>[redacted]</c> or <c>(none)</c>.</summary>
+    public override string ToString() =>
+        $"CloudflareOptions(BaseAddress={BaseAddress}, AccountId={AccountId ?? "-"}, ZoneId={ZoneId ?? "-"}, ApiToken={(string.IsNullOrEmpty(ApiToken) ? "(none)" : "[redacted]")}, AllowWrites={AllowWrites}, WriteFilter={(WriteFilter is null ? "none" : "set")}, RateBudget={(RateBudget?.Enabled == true ? "on" : "off")})";
+
 }
 
 /// <summary>Settings for server-side Turnstile validation (siteverify).</summary>

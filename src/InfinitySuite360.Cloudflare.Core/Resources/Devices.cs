@@ -11,8 +11,8 @@ public sealed class SplitTunnelEntry : CloudflareModel
     public string? Host { get; init; }
     public string? Description { get; init; }
 
-    public static SplitTunnelEntry ForAddress(string cidr, string? description = null) => new() { Address = ZT.Cidr(cidr, nameof(cidr)).Cidr, Description = description };
-    public static SplitTunnelEntry ForHost(string host, string? description = null) => new() { Host = P1.Hostname(host, nameof(host), allowWildcard: true), Description = description };
+    public static SplitTunnelEntry ForAddress(string cidr, string? description = null) => new() { Address = ResourceKit.Cidr(cidr, nameof(cidr)).Cidr, Description = description };
+    public static SplitTunnelEntry ForHost(string host, string? description = null) => new() { Host = ResourceKit.Hostname(host, nameof(host), allowWildcard: true), Description = description };
 
     internal string Key => (Address ?? Host ?? "").ToLowerInvariant();
 }
@@ -134,13 +134,13 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
     // ------------------------------------------------------------------ profiles
 
     public Task<DeviceProfile> GetDefaultProfileAsync(string? accountId = null, CancellationToken ct = default) =>
-        ZT.SendAsync<DeviceProfile>(Api, HttpMethod.Get, AccountPath(accountId, "devices", "policy"), null, ct);
+        ResourceKit.SendSecretFreeAsync<DeviceProfile>(Api, HttpMethod.Get, AccountPath(accountId, "devices", "policy"), null, ct);
 
     public Task<List<DeviceProfile>> ListProfilesAsync(string? accountId = null, CancellationToken ct = default) =>
-        ZT.GetListAsync<DeviceProfile>(Api, AccountPath(accountId, "devices", "policies"), ct);
+        ResourceKit.GetSecretFreeListAsync<DeviceProfile>(Api, AccountPath(accountId, "devices", "policies"), ct);
 
     public Task<DeviceProfile> GetProfileAsync(string policyId, string? accountId = null, CancellationToken ct = default) =>
-        ZT.SendAsync<DeviceProfile>(Api, HttpMethod.Get, AccountPath(accountId, "devices", "policy", P1.Required(policyId, nameof(policyId))), null, ct);
+        ResourceKit.SendSecretFreeAsync<DeviceProfile>(Api, HttpMethod.Get, AccountPath(accountId, "devices", "policy", ResourceKit.Required(policyId, nameof(policyId))), null, ct);
 
     /// <summary>Plan of a default profile change (reads the profile; sends no write).</summary>
     public async Task<CloudflareChangePreview> PreviewUpdateDefaultProfileAsync(DeviceProfileSettings settings, string? accountId = null, CancellationToken ct = default)
@@ -148,7 +148,7 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
         var current = await GetDefaultProfileAsync(accountId, ct).ConfigureAwait(false);
         var (body, loosening) = SettingsBody(current, settings);
         return new("PATCH", AccountPath(accountId, "devices", "policy"), body,
-            $"Change {P1.Join(body.Select(p => p.Key))} of the default device profile (applies to every device)." + (loosening.Count > 0 ? $" WARNING: loosens ({string.Join("; ", loosening)})." : ""));
+            $"Change {ResourceKit.Join(body.Select(p => p.Key))} of the default device profile (applies to every device)." + (loosening.Count > 0 ? $" WARNING: loosens ({string.Join("; ", loosening)})." : ""));
     }
 
     /// <summary>Changes the default profile (PATCH, only fields that differ from a fresh read). Always needs <paramref name="allowBroadProfile"/>; loosening needs <paramref name="allowLoosen"/>.</summary>
@@ -157,12 +157,12 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
     {
         var path = AccountPath(accountId, "devices", "policy");
         EnsureWritable(HttpMethod.Patch, path);
-        P2.Allow(allowBroadProfile, "the default device profile applies to every device", nameof(allowBroadProfile));
+        ResourceKit.Allow(allowBroadProfile, "the default device profile applies to every device", nameof(allowBroadProfile));
         var current = await GetDefaultProfileAsync(accountId, ct).ConfigureAwait(false);
         var (body, loosening) = SettingsBody(current, settings);
-        if (loosening.Count > 0) P2.Allow(allowLoosen, $"the change loosens the default profile: {string.Join("; ", loosening)}", nameof(allowLoosen));
+        if (loosening.Count > 0) ResourceKit.Allow(allowLoosen, $"the change loosens the default profile: {string.Join("; ", loosening)}", nameof(allowLoosen));
         if (body.Count == 0) return (current, false);
-        return (await ZT.SendAsync<DeviceProfile>(Api, HttpMethod.Patch, path, body, ct).ConfigureAwait(false), true);
+        return (await ResourceKit.SendSecretFreeAsync<DeviceProfile>(Api, HttpMethod.Patch, path, body, ct).ConfigureAwait(false), true);
     }
 
     public CloudflareChangePreview PreviewEnsureProfile(DeviceProfileInput profile, bool allowBroadProfile = false, string? accountId = null)
@@ -183,10 +183,10 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
         var path = AccountPath(accountId, "devices", "policy");
         EnsureWritable(HttpMethod.Post, path);
         var (body, loosening) = ProfileBody(profile, allowBroadProfile);
-        if (loosening.Count > 0) P2.Allow(allowLoosen, $"device profile \"{profile.Name}\" would be created loose: {string.Join("; ", loosening)}", nameof(allowLoosen));
+        if (loosening.Count > 0) ResourceKit.Allow(allowLoosen, $"device profile \"{profile.Name}\" would be created loose: {string.Join("; ", loosening)}", nameof(allowLoosen));
         var existing = (await ListProfilesAsync(accountId, ct).ConfigureAwait(false)).FirstOrDefault(p => !p.Default && p.Name == profile.Name);
         if (existing is not null) return (existing, false);
-        return (await ZT.SendAsync<DeviceProfile>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), true);
+        return (await ResourceKit.SendSecretFreeAsync<DeviceProfile>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), true);
     }
 
     /// <summary>
@@ -197,28 +197,28 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
     public async Task<(DeviceProfile Profile, bool Changed)> UpdateProfileAsync(string policyId, DeviceProfileSettings settings, string? match = null, bool allowBroadProfile = false,
         bool allowLoosen = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "devices", "policy", P1.Required(policyId, nameof(policyId)));
+        var path = AccountPath(accountId, "devices", "policy", ResourceKit.Required(policyId, nameof(policyId)));
         EnsureWritable(HttpMethod.Patch, path);
         var current = await GetProfileAsync(policyId, accountId, ct).ConfigureAwait(false);
         if (current.Default || IsBroadMatch(current.Match) || (match is not null && IsBroadMatch(match)))
-            P2.Allow(allowBroadProfile, $"device profile \"{current.Name}\" applies to every device", nameof(allowBroadProfile));
+            ResourceKit.Allow(allowBroadProfile, $"device profile \"{current.Name}\" applies to every device", nameof(allowBroadProfile));
         var (body, loosening) = SettingsBody(current, settings);
         if (match is not null && match.Trim() != (current.Match ?? "").Trim())
         {
             body["match"] = match;
             loosening.Add($"the match changes which devices use the profile ({current.Match} → {match})");
         }
-        if (loosening.Count > 0) P2.Allow(allowLoosen, $"the change loosens device profile \"{current.Name}\": {string.Join("; ", loosening)}", nameof(allowLoosen));
+        if (loosening.Count > 0) ResourceKit.Allow(allowLoosen, $"the change loosens device profile \"{current.Name}\": {string.Join("; ", loosening)}", nameof(allowLoosen));
         if (body.Count == 0) return (current, false);
-        return (await ZT.SendAsync<DeviceProfile>(Api, HttpMethod.Patch, path, body, ct).ConfigureAwait(false), true);
+        return (await ResourceKit.SendSecretFreeAsync<DeviceProfile>(Api, HttpMethod.Patch, path, body, ct).ConfigureAwait(false), true);
     }
 
     /// <summary>Deletes a custom profile; its devices fall back to the default profile, so this always needs <paramref name="allowDelete"/>. False when it did not exist.</summary>
     public Task<bool> RemoveProfileAsync(string policyId, bool allowDelete = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "devices", "policy", P1.Required(policyId, nameof(policyId)));
+        var path = AccountPath(accountId, "devices", "policy", ResourceKit.Required(policyId, nameof(policyId)));
         EnsureWritable(HttpMethod.Delete, path);
-        P2.Allow(allowDelete, "deleting a device profile moves its devices to the default profile", nameof(allowDelete));
+        ResourceKit.Allow(allowDelete, "deleting a device profile moves its devices to the default profile", nameof(allowDelete));
         return DeleteIfExistsAsync(path, null, ct);
     }
 
@@ -258,22 +258,22 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
         var path = ProfilePath(policyId, accountId, "exclude");
         EnsureWritable(HttpMethod.Put, path);
         var next = CheckEntries(entries);
-        if (policyId is null) P2.Allow(allowBroadProfile, "the default device profile applies to every device", nameof(allowBroadProfile));
-        var broad = next.Where(e => e.Address is not null && ZT.IsBroadCidr(e.Address)).Select(e => e.Address!).ToList();
-        if (broad.Count > 0) P2.Allow(allowBroadRoute, $"excluding {P1.Join(broad)} takes almost all traffic out of WARP and Gateway", nameof(allowBroadRoute));
+        if (policyId is null) ResourceKit.Allow(allowBroadProfile, "the default device profile applies to every device", nameof(allowBroadProfile));
+        var broad = next.Where(e => e.Address is not null && ResourceKit.IsBroadCidr(e.Address)).Select(e => e.Address!).ToList();
+        if (broad.Count > 0) ResourceKit.Allow(allowBroadRoute, $"excluding {ResourceKit.Join(broad)} takes almost all traffic out of WARP and Gateway", nameof(allowBroadRoute));
         var profile = policyId is null ? await GetDefaultProfileAsync(accountId, ct).ConfigureAwait(false) : await GetProfileAsync(policyId, accountId, ct).ConfigureAwait(false);
         if (profile.Include.Count > 0 && profile.Exclude.Count == 0)
-            throw new InvalidOperationException($"Refused: device profile \"{profile.Name ?? policyId ?? "default"}\" uses Split Tunnel Include mode ({ZT.Plural(profile.Include.Count, "include entry", "include entries")}); an exclude list does not apply there. Change the mode deliberately in the dashboard or through the OpenApi client.");
+            throw new InvalidOperationException($"Refused: device profile \"{profile.Name ?? policyId ?? "default"}\" uses Split Tunnel Include mode ({ResourceKit.Plural(profile.Include.Count, "include entry", "include entries")}); an exclude list does not apply there. Change the mode deliberately in the dashboard or through the OpenApi client.");
         var current = await GetSplitTunnelExcludeAsync(policyId, accountId, ct).ConfigureAwait(false);
         var (added, removed) = EntryDiff(current, next);
-        if (added.Count > 0) P2.Allow(allowLoosen, $"excluding {P1.Join(added)} lets that traffic bypass Gateway", nameof(allowLoosen));
-        if (removed.Count > 0) P2.Allow(allowDisconnect, $"no longer excluding {P1.Join(removed)} sends it through WARP and can cut off local networks", nameof(allowDisconnect));
+        if (added.Count > 0) ResourceKit.Allow(allowLoosen, $"excluding {ResourceKit.Join(added)} lets that traffic bypass Gateway", nameof(allowLoosen));
+        if (removed.Count > 0) ResourceKit.Allow(allowDisconnect, $"no longer excluding {ResourceKit.Join(removed)} sends it through WARP and can cut off local networks", nameof(allowDisconnect));
         if (added.Count + removed.Count == 0) return (current, false);
         return (await Api.PutAsync<List<SplitTunnelEntry>>(path, EntriesBody(next), ct).ConfigureAwait(false) ?? next, true);
     }
 
     private string ProfilePath(string? policyId, string? accountId, string leaf) =>
-        policyId is null ? AccountPath(accountId, "devices", "policy", leaf) : AccountPath(accountId, "devices", "policy", P1.Required(policyId, nameof(policyId)), leaf);
+        policyId is null ? AccountPath(accountId, "devices", "policy", leaf) : AccountPath(accountId, "devices", "policy", ResourceKit.Required(policyId, nameof(policyId)), leaf);
 
     private static List<SplitTunnelEntry> CheckEntries(IEnumerable<SplitTunnelEntry> entries)
     {
@@ -305,15 +305,15 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
         }).ToArray());
 
     /// <summary>
-    /// A match that selects every device: empty, a tautology (<see cref="ZT.MatchesAll"/>: <c>true</c>, <c>any</c>, <c>1 == 1</c>, <c>identity.email matches ".*"</c>,
+    /// A match that selects every device: empty, a tautology (<see cref="ResourceKit.MatchesAll"/>: <c>true</c>, <c>any</c>, <c>1 == 1</c>, <c>identity.email matches ".*"</c>,
     /// <c>identity.email ne ""</c>, <c>os.name in {…}</c> with every platform, also behind a top-level <c>or</c>). Syntactic (M2, 0.8.1); read the preview.
     /// </summary>
-    private static bool IsBroadMatch(string? match) => ZT.MatchesAll(match);
+    private static bool IsBroadMatch(string? match) => ResourceKit.MatchesAll(match);
 
     private static (JsonObject Body, List<string> Loosening) ProfileBody(DeviceProfileInput p, bool allowBroadProfile)
     {
-        P1.Required(p.Name, nameof(p), 100);
-        if (IsBroadMatch(p.Match)) P2.Allow(allowBroadProfile, $"device profile \"{p.Name}\" would apply to every device", nameof(allowBroadProfile));
+        ResourceKit.Required(p.Name, nameof(p), 100);
+        if (IsBroadMatch(p.Match)) ResourceKit.Allow(allowBroadProfile, $"device profile \"{p.Name}\" would apply to every device", nameof(allowBroadProfile));
         if (p.Precedence is < 1 or > 10000) throw new ArgumentOutOfRangeException(nameof(p), "Precedence 1 to 10000.");
         var (settings, loosening) = SettingsBody(new DeviceProfile(), p.Settings ?? new DeviceProfileSettings());
         settings["name"] = p.Name;
@@ -361,10 +361,10 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
         await Api.GetAsync<List<DevicePostureRule>>(AccountPath(accountId, "devices", "posture"), ct).ConfigureAwait(false) ?? [];
 
     public Task<DevicePostureRule> GetPostureRuleAsync(string ruleId, string? accountId = null, CancellationToken ct = default) =>
-        Api.GetAsync<DevicePostureRule>(AccountPath(accountId, "devices", "posture", P1.Required(ruleId, nameof(ruleId))), ct);
+        Api.GetAsync<DevicePostureRule>(AccountPath(accountId, "devices", "posture", ResourceKit.Required(ruleId, nameof(ruleId))), ct);
 
     public CloudflareChangePreview PreviewEnsurePostureRule(DevicePostureRuleInput rule, string? accountId = null) =>
-        new("POST", AccountPath(accountId, "devices", "posture"), ZT.Redact(PostureBody(rule)), $"Create {rule.Type} posture rule \"{rule.Name}\".");
+        new("POST", AccountPath(accountId, "devices", "posture"), ResourceKit.Redact(PostureBody(rule)), $"Create {rule.Type} posture rule \"{rule.Name}\".");
 
     /// <summary>Returns the posture rule with this name or creates it; an existing rule is not changed. A new rule has no effect until a policy uses it.</summary>
     public async Task<(DevicePostureRule Rule, bool Created)> EnsurePostureRuleAsync(DevicePostureRuleInput rule, string? accountId = null, CancellationToken ct = default)
@@ -384,19 +384,19 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
     /// </summary>
     public async Task<DevicePostureRule> UpdatePostureRuleAsync(string ruleId, DevicePostureRuleInput rule, bool allowInUse = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "devices", "posture", P1.Required(ruleId, nameof(ruleId)));
+        var path = AccountPath(accountId, "devices", "posture", ResourceKit.Required(ruleId, nameof(ruleId)));
         EnsureWritable(HttpMethod.Put, path);
         var body = PostureBody(rule);
-        var raw = await ZT.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
-        if (P1.Covers(P1.Node(raw), body)) return P1.As<DevicePostureRule>(raw);
+        var raw = await ResourceKit.SecretFreeResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
+        if (ResourceKit.Covers(ResourceKit.Node(raw), body)) return ResourceKit.As<DevicePostureRule>(raw);
         await RefusePostureInUseAsync(ruleId, allowInUse, "changing", accountId, ct).ConfigureAwait(false);
-        return await ZT.SendAsync<DevicePostureRule>(Api, HttpMethod.Put, path, ZT.Merge(raw, body, "id", "created_at", "updated_at"), ct).ConfigureAwait(false);
+        return await ResourceKit.SendSecretFreeAsync<DevicePostureRule>(Api, HttpMethod.Put, path, ResourceKit.Merge(raw, body, "id", "created_at", "updated_at"), ct).ConfigureAwait(false);
     }
 
     /// <summary>Deletes a posture rule (same in-use check as <see cref="UpdatePostureRuleAsync"/>). False when it did not exist.</summary>
     public async Task<bool> RemovePostureRuleAsync(string ruleId, bool allowInUse = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "devices", "posture", P1.Required(ruleId, nameof(ruleId)));
+        var path = AccountPath(accountId, "devices", "posture", ResourceKit.Required(ruleId, nameof(ruleId)));
         EnsureWritable(HttpMethod.Delete, path);
         await RefusePostureInUseAsync(ruleId, allowInUse, "deleting", accountId, ct).ConfigureAwait(false);
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
@@ -408,11 +408,11 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
         var access = new AccessClient(Api);
         var users = new List<string>();
         foreach (var p in await access.ListPoliciesAsync(accountId, ct).ConfigureAwait(false))
-            if (ZT.References(ToElement(new { p.Include, p.Exclude, p.Require }), "device_posture", "integration_uid", ruleId)) users.Add($"Access policy \"{p.Name}\"");
+            if (ResourceKit.References(ToElement(new { p.Include, p.Exclude, p.Require }), "device_posture", "integration_uid", ruleId)) users.Add($"Access policy \"{p.Name}\"");
         foreach (var g in await access.ListGroupsAsync(accountId, ct).ConfigureAwait(false))
-            if (ZT.References(ToElement(new { g.Include, g.Exclude, g.Require }), "device_posture", "integration_uid", ruleId)) users.Add($"Access group \"{g.Name}\"");
+            if (ResourceKit.References(ToElement(new { g.Include, g.Exclude, g.Require }), "device_posture", "integration_uid", ruleId)) users.Add($"Access group \"{g.Name}\"");
         foreach (var a in await access.ListApplicationsAsync(accountId, ct).ConfigureAwait(false))
-            if (a.Policies.Any(x => ZT.References(x, "device_posture", "integration_uid", ruleId))) users.Add($"Access application \"{a.Name}\"");
+            if (a.Policies.Any(x => ResourceKit.References(x, "device_posture", "integration_uid", ruleId))) users.Add($"Access application \"{a.Name}\"");
         foreach (var r in await new ZeroTrustGatewayClient(Api).ListRulesAsync(null, accountId, ct).ConfigureAwait(false))
             if ((r.DevicePosture ?? "").Contains(ruleId, StringComparison.OrdinalIgnoreCase)) users.Add($"Gateway rule \"{r.Name}\"");
         // L5 (0.8.1): device profile matches can select devices by posture results as well.
@@ -424,8 +424,8 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
 
     private static JsonObject PostureBody(DevicePostureRuleInput r)
     {
-        P1.Required(r.Name, nameof(r), 255);
-        P1.Required(r.Type, nameof(r), 64);
+        ResourceKit.Required(r.Name, nameof(r), 255);
+        ResourceKit.Required(r.Type, nameof(r), 64);
         var body = new JsonObject { ["name"] = r.Name, ["type"] = r.Type };
         if (r.Input is not null) body["input"] = r.Input.DeepClone();
         if (r.Match is not null) body["match"] = r.Match.DeepClone();
@@ -453,7 +453,7 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
 
     /// <summary>Plan of a revocation: the preview carries the number of registrations only (no ids, no user or device data).</summary>
     public CloudflareChangePreview PreviewRevokeRegistrations(IEnumerable<string> registrationIds, string? accountId = null) =>
-        new("POST", AccountPath(accountId, "devices", "registrations", "revoke"), null, $"Revoke {ZT.Plural(Ids(registrationIds).Count, "device registration", "device registrations")}.");
+        new("POST", AccountPath(accountId, "devices", "registrations", "revoke"), null, $"Revoke {ResourceKit.Plural(Ids(registrationIds).Count, "device registration", "device registrations")}.");
 
     /// <summary>Revokes device registrations (the devices lose access until re-enrolled); always needs <paramref name="allowDisconnect"/>.</summary>
     public async Task RevokeRegistrationsAsync(IEnumerable<string> registrationIds, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
@@ -461,7 +461,7 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
         var ids = Ids(registrationIds);
         var path = CloudflarePath.WithQuery(AccountPath(accountId, "devices", "registrations", "revoke"), ids.Select(i => new KeyValuePair<string, string?>("id", i)));
         EnsureWritable(HttpMethod.Post, path);
-        P2.Allow(allowDisconnect, $"revoking {ZT.Plural(ids.Count, "registration", "registrations")} cuts those devices off", nameof(allowDisconnect));
+        ResourceKit.Allow(allowDisconnect, $"revoking {ResourceKit.Plural(ids.Count, "registration", "registrations")} cuts those devices off", nameof(allowDisconnect));
         await Api.SendAsync<JsonElement>(HttpMethod.Post, path, null, ct).ConfigureAwait(false);
     }
 
@@ -471,13 +471,13 @@ public sealed class DevicesClient(ICloudflareApiConnection api) : CloudflareReso
         var ids = Ids(registrationIds);
         var path = CloudflarePath.WithQuery(AccountPath(accountId, "devices", "registrations", "unrevoke"), ids.Select(i => new KeyValuePair<string, string?>("id", i)));
         EnsureWritable(HttpMethod.Post, path);
-        P2.Allow(allowLoosen, $"un-revoking {ZT.Plural(ids.Count, "registration", "registrations")} gives those devices access again", nameof(allowLoosen));
+        ResourceKit.Allow(allowLoosen, $"un-revoking {ResourceKit.Plural(ids.Count, "registration", "registrations")} gives those devices access again", nameof(allowLoosen));
         await Api.SendAsync<JsonElement>(HttpMethod.Post, path, null, ct).ConfigureAwait(false);
     }
 
     private static List<string> Ids(IEnumerable<string> ids)
     {
-        var list = ids.Select(i => P1.Required(i, nameof(ids), 64)).Distinct().ToList();
+        var list = ids.Select(i => ResourceKit.Required(i, nameof(ids), 64)).Distinct().ToList();
         if (list.Count is 0 or > 100) throw new ArgumentException("1 to 100 registration ids.", nameof(ids));
         return list;
     }

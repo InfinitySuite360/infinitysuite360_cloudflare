@@ -92,7 +92,7 @@ public sealed class KvClient(ICloudflareApiConnection api) : CloudflareResourceC
     /// </summary>
     public async Task<bool> RemoveNamespaceAsync(string namespaceId, bool allowDelete = false, bool allowNonEmpty = false, string? accountId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowDelete, "deleting a namespace deletes all its keys", nameof(allowDelete));
+        ResourceKit.Allow(allowDelete, "deleting a namespace deletes all its keys", nameof(allowDelete));
         var path = AccountPath(accountId, "storage", "kv", "namespaces", namespaceId);
         EnsureWritable(HttpMethod.Delete, path);
         if (!allowNonEmpty)
@@ -100,7 +100,7 @@ public sealed class KvClient(ICloudflareApiConnection api) : CloudflareResourceC
             IReadOnlyList<KvKey> keys;
             try { keys = await ListKeysAsync(namespaceId, null, 1, accountId, ct).ConfigureAwait(false); }
             catch (CloudflareApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound) { return false; }
-            P2.Allow(keys.Count == 0, $"namespace {namespaceId} still has keys", nameof(allowNonEmpty));
+            ResourceKit.Allow(keys.Count == 0, $"namespace {namespaceId} still has keys", nameof(allowNonEmpty));
         }
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
@@ -146,7 +146,7 @@ public sealed class KvClient(ICloudflareApiConnection api) : CloudflareResourceC
     /// <summary>Plan of a write: key, size and expiry, never the value.</summary>
     public CloudflareChangePreview PreviewPutValue(string namespaceId, string key, string value, int? expirationTtl = null, long? expiration = null, JsonElement? metadata = null, string? accountId = null)
     {
-        var bytes = P2.Utf8(value ?? throw new ArgumentNullException(nameof(value)));
+        var bytes = ResourceKit.Utf8(value ?? throw new ArgumentNullException(nameof(value)));
         CheckPut(key, bytes, expirationTtl, expiration, metadata);
         return new("PUT", CloudflarePath.WithQuery(CloudflarePath.Append(AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "values"), Key(key)),
                 ("expiration_ttl", expirationTtl?.ToString()), ("expiration", expiration?.ToString())), new JsonObject { ["value_bytes"] = bytes },
@@ -195,7 +195,7 @@ public sealed class KvClient(ICloudflareApiConnection api) : CloudflareResourceC
     {
         CheckBulk(entries);
         return new("PUT", AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "bulk"),
-            new JsonObject { ["pairs"] = entries.Count, ["bytes"] = entries.Sum(e => (long)P2.Utf8(e.Value)) },
+            new JsonObject { ["pairs"] = entries.Count, ["bytes"] = entries.Sum(e => (long)ResourceKit.Utf8(e.Value)) },
             $"Write {entries.Count} keys in one call. Existing values are overwritten.");
     }
 
@@ -209,7 +209,7 @@ public sealed class KvClient(ICloudflareApiConnection api) : CloudflareResourceC
             if (e.Base64) o["base64"] = true;
             if (e.Expiration is { } x) o["expiration"] = x;
             if (e.ExpirationTtl is { } t) o["expiration_ttl"] = t;
-            if (P1.Node(e.Metadata) is { } md) o["metadata"] = md;
+            if (ResourceKit.Node(e.Metadata) is { } md) o["metadata"] = md;
             return (JsonNode?)o;
         }).ToArray());
         await Api.SendAsync<JsonElement>(HttpMethod.Put, AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "bulk"), body, ct).ConfigureAwait(false);
@@ -220,10 +220,10 @@ public sealed class KvClient(ICloudflareApiConnection api) : CloudflareResourceC
     {
         if (keys is null || keys.Count is < 1 or > MaxBulkRead) throw new ArgumentException($"Between 1 and {MaxBulkRead} keys.", nameof(keys));
         foreach (var k in keys) Key(k);
-        var result = await P2.ResultAsync(Api, HttpMethod.Post, AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "bulk", "get"),
-            new JsonObject { ["keys"] = P1.Arr(keys), ["type"] = "text" }, ct).ConfigureAwait(false);
+        var result = await ResourceKit.ResultAsync(Api, HttpMethod.Post, AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "bulk", "get"),
+            new JsonObject { ["keys"] = ResourceKit.Arr(keys), ["type"] = "text" }, ct).ConfigureAwait(false);
         var map = new Dictionary<string, string?>();
-        if (P2.TryGet(result, "values", out var values) && values.ValueKind == JsonValueKind.Object)
+        if (ResourceKit.TryGet(result, "values", out var values) && values.ValueKind == JsonValueKind.Object)
             foreach (var p in values.EnumerateObject()) map[p.Name] = p.Value.ValueKind switch { JsonValueKind.Null => null, JsonValueKind.String => p.Value.GetString(), _ => p.Value.GetRawText() };
         return map;
     }
@@ -238,18 +238,18 @@ public sealed class KvClient(ICloudflareApiConnection api) : CloudflareResourceC
     /// <summary>Deletes up to 10 000 keys in one call. Refused unless <paramref name="allowBulkDelete"/> is true. POST is never repeated automatically.</summary>
     public async Task DeleteBulkAsync(string namespaceId, IReadOnlyList<string> keys, bool allowBulkDelete = false, string? accountId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowBulkDelete, "a bulk delete removes many keys at once", nameof(allowBulkDelete));
+        ResourceKit.Allow(allowBulkDelete, "a bulk delete removes many keys at once", nameof(allowBulkDelete));
         CheckKeys(keys);
-        await Api.SendAsync<JsonElement>(HttpMethod.Post, AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "bulk", "delete"), P1.Arr(keys), ct).ConfigureAwait(false);
+        await Api.SendAsync<JsonElement>(HttpMethod.Post, AccountPath(accountId, "storage", "kv", "namespaces", namespaceId, "bulk", "delete"), ResourceKit.Arr(keys), ct).ConfigureAwait(false);
     }
 
     // ---- checks ----
 
-    private static string Title(string? title) => P1.Required(title, nameof(title), 512);
+    private static string Title(string? title) => ResourceKit.Required(title, nameof(title), 512);
 
     private static string Key(string? key)
     {
-        if (string.IsNullOrEmpty(key) || P2.Utf8(key) > MaxKeyBytes) throw new ArgumentException($"A key has 1 to {MaxKeyBytes} bytes.", nameof(key));
+        if (string.IsNullOrEmpty(key) || ResourceKit.Utf8(key) > MaxKeyBytes) throw new ArgumentException($"A key has 1 to {MaxKeyBytes} bytes.", nameof(key));
         if (key is "." or "..") throw new ArgumentException("\".\" and \"..\" are not allowed as key names.", nameof(key));
         return key;
     }
@@ -267,7 +267,7 @@ public sealed class KvClient(ICloudflareApiConnection api) : CloudflareResourceC
         if (ttl is not null && expiration is not null) throw new ArgumentException("Use either an expiration or a TTL.", nameof(ttl));
         if (ttl is < 60) throw new ArgumentOutOfRangeException(nameof(ttl), "The TTL is at least 60 seconds.");
         if (expiration is not null && expiration < DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 60) throw new ArgumentOutOfRangeException(nameof(expiration), "The expiration is at least 60 seconds ahead.");
-        if (metadata is { ValueKind: not (JsonValueKind.Undefined or JsonValueKind.Null) } m && P2.Utf8(m.GetRawText()) > MaxMetadataBytes)
+        if (metadata is { ValueKind: not (JsonValueKind.Undefined or JsonValueKind.Null) } m && ResourceKit.Utf8(m.GetRawText()) > MaxMetadataBytes)
             throw new ArgumentException("Metadata may have at most 1024 bytes.", nameof(metadata));
     }
 
@@ -277,8 +277,8 @@ public sealed class KvClient(ICloudflareApiConnection api) : CloudflareResourceC
         long total = 0;
         foreach (var e in entries)
         {
-            CheckPut(e.Key, e.Base64 ? e.Value.Length : P2.Utf8(e.Value), e.ExpirationTtl, e.Expiration, e.Metadata);
-            total += P2.Utf8(e.Key) + P2.Utf8(e.Value);
+            CheckPut(e.Key, e.Base64 ? e.Value.Length : ResourceKit.Utf8(e.Value), e.ExpirationTtl, e.Expiration, e.Metadata);
+            total += ResourceKit.Utf8(e.Key) + ResourceKit.Utf8(e.Value);
         }
         if (total > MaxBulkBytes) throw new ArgumentException("A bulk write has at most 100 MB.", nameof(entries));
     }

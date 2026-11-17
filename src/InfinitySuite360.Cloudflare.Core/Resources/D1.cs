@@ -211,7 +211,7 @@ public static class D1Sql
 /// </summary>
 public sealed class D1Client(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
-    private static readonly Regex NamePattern = P2.Rx(@"^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
+    private static readonly Regex NamePattern = ResourceKit.Rx(@"^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
     private static readonly HashSet<string> LocationHints = ["wnam", "enam", "weur", "eeur", "apac", "oc"];
     private const int MaxSqlBytes = 100_000;
     private const int MaxParameters = 100;
@@ -248,15 +248,15 @@ public sealed class D1Client(ICloudflareApiConnection api) : CloudflareResourceC
     /// <summary>Deletes a database. Refused unless <paramref name="allowDelete"/> is true. False when it did not exist.</summary>
     public Task<bool> RemoveDatabaseAsync(string databaseId, bool allowDelete = false, string? accountId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowDelete, "deleting a database deletes all its data", nameof(allowDelete));
-        return DeleteIfExistsAsync(AccountPath(accountId, "d1", "database", P1.Required(databaseId, nameof(databaseId))), null, ct);
+        ResourceKit.Allow(allowDelete, "deleting a database deletes all its data", nameof(allowDelete));
+        return DeleteIfExistsAsync(AccountPath(accountId, "d1", "database", ResourceKit.Required(databaseId, nameof(databaseId))), null, ct);
     }
 
     /// <summary>The Time Travel bookmark of a point in time (now when <paramref name="timestamp"/> is null).</summary>
     public async Task<string?> GetBookmarkAsync(string databaseId, DateTimeOffset? timestamp = null, string? accountId = null, CancellationToken ct = default)
     {
         var path = CloudflarePath.WithQuery(AccountPath(accountId, "d1", "database", databaseId, "time_travel", "bookmark"), ("timestamp", timestamp?.UtcDateTime.ToString("o")));
-        return P2.Str(await Api.GetAsync<JsonElement>(path, ct).ConfigureAwait(false), "bookmark");
+        return ResourceKit.Str(await Api.GetAsync<JsonElement>(path, ct).ConfigureAwait(false), "bookmark");
     }
 
     /// <summary>Plan of a query: the SQL, its kind and the number of parameters (not their values).</summary>
@@ -276,22 +276,22 @@ public sealed class D1Client(ICloudflareApiConnection api) : CloudflareResourceC
         Check(sql, parameters?.Count ?? 0, allowWriteSql, allowDestructiveSql);
         var body = new JsonObject { ["sql"] = sql };
         if (parameters is { Count: > 0 }) body["params"] = new JsonArray(parameters.Select(p => p is null ? null : JsonSerializer.SerializeToNode(p, p.GetType(), CloudflareJson.Options)).ToArray());
-        return await Api.PostAsync<List<D1StatementResult>>(AccountPath(accountId, "d1", "database", P1.Required(databaseId, nameof(databaseId)), "query"), body, ct).ConfigureAwait(false) ?? [];
+        return await Api.PostAsync<List<D1StatementResult>>(AccountPath(accountId, "d1", "database", ResourceKit.Required(databaseId, nameof(databaseId)), "query"), body, ct).ConfigureAwait(false) ?? [];
     }
 
     private static D1SqlKind Check(string sql, int parameterCount, bool allowWriteSql, bool allowDestructiveSql)
     {
-        if (P2.Utf8(sql ?? "") > MaxSqlBytes) throw new ArgumentException("SQL may have at most 100 KB.", nameof(sql));
+        if (ResourceKit.Utf8(sql ?? "") > MaxSqlBytes) throw new ArgumentException("SQL may have at most 100 KB.", nameof(sql));
         if (parameterCount > MaxParameters) throw new ArgumentException("At most 100 bound parameters per query.", "parameters");
         var kind = D1Sql.Classify(sql!);
-        if (kind >= D1SqlKind.Write) P2.Allow(allowWriteSql, "the SQL changes data or the schema", nameof(allowWriteSql));
-        if (kind == D1SqlKind.Destructive) P2.Allow(allowDestructiveSql, "the SQL drops or alters objects, or deletes/updates without WHERE", nameof(allowDestructiveSql));
+        if (kind >= D1SqlKind.Write) ResourceKit.Allow(allowWriteSql, "the SQL changes data or the schema", nameof(allowWriteSql));
+        if (kind == D1SqlKind.Destructive) ResourceKit.Allow(allowDestructiveSql, "the SQL drops or alters objects, or deletes/updates without WHERE", nameof(allowDestructiveSql));
         return kind;
     }
 
     private static JsonObject CreateBody(string name, string? locationHint)
     {
-        var body = new JsonObject { ["name"] = P2.Match(name, nameof(name), NamePattern, "letters, digits, '-' and '_', at most 63 characters") };
+        var body = new JsonObject { ["name"] = ResourceKit.Match(name, nameof(name), NamePattern, "letters, digits, '-' and '_', at most 63 characters") };
         if (locationHint is not null)
             body["primary_location_hint"] = LocationHints.Contains(locationHint) ? locationHint : throw new ArgumentException("Hint: wnam, enam, weur, eeur, apac or oc.", nameof(locationHint));
         return body;

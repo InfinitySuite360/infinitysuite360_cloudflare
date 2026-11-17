@@ -19,7 +19,7 @@ public sealed class EnsuredTunnel
     /// <summary>The token for <c>cloudflared tunnel run --token</c> when Cloudflare returned it with the new tunnel (otherwise read it with <c>GetRunTokenAsync</c>).</summary>
     public CloudflareOneTimeSecret? RunToken { get; }
 
-    public override string ToString() => $"EnsuredTunnel({Tunnel.Id}, \"{Tunnel.Name}\", run token {(RunToken is null ? "none" : P1.Redacted)})";
+    public override string ToString() => $"EnsuredTunnel({Tunnel.Id}, \"{Tunnel.Name}\", run token {(RunToken is null ? "none" : ResourceKit.Redacted)})";
 }
 
 /// <summary>A private network route (CIDR) through a tunnel, reachable for WARP clients.</summary>
@@ -62,7 +62,7 @@ public sealed partial class TunnelsClient
     // ------------------------------------------------------------------ tunnels
 
     public CloudflareChangePreview PreviewEnsure(string name, string? accountId = null) =>
-        new("POST", AccountPath(accountId, "cfd_tunnel"), new JsonObject { ["name"] = P1.Required(name, nameof(name), 255), ["config_src"] = "cloudflare" },
+        new("POST", AccountPath(accountId, "cfd_tunnel"), new JsonObject { ["name"] = ResourceKit.Required(name, nameof(name), 255), ["config_src"] = "cloudflare" },
             $"Create remotely managed tunnel \"{name}\"; the run token is shown once in the result.");
 
     /// <summary>
@@ -75,9 +75,9 @@ public sealed partial class TunnelsClient
         EnsureWritable(HttpMethod.Post, preview.Path);
         var existing = (await ListAsync(name, false, accountId, ct).ConfigureAwait(false)).FirstOrDefault(t => t.Name == name && t.DeletedAt is null);
         if (existing is not null) return (new EnsuredTunnel(existing, null), false);
-        var result = await P2.ResultAsync(Api, HttpMethod.Post, preview.Path, preview.Body, ct).ConfigureAwait(false);
-        var token = P2.Str(result, "token") is { Length: > 0 } t ? new CloudflareOneTimeSecret(t, "tunnel-run-token") : null;
-        return (new EnsuredTunnel(P1.As<Tunnel>(ZT.Strip(result)), token), true);
+        var result = await ResourceKit.ResultAsync(Api, HttpMethod.Post, preview.Path, preview.Body, ct).ConfigureAwait(false);
+        var token = ResourceKit.Str(result, "token") is { Length: > 0 } t ? new CloudflareOneTimeSecret(t, "tunnel-run-token") : null;
+        return (new EnsuredTunnel(ResourceKit.As<Tunnel>(ResourceKit.StripSecrets(result)), token), true);
     }
 
     /// <summary>
@@ -86,16 +86,16 @@ public sealed partial class TunnelsClient
     /// </summary>
     public async Task<CloudflareOneTimeSecret> GetRunTokenAsync(string tunnelId, string? accountId = null, bool allowReadSecret = false, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "cfd_tunnel", P1.Required(tunnelId, nameof(tunnelId)), "token");
-        P2.Allow(allowReadSecret, $"reading the run token of tunnel {tunnelId} hands out a secret that lets anybody run the tunnel", nameof(allowReadSecret));
-        var result = await P2.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
+        var path = AccountPath(accountId, "cfd_tunnel", ResourceKit.Required(tunnelId, nameof(tunnelId)), "token");
+        ResourceKit.Allow(allowReadSecret, $"reading the run token of tunnel {tunnelId} hands out a secret that lets anybody run the tunnel", nameof(allowReadSecret));
+        var result = await ResourceKit.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
         if (result.ValueKind != JsonValueKind.String || string.IsNullOrEmpty(result.GetString()))
             throw new CloudflareApiException(HttpStatusCode.OK, "GET", CloudflarePath.Normalize(path), [new CloudflareError { Message = "The answer carries no run token." }]);
         return new CloudflareOneTimeSecret(result.GetString()!, "tunnel-run-token");
     }
 
     public CloudflareChangePreview PreviewRotateRunToken(string tunnelId, string? accountId = null) =>
-        new("PATCH", AccountPath(accountId, "cfd_tunnel", tunnelId), new JsonObject { ["tunnel_secret"] = P1.Redacted },
+        new("PATCH", AccountPath(accountId, "cfd_tunnel", tunnelId), new JsonObject { ["tunnel_secret"] = ResourceKit.Redacted },
             $"Rotate the run token of tunnel {tunnelId}: a new random tunnel secret is generated locally. WARNING: cloudflared cannot open new connections with the old token.");
 
     /// <summary>
@@ -104,9 +104,9 @@ public sealed partial class TunnelsClient
     /// </summary>
     public async Task<CloudflareOneTimeSecret> RotateRunTokenAsync(string tunnelId, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "cfd_tunnel", P1.Required(tunnelId, nameof(tunnelId)));
+        var path = AccountPath(accountId, "cfd_tunnel", ResourceKit.Required(tunnelId, nameof(tunnelId)));
         EnsureWritable(HttpMethod.Patch, path);
-        P2.Allow(allowDisconnect, "after rotating, cloudflared replicas with the old token cannot reconnect", nameof(allowDisconnect));
+        ResourceKit.Allow(allowDisconnect, "after rotating, cloudflared replicas with the old token cannot reconnect", nameof(allowDisconnect));
         var secret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
         await Api.SendAsync<JsonElement>(HttpMethod.Patch, path, new JsonObject { ["tunnel_secret"] = secret }, ct).ConfigureAwait(false);
         return await GetRunTokenAsync(tunnelId, accountId, allowReadSecret: true, ct).ConfigureAwait(false);
@@ -122,9 +122,9 @@ public sealed partial class TunnelsClient
     /// </summary>
     public async Task<bool> RemoveAsync(string tunnelId, bool allowDeleteActive = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "cfd_tunnel", P1.Required(tunnelId, nameof(tunnelId)));
+        var path = AccountPath(accountId, "cfd_tunnel", ResourceKit.Required(tunnelId, nameof(tunnelId)));
         EnsureWritable(HttpMethod.Delete, path);
-        var tunnel = await ZT.GetOrNullAsync<Tunnel>(Api, path, ct).ConfigureAwait(false);
+        var tunnel = await ResourceKit.GetSecretFreeOrNullAsync<Tunnel>(Api, path, ct).ConfigureAwait(false);
         if (tunnel is null || tunnel.DeletedAt is not null) return false;
         if (!allowDeleteActive)
         {
@@ -134,13 +134,13 @@ public sealed partial class TunnelsClient
                 throw new InvalidOperationException($"Refused: tunnel \"{tunnel.Name}\" is {tunnel.Status} with {active} active connection(s); deleting it cuts every hostname and route it serves. Pass allowDeleteActive: true deliberately.");
             var routes = await ListRoutesAsync(tunnelId, null, accountId, ct).ConfigureAwait(false);
             if (routes.Count > 0)
-                throw new InvalidOperationException($"Refused: {ZT.Plural(routes.Count, "private route uses", "private routes use")} tunnel \"{tunnel.Name}\". Remove them first or pass allowDeleteActive: true deliberately.");
+                throw new InvalidOperationException($"Refused: {ResourceKit.Plural(routes.Count, "private route uses", "private routes use")} tunnel \"{tunnel.Name}\". Remove them first or pass allowDeleteActive: true deliberately.");
             TunnelConfiguration? config;
             try { config = await GetConfigurationAsync(tunnelId, accountId, ct).ConfigureAwait(false); }
             catch (CloudflareApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound) { config = null; }
             var hosts = (config?.Config?.Ingress ?? []).Where(r => r.Hostname is not null).Select(r => r.Hostname!).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             if (hosts.Count > 0)
-                throw new InvalidOperationException($"Refused: tunnel \"{tunnel.Name}\" ({tunnel.Status}) still serves {P1.Join(hosts)}; their DNS records point at it. Remove the ingress rules and records first or pass allowDeleteActive: true deliberately.");
+                throw new InvalidOperationException($"Refused: tunnel \"{tunnel.Name}\" ({tunnel.Status}) still serves {ResourceKit.Join(hosts)}; their DNS records point at it. Remove the ingress rules and records first or pass allowDeleteActive: true deliberately.");
         }
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
@@ -152,9 +152,9 @@ public sealed partial class TunnelsClient
     /// <summary>Disconnects all connectors (or one, <paramref name="clientId"/>) of a tunnel; always needs <paramref name="allowDisconnect"/>.</summary>
     public async Task DisconnectAsync(string tunnelId, string? clientId = null, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = CloudflarePath.WithQuery(AccountPath(accountId, "cfd_tunnel", P1.Required(tunnelId, nameof(tunnelId)), "connections"), ("client_id", clientId));
+        var path = CloudflarePath.WithQuery(AccountPath(accountId, "cfd_tunnel", ResourceKit.Required(tunnelId, nameof(tunnelId)), "connections"), ("client_id", clientId));
         EnsureWritable(HttpMethod.Delete, path);
-        P2.Allow(allowDisconnect, "disconnecting connectors interrupts every hostname the tunnel serves", nameof(allowDisconnect));
+        ResourceKit.Allow(allowDisconnect, "disconnecting connectors interrupts every hostname the tunnel serves", nameof(allowDisconnect));
         await Api.SendAsync<JsonElement>(HttpMethod.Delete, path, null, ct).ConfigureAwait(false);
     }
 
@@ -167,7 +167,7 @@ public sealed partial class TunnelsClient
         var rules = Normalize(ingress, true);
         var diff = Diff(current.Config?.Ingress ?? [], rules);
         return new("PUT", AccountPath(accountId, "cfd_tunnel", tunnelId, "configurations"), ConfigBody(current, rules),
-            $"Set {rules.Count} ingress rule(s) of tunnel {tunnelId}: added {P1.Join(diff.Added)}, removed {P1.Join(diff.Removed)}, re-pointed or shadowed {P1.Join(diff.Changed)}."
+            $"Set {rules.Count} ingress rule(s) of tunnel {tunnelId}: added {ResourceKit.Join(diff.Added)}, removed {ResourceKit.Join(diff.Removed)}, re-pointed or shadowed {ResourceKit.Join(diff.Changed)}."
             + (diff.Removed.Count + diff.Changed.Count > 0 ? " WARNING: removed, re-pointed or shadowed hostnames lose their current service or origin settings." : ""));
     }
 
@@ -181,7 +181,7 @@ public sealed partial class TunnelsClient
     public async Task<(TunnelConfiguration Configuration, bool Changed)> SetIngressAsync(string tunnelId, IEnumerable<TunnelIngressRule> ingress, bool allowDisconnect = false,
         bool allowCatchAllService = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "cfd_tunnel", P1.Required(tunnelId, nameof(tunnelId)), "configurations");
+        var path = AccountPath(accountId, "cfd_tunnel", ResourceKit.Required(tunnelId, nameof(tunnelId)), "configurations");
         EnsureWritable(HttpMethod.Put, path);
         var rules = Normalize(ingress, allowCatchAllService);
         var current = await GetConfigurationAsync(tunnelId, accountId, ct).ConfigureAwait(false);
@@ -196,7 +196,7 @@ public sealed partial class TunnelsClient
     public async Task<(TunnelConfiguration Configuration, bool Changed)> UpsertIngressRuleAsync(string tunnelId, TunnelIngressRule rule, bool allowDisconnect = false,
         string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "cfd_tunnel", P1.Required(tunnelId, nameof(tunnelId)), "configurations");
+        var path = AccountPath(accountId, "cfd_tunnel", ResourceKit.Required(tunnelId, nameof(tunnelId)), "configurations");
         EnsureWritable(HttpMethod.Put, path);
         var (config, changed, _) = await UpsertCoreAsync(path, tunnelId, rule, allowDisconnect, accountId, ct).ConfigureAwait(false);
         return (config, changed);
@@ -206,7 +206,7 @@ public sealed partial class TunnelsClient
         bool allowDisconnect, string? accountId, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(rule.Hostname)) throw new ArgumentException("An ingress rule needs a hostname (the catch-all is managed for you).", nameof(rule));
-        var host = P1.Hostname(rule.Hostname, nameof(rule), allowWildcard: true);
+        var host = ResourceKit.Hostname(rule.Hostname, nameof(rule), allowWildcard: true);
         var service = CheckService(rule.Service);
         var current = await GetConfigurationAsync(tunnelId, accountId, ct).ConfigureAwait(false);
         var rules = (current.Config?.Ingress ?? []).Where(r => !IsCatchAll(r)).ToList();
@@ -220,10 +220,10 @@ public sealed partial class TunnelsClient
     /// <summary>Removes the ingress rule of a hostname. This cuts the hostname off, so it always needs <paramref name="allowDisconnect"/>. False when there was no such rule.</summary>
     public async Task<bool> RemoveIngressRuleAsync(string tunnelId, string hostname, string? path = null, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
     {
-        var configPath = AccountPath(accountId, "cfd_tunnel", P1.Required(tunnelId, nameof(tunnelId)), "configurations");
+        var configPath = AccountPath(accountId, "cfd_tunnel", ResourceKit.Required(tunnelId, nameof(tunnelId)), "configurations");
         EnsureWritable(HttpMethod.Put, configPath);
-        var host = P1.Hostname(hostname, nameof(hostname), allowWildcard: true);
-        P2.Allow(allowDisconnect, $"removing the ingress rule of {host} cuts that hostname off", nameof(allowDisconnect));
+        var host = ResourceKit.Hostname(hostname, nameof(hostname), allowWildcard: true);
+        ResourceKit.Allow(allowDisconnect, $"removing the ingress rule of {host} cuts that hostname off", nameof(allowDisconnect));
         var current = await GetConfigurationAsync(tunnelId, accountId, ct).ConfigureAwait(false);
         var rules = (current.Config?.Ingress ?? []).ToList();
         if (rules.RemoveAll(r => SameKey(r, host, path)) == 0) return false;
@@ -241,22 +241,22 @@ public sealed partial class TunnelsClient
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(dns);
-        var path = AccountPath(accountId, "cfd_tunnel", P1.Required(tunnelId, nameof(tunnelId)), "configurations");
+        var path = AccountPath(accountId, "cfd_tunnel", ResourceKit.Required(tunnelId, nameof(tunnelId)), "configurations");
         EnsureWritable(HttpMethod.Put, path);
-        var host = P1.Hostname(hostname, nameof(hostname), allowWildcard: true);
+        var host = ResourceKit.Hostname(hostname, nameof(hostname), allowWildcard: true);
         CheckService(service);
         var record = new DnsRecordInput { Type = "CNAME", Name = host, Content = $"{tunnelId}.cfargotunnel.com", Proxied = true };
         var dnsPath = dns.PreviewCreate(record, zoneId).Path;
         EnsureAnyWritable((HttpMethod.Post, dnsPath), (HttpMethod.Put, dnsPath + "/"));
 
         var zonePath = dnsPath[..dnsPath.LastIndexOf('/')];
-        var zone = await P2.ResultAsync(Api, HttpMethod.Get, zonePath, null, ct).ConfigureAwait(false);
-        var zoneAccount = zone.ValueKind == JsonValueKind.Object && zone.TryGetProperty("account", out var acc) ? P2.Str(acc, "id") : null;
+        var zone = await ResourceKit.ResultAsync(Api, HttpMethod.Get, zonePath, null, ct).ConfigureAwait(false);
+        var zoneAccount = zone.ValueKind == JsonValueKind.Object && zone.TryGetProperty("account", out var acc) ? ResourceKit.Str(acc, "id") : null;
         if (!string.Equals(zoneAccount, Account(accountId), StringComparison.Ordinal))
-            throw new InvalidOperationException($"Refused: zone {P2.Str(zone, "name") ?? zonePath} belongs to account {zoneAccount ?? "(unknown)"}, not to the account of tunnel {tunnelId}; a CNAME there would not reach the tunnel.");
+            throw new InvalidOperationException($"Refused: zone {ResourceKit.Str(zone, "name") ?? zonePath} belongs to account {zoneAccount ?? "(unknown)"}, not to the account of tunnel {tunnelId}; a CNAME there would not reach the tunnel.");
         var plan = await dns.PreviewUpsertAsync(record, zoneId, ct).ConfigureAwait(false);
         if (plan is { Method: "PUT" })
-            P2.Allow(allowDisconnect, $"{host} already has a CNAME that points elsewhere; publishing re-points it to tunnel {tunnelId}", nameof(allowDisconnect));
+            ResourceKit.Allow(allowDisconnect, $"{host} already has a CNAME that points elsewhere; publishing re-points it to tunnel {tunnelId}", nameof(allowDisconnect));
 
         var (_, changed, before) = await UpsertCoreAsync(path, tunnelId, new TunnelIngressRule { Hostname = host, Service = service }, allowDisconnect, accountId, ct).ConfigureAwait(false);
         try
@@ -279,20 +279,20 @@ public sealed partial class TunnelsClient
         var before = current.Config?.Ingress ?? [];
         var diff = Diff(before, rules);
         if (diff.Removed.Count + diff.Changed.Count > 0)
-            P2.Allow(allowDisconnect, $"the ingress change removes {P1.Join(diff.Removed)} and re-points or shadows {P1.Join(diff.Changed)}", nameof(allowDisconnect));
-        if (JsonNode.DeepEquals(ZT.ToNode(before), ZT.ToNode(rules))) return (current, false);
+            ResourceKit.Allow(allowDisconnect, $"the ingress change removes {ResourceKit.Join(diff.Removed)} and re-points or shadows {ResourceKit.Join(diff.Changed)}", nameof(allowDisconnect));
+        if (JsonNode.DeepEquals(ResourceKit.ToNode(before), ResourceKit.ToNode(rules))) return (current, false);
         // L6/M1 (0.8.1): the API has no If-Match for tunnel configurations; the version is read again right before the PUT.
         var again = await Api.GetAsync<TunnelConfiguration>(path, ct).ConfigureAwait(false);
         if (again.Version != current.Version)
-            throw ZT.Conflict("PUT", path, $"The tunnel configuration changed while it was checked (version {current.Version} → {again.Version}). Read it again and repeat the change.");
+            throw ResourceKit.Conflict("PUT", path, $"The tunnel configuration changed while it was checked (version {current.Version} → {again.Version}). Read it again and repeat the change.");
         return (await Api.PutAsync<TunnelConfiguration>(path, ConfigBody(current, rules), ct).ConfigureAwait(false), true);
     }
 
     private static JsonObject ConfigBody(TunnelConfiguration current, List<TunnelIngressRule> rules)
     {
         var config = new JsonObject { ["ingress"] = new JsonArray(rules.Select(r => JsonSerializer.SerializeToNode(r, CloudflareJson.Options)).ToArray()) };
-        if (P1.Node(current.Config?.OriginRequest) is { } origin) config["originRequest"] = origin;
-        if (P1.Node(current.Config?.WarpRouting) is { } warp) config["warp-routing"] = warp;
+        if (ResourceKit.Node(current.Config?.OriginRequest) is { } origin) config["originRequest"] = origin;
+        if (ResourceKit.Node(current.Config?.WarpRouting) is { } warp) config["warp-routing"] = warp;
         return new JsonObject { ["config"] = config };
     }
 
@@ -323,7 +323,7 @@ public sealed partial class TunnelsClient
     private static string Answer(IReadOnlyList<TunnelIngressRule> rules, TunnelIngressRule target)
     {
         var first = rules.FirstOrDefault(r => Overlaps(r, target));
-        return first is null ? "(none)" : first.Service + "|" + (P1.Node(first.OriginRequest)?.ToJsonString() ?? "");
+        return first is null ? "(none)" : first.Service + "|" + (ResourceKit.Node(first.OriginRequest)?.ToJsonString() ?? "");
     }
 
     /// <summary>
@@ -351,11 +351,11 @@ public sealed partial class TunnelsClient
             if (IsCatchAll(r)) { catchAll ??= r; continue; }
             // M1 (0.8.1): a path rule without hostname answers that path for every hostname of the tunnel, like a catch-all.
             if (r.Hostname is null && !r.Service.StartsWith("http_status:", StringComparison.Ordinal))
-                P2.Allow(allowCatchAllService, $"the rule for path {r.Path} has no hostname and would forward that path of every hostname to {r.Service}", nameof(allowCatchAllService));
-            rules.Add(r.Hostname is null ? r : new TunnelIngressRule { Hostname = P1.Hostname(r.Hostname, nameof(ingress), allowWildcard: true), Path = r.Path, Service = r.Service, OriginRequest = r.OriginRequest });
+                ResourceKit.Allow(allowCatchAllService, $"the rule for path {r.Path} has no hostname and would forward that path of every hostname to {r.Service}", nameof(allowCatchAllService));
+            rules.Add(r.Hostname is null ? r : new TunnelIngressRule { Hostname = ResourceKit.Hostname(r.Hostname, nameof(ingress), allowWildcard: true), Path = r.Path, Service = r.Service, OriginRequest = r.OriginRequest });
         }
         if (catchAll is not null && catchAll.Service != CatchAllService && !catchAll.Service.StartsWith("http_status:", StringComparison.Ordinal))
-            P2.Allow(allowCatchAllService, $"the catch-all rule would forward every unmatched hostname to {catchAll.Service}", nameof(allowCatchAllService));
+            ResourceKit.Allow(allowCatchAllService, $"the catch-all rule would forward every unmatched hostname to {catchAll.Service}", nameof(allowCatchAllService));
         rules.Add(catchAll ?? new TunnelIngressRule { Service = CatchAllService });
         if (rules.Select(Key).Where(k => k.Length > 0).GroupBy(k => k, StringComparer.OrdinalIgnoreCase).Any(g => g.Count() > 1))
             throw new ArgumentException("Each hostname/path may appear only once.", nameof(ingress));
@@ -366,7 +366,7 @@ public sealed partial class TunnelsClient
 
     private static string CheckService(string? service)
     {
-        var s = P1.Required(service, nameof(service));
+        var s = ResourceKit.Required(service, nameof(service));
         if (!(s.StartsWith("http://", StringComparison.Ordinal) || s.StartsWith("https://", StringComparison.Ordinal) || s.StartsWith("http_status:", StringComparison.Ordinal)
               || s.StartsWith("tcp://", StringComparison.Ordinal) || s.StartsWith("ssh://", StringComparison.Ordinal) || s.StartsWith("rdp://", StringComparison.Ordinal)
               || s.StartsWith("smb://", StringComparison.Ordinal) || s.StartsWith("unix:", StringComparison.Ordinal) || s.StartsWith("unix+tls:", StringComparison.Ordinal)
@@ -383,7 +383,7 @@ public sealed partial class TunnelsClient
 
     public CloudflareChangePreview PreviewEnsureRoute(string network, string tunnelId, string? virtualNetworkId = null, string? comment = null, bool allowBroadRoute = false, string? accountId = null) =>
         new("POST", AccountPath(accountId, "teamnet", "routes"), RouteBody(network, tunnelId, virtualNetworkId, comment, allowBroadRoute),
-            $"Route {ZT.Cidr(network, nameof(network)).Cidr} through tunnel {tunnelId}{(virtualNetworkId is null ? "" : $" in virtual network {virtualNetworkId}")}.");
+            $"Route {ResourceKit.Cidr(network, nameof(network)).Cidr} through tunnel {tunnelId}{(virtualNetworkId is null ? "" : $" in virtual network {virtualNetworkId}")}.");
 
     /// <summary>
     /// Returns the route for this network (and virtual network) or creates it. A range shorter than /8 (IPv4) or /16 (IPv6) sends a large part of all traffic
@@ -401,17 +401,17 @@ public sealed partial class TunnelsClient
             .FirstOrDefault(r => string.Equals(r.Network, cidr, StringComparison.OrdinalIgnoreCase) && (virtualNetworkId is null || r.VirtualNetworkId == virtualNetworkId));
         if (existing is not null)
             return existing.TunnelId == tunnelId ? (existing, false)
-                : throw ZT.Conflict("POST", path, $"Network {cidr} is already routed through tunnel {existing.TunnelName ?? existing.TunnelId}. Use MoveRouteAsync deliberately.");
+                : throw ResourceKit.Conflict("POST", path, $"Network {cidr} is already routed through tunnel {existing.TunnelName ?? existing.TunnelId}. Use MoveRouteAsync deliberately.");
         return (await Api.PostAsync<TunnelRoute>(path, body, ct).ConfigureAwait(false), true);
     }
 
     /// <summary>Points a route at another tunnel (PATCH). Clients lose the path through the old tunnel, so this always needs <paramref name="allowDisconnect"/>.</summary>
     public Task<TunnelRoute> MoveRouteAsync(string routeId, string tunnelId, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "teamnet", "routes", P1.Required(routeId, nameof(routeId)));
+        var path = AccountPath(accountId, "teamnet", "routes", ResourceKit.Required(routeId, nameof(routeId)));
         EnsureWritable(HttpMethod.Patch, path);
-        P2.Allow(allowDisconnect, "moving a route sends its traffic through another tunnel", nameof(allowDisconnect));
-        return Api.PatchAsync<TunnelRoute>(path, new JsonObject { ["tunnel_id"] = P1.Required(tunnelId, nameof(tunnelId)) }, ct);
+        ResourceKit.Allow(allowDisconnect, "moving a route sends its traffic through another tunnel", nameof(allowDisconnect));
+        return Api.PatchAsync<TunnelRoute>(path, new JsonObject { ["tunnel_id"] = ResourceKit.Required(tunnelId, nameof(tunnelId)) }, ct);
     }
 
     public CloudflareChangePreview PreviewRemoveRoute(string routeId, string? accountId = null) =>
@@ -420,17 +420,17 @@ public sealed partial class TunnelsClient
     /// <summary>Deletes a private route; clients lose access to the network, so this always needs <paramref name="allowDisconnect"/>. False when it did not exist.</summary>
     public Task<bool> RemoveRouteAsync(string routeId, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "teamnet", "routes", P1.Required(routeId, nameof(routeId)));
+        var path = AccountPath(accountId, "teamnet", "routes", ResourceKit.Required(routeId, nameof(routeId)));
         EnsureWritable(HttpMethod.Delete, path);
-        P2.Allow(allowDisconnect, "deleting a private route cuts WARP clients off that network", nameof(allowDisconnect));
+        ResourceKit.Allow(allowDisconnect, "deleting a private route cuts WARP clients off that network", nameof(allowDisconnect));
         return DeleteIfExistsAsync(path, null, ct);
     }
 
     private static JsonObject RouteBody(string network, string tunnelId, string? vnet, string? comment, bool allowBroadRoute)
     {
-        var cidr = ZT.Cidr(network, nameof(network));
-        if (ZT.IsBroad(cidr)) P2.Allow(allowBroadRoute, $"route {cidr.Cidr} covers a large part of the address space", nameof(allowBroadRoute));
-        var body = new JsonObject { ["network"] = cidr.Cidr, ["tunnel_id"] = P1.Required(tunnelId, nameof(tunnelId)) };
+        var cidr = ResourceKit.Cidr(network, nameof(network));
+        if (ResourceKit.IsBroad(cidr)) ResourceKit.Allow(allowBroadRoute, $"route {cidr.Cidr} covers a large part of the address space", nameof(allowBroadRoute));
+        var body = new JsonObject { ["network"] = cidr.Cidr, ["tunnel_id"] = ResourceKit.Required(tunnelId, nameof(tunnelId)) };
         if (vnet is not null) body["virtual_network_id"] = vnet;
         if (comment is not null) body["comment"] = comment;
         return body;
@@ -446,7 +446,7 @@ public sealed partial class TunnelsClient
     {
         var path = AccountPath(accountId, "teamnet", "virtual_networks");
         EnsureWritable(HttpMethod.Post, path);
-        var body = new JsonObject { ["name"] = P1.Required(name, nameof(name), 256), ["is_default"] = false };
+        var body = new JsonObject { ["name"] = ResourceKit.Required(name, nameof(name), 256), ["is_default"] = false };
         if (comment is not null) body["comment"] = comment;
         var existing = (await ListVirtualNetworksAsync(accountId, ct).ConfigureAwait(false)).FirstOrDefault(v => v.Name == name);
         if (existing is not null) return (existing, false);
@@ -456,9 +456,9 @@ public sealed partial class TunnelsClient
     /// <summary>Makes a virtual network the account default (every client without a choice uses it); always needs <paramref name="allowDefaultChange"/>.</summary>
     public Task<VirtualNetwork> SetDefaultVirtualNetworkAsync(string virtualNetworkId, bool allowDefaultChange = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "teamnet", "virtual_networks", P1.Required(virtualNetworkId, nameof(virtualNetworkId)));
+        var path = AccountPath(accountId, "teamnet", "virtual_networks", ResourceKit.Required(virtualNetworkId, nameof(virtualNetworkId)));
         EnsureWritable(HttpMethod.Patch, path);
-        P2.Allow(allowDefaultChange, "changing the default virtual network changes the routing of every client", nameof(allowDefaultChange));
+        ResourceKit.Allow(allowDefaultChange, "changing the default virtual network changes the routing of every client", nameof(allowDefaultChange));
         return Api.PatchAsync<VirtualNetwork>(path, new JsonObject { ["is_default_network"] = true }, ct);
     }
 
@@ -468,13 +468,13 @@ public sealed partial class TunnelsClient
     /// </summary>
     public async Task<bool> RemoveVirtualNetworkAsync(string virtualNetworkId, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "teamnet", "virtual_networks", P1.Required(virtualNetworkId, nameof(virtualNetworkId)));
+        var path = AccountPath(accountId, "teamnet", "virtual_networks", ResourceKit.Required(virtualNetworkId, nameof(virtualNetworkId)));
         EnsureWritable(HttpMethod.Delete, path);
         var vnet = (await ListVirtualNetworksAsync(accountId, ct).ConfigureAwait(false)).FirstOrDefault(v => v.Id == virtualNetworkId);
         if (vnet is null) return false;
         if (vnet.IsDefaultNetwork) throw new InvalidOperationException($"Refused: \"{vnet.Name}\" is the default virtual network. Make another one the default first.");
         var routes = await ListRoutesAsync(null, virtualNetworkId, accountId, ct).ConfigureAwait(false);
-        if (routes.Count > 0) P2.Allow(allowDisconnect, $"virtual network \"{vnet.Name}\" still has {ZT.Plural(routes.Count, "route", "routes")}", nameof(allowDisconnect));
+        if (routes.Count > 0) ResourceKit.Allow(allowDisconnect, $"virtual network \"{vnet.Name}\" still has {ResourceKit.Plural(routes.Count, "route", "routes")}", nameof(allowDisconnect));
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 }

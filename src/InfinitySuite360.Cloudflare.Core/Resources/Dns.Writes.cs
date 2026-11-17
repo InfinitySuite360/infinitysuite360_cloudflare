@@ -79,8 +79,8 @@ public sealed partial class DnsClient
 
     private static JsonElement Body(DnsRecordInput record)
     {
-        P1.Required(record.Type, nameof(record));
-        P1.Required(record.Name, nameof(record), 255);
+        ResourceKit.Required(record.Type, nameof(record));
+        ResourceKit.Required(record.Name, nameof(record), 255);
         return JsonSerializer.SerializeToElement(record, CloudflareJson.Options);
     }
 

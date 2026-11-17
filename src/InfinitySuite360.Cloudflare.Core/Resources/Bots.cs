@@ -220,12 +220,12 @@ public sealed class BotsClient(ICloudflareApiConnection api) : CloudflareResourc
     private static JsonObject FeedbackBody(string type, string expression, string description)
     {
         if (type is not ("false_positive" or "false_negative")) throw new ArgumentException("Type must be false_positive or false_negative.", nameof(type));
-        return new JsonObject { ["type"] = type, ["expression"] = P1.Required(expression, nameof(expression), 4096), ["description"] = P1.Required(description, nameof(description), 1000) };
+        return new JsonObject { ["type"] = type, ["expression"] = ResourceKit.Required(expression, nameof(expression), 4096), ["description"] = ResourceKit.Required(description, nameof(description), 1000) };
     }
 
     private static JsonObject DetectionBody(string username, string? password)
     {
-        var o = new JsonObject { ["username"] = P1.Required(username, nameof(username), 4096) };
+        var o = new JsonObject { ["username"] = ResourceKit.Required(username, nameof(username), 4096) };
         if (!string.IsNullOrWhiteSpace(password)) o["password"] = password;
         return o;
     }

@@ -479,7 +479,7 @@ public sealed partial class ApiShieldClient
     public Task<SchemaValidationSettings> SetOverrideActionAsync(string? overrideAction, string? zoneId = null, bool allowLoosen = false, CancellationToken ct = default)
     {
         var body = OverrideBody(overrideAction);
-        if (overrideAction == "none") P2.Allow(allowLoosen, "the override \"none\" switches schema validation off for the whole zone", nameof(allowLoosen));
+        if (overrideAction == "none") ResourceKit.Allow(allowLoosen, "the override \"none\" switches schema validation off for the whole zone", nameof(allowLoosen));
         return Api.PatchAsync<SchemaValidationSettings>(ZonePath(zoneId, "schema_validation", "settings"), body, ct);
     }
 
@@ -573,7 +573,7 @@ public sealed partial class ApiShieldClient
     /// <summary>Deletes a configuration (rules that use it stop validating): needs <paramref name="allowRemoval"/> (M-8, 0.7.1). True when deleted, false when it did not exist.</summary>
     public Task<bool> DeleteTokenValidationConfigAsync(string configId, string? zoneId = null, bool allowRemoval = false, CancellationToken ct = default)
     {
-        P2.Allow(allowRemoval, "deleting a token validation configuration stops the validation of the rules that use it", nameof(allowRemoval));
+        ResourceKit.Allow(allowRemoval, "deleting a token validation configuration stops the validation of the rules that use it", nameof(allowRemoval));
         return DeleteIfExistsAsync(ZonePath(zoneId, "token_validation", "config", configId), null, ct);
     }
 
@@ -600,7 +600,7 @@ public sealed partial class ApiShieldClient
     /// <summary>Deletes a rule (its requests are no longer checked): needs <paramref name="allowRemoval"/> (M-8, 0.7.1). True when deleted, false when it did not exist.</summary>
     public Task<bool> DeleteTokenValidationRuleAsync(string ruleId, string? zoneId = null, bool allowRemoval = false, CancellationToken ct = default)
     {
-        P2.Allow(allowRemoval, "deleting a token validation rule stops checking the tokens of its requests", nameof(allowRemoval));
+        ResourceKit.Allow(allowRemoval, "deleting a token validation rule stops checking the tokens of its requests", nameof(allowRemoval));
         return DeleteIfExistsAsync(ZonePath(zoneId, "token_validation", "rules", ruleId), null, ct);
     }
 
@@ -826,7 +826,7 @@ public sealed partial class ApiShieldClient
     /// <remarks>Needs <paramref name="allowRevoke"/> (M-8, 0.7.1): nothing is sent without it.</remarks>
     public async Task<ZoneClientCertificate> RevokeClientCertificateAsync(string certificateId, string? zoneId = null, bool allowRevoke = false, CancellationToken ct = default)
     {
-        P2.Allow(allowRevoke, "revoking a client certificate locks out every device that presents it", nameof(allowRevoke));
+        ResourceKit.Allow(allowRevoke, "revoking a client certificate locks out every device that presents it", nameof(allowRevoke));
         return (await Api.SendAsync<ZoneClientCertificate>(HttpMethod.Delete, ZonePath(zoneId, "client_certificates", certificateId), null, ct).ConfigureAwait(false)).Result!;
     }
 

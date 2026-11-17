@@ -65,17 +65,17 @@ public sealed class DlpClient(ICloudflareApiConnection api) : CloudflareResource
 
     public async Task<List<DlpProfile>> ListProfilesAsync(string? accountId = null, CancellationToken ct = default)
     {
-        var result = await P2.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "dlp", "profiles"), null, ct).ConfigureAwait(false);
-        return result.ValueKind == JsonValueKind.Array ? result.EnumerateArray().Select(e => P1.As<DlpProfile>(P1.Strip(e, Hidden))).ToList() : [];
+        var result = await ResourceKit.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "dlp", "profiles"), null, ct).ConfigureAwait(false);
+        return result.ValueKind == JsonValueKind.Array ? result.EnumerateArray().Select(e => ResourceKit.As<DlpProfile>(ResourceKit.Strip(e, Hidden))).ToList() : [];
     }
 
     public async Task<DlpProfile> GetProfileAsync(string profileId, string? accountId = null, CancellationToken ct = default) =>
-        P1.As<DlpProfile>(P1.Strip(await P2.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "dlp", "profiles", P1.Required(profileId, nameof(profileId))), null, ct).ConfigureAwait(false), Hidden));
+        ResourceKit.As<DlpProfile>(ResourceKit.Strip(await ResourceKit.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "dlp", "profiles", ResourceKit.Required(profileId, nameof(profileId))), null, ct).ConfigureAwait(false), Hidden));
 
     public async Task<List<DlpDataset>> ListDatasetsAsync(string? accountId = null, CancellationToken ct = default)
     {
-        var result = await P2.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "dlp", "datasets"), null, ct).ConfigureAwait(false);
-        return result.ValueKind == JsonValueKind.Array ? result.EnumerateArray().Select(e => P1.As<DlpDataset>(P1.Strip(e, Hidden))).ToList() : [];
+        var result = await ResourceKit.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "dlp", "datasets"), null, ct).ConfigureAwait(false);
+        return result.ValueKind == JsonValueKind.Array ? result.EnumerateArray().Select(e => ResourceKit.As<DlpDataset>(ResourceKit.Strip(e, Hidden))).ToList() : [];
     }
 
     public Task<DlpPayloadLogSettings> GetPayloadLogSettingsAsync(string? accountId = null, CancellationToken ct = default) =>
@@ -112,16 +112,16 @@ public sealed class RiskScoringClient(ICloudflareApiConnection api) : Cloudflare
     /// <summary>Behaviors by key (for example "imp_travel", "high_dlp").</summary>
     public async Task<Dictionary<string, RiskBehavior>> ListBehaviorsAsync(string? accountId = null, CancellationToken ct = default)
     {
-        var result = await P2.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "zt_risk_scoring", "behaviors"), null, ct).ConfigureAwait(false);
+        var result = await ResourceKit.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "zt_risk_scoring", "behaviors"), null, ct).ConfigureAwait(false);
         var map = new Dictionary<string, RiskBehavior>(StringComparer.Ordinal);
-        if (P2.TryGet(result, "behaviors", out var b) && b.ValueKind == JsonValueKind.Object)
-            foreach (var p in b.EnumerateObject()) map[p.Name] = P1.As<RiskBehavior>(p.Value);
+        if (ResourceKit.TryGet(result, "behaviors", out var b) && b.ValueKind == JsonValueKind.Object)
+            foreach (var p in b.EnumerateObject()) map[p.Name] = ResourceKit.As<RiskBehavior>(p.Value);
         return map;
     }
 
     public async Task<List<RiskScoreUser>> GetSummaryAsync(string? accountId = null, CancellationToken ct = default)
     {
-        var result = await P2.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "zt_risk_scoring", "summary"), null, ct).ConfigureAwait(false);
-        return P2.TryGet(result, "users", out var u) && u.ValueKind == JsonValueKind.Array ? u.EnumerateArray().Select(P1.As<RiskScoreUser>).ToList() : [];
+        var result = await ResourceKit.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "zt_risk_scoring", "summary"), null, ct).ConfigureAwait(false);
+        return ResourceKit.TryGet(result, "users", out var u) && u.ValueKind == JsonValueKind.Array ? u.EnumerateArray().Select(ResourceKit.As<RiskScoreUser>).ToList() : [];
     }
 }

@@ -89,14 +89,14 @@ public sealed class LogpushClient(ICloudflareApiConnection api) : CloudflareReso
 
     /// <summary>Fields of a dataset (name → description), for <c>output_options.field_names</c>.</summary>
     public async Task<IReadOnlyDictionary<string, string>> ListDatasetFieldsAsync(string dataset, LogpushScope scope = LogpushScope.Zone, string? scopeId = null, CancellationToken ct = default) =>
-        await Api.GetAsync<Dictionary<string, string>>(Path(scope, scopeId, "logpush", "datasets", P1.Required(dataset, nameof(dataset), 100), "fields"), ct).ConfigureAwait(false) ?? [];
+        await Api.GetAsync<Dictionary<string, string>>(Path(scope, scopeId, "logpush", "datasets", ResourceKit.Required(dataset, nameof(dataset), 100), "fields"), ct).ConfigureAwait(false) ?? [];
 
     /// <summary>Plan of a new job; the destination appears redacted.</summary>
     public CloudflareChangePreview PreviewCreateJob(LogpushJobInput job, LogpushScope scope = LogpushScope.Zone, string? scopeId = null)
     {
         var body = JobBody(job);
         body["destination_conf"] = RedactDestination(job.DestinationConf);
-        if (body.ContainsKey("ownership_challenge")) body["ownership_challenge"] = P1.Redacted;
+        if (body.ContainsKey("ownership_challenge")) body["ownership_challenge"] = ResourceKit.Redacted;
         return new("POST", Path(scope, scopeId, "logpush", "jobs"), body,
             $"Push {job.Dataset} logs to {RedactDestination(job.DestinationConf)}{(job.Enabled ? "" : " (created disabled)")}.");
     }
@@ -125,7 +125,7 @@ public sealed class LogpushClient(ICloudflareApiConnection api) : CloudflareReso
     /// </summary>
     public async Task<LogpushJobInfo> SetJobEnabledAsync(int jobId, bool enabled, LogpushScope scope = LogpushScope.Zone, string? scopeId = null, bool allowRemoval = false, CancellationToken ct = default)
     {
-        if (!enabled) P2.Allow(allowRemoval, "a disabled Logpush job loses the logs of that time (no backfill)", nameof(allowRemoval));
+        if (!enabled) ResourceKit.Allow(allowRemoval, "a disabled Logpush job loses the logs of that time (no backfill)", nameof(allowRemoval));
         return Redact((await Api.SendAsync<JsonElement>(HttpMethod.Put, JobPath(scope, scopeId, jobId), new JsonObject { ["enabled"] = enabled }, ct).ConfigureAwait(false)).Result)!;
     }
 
@@ -135,7 +135,7 @@ public sealed class LogpushClient(ICloudflareApiConnection api) : CloudflareReso
     /// <summary>Deletes a job (no more logs are pushed): needs <paramref name="allowRemoval"/> (M-8, 0.7.1). True when deleted, false when it did not exist.</summary>
     public Task<bool> DeleteJobAsync(int jobId, LogpushScope scope = LogpushScope.Zone, string? scopeId = null, bool allowRemoval = false, CancellationToken ct = default)
     {
-        P2.Allow(allowRemoval, "deleting a Logpush job stops the log delivery (audit trail gap)", nameof(allowRemoval));
+        ResourceKit.Allow(allowRemoval, "deleting a Logpush job stops the log delivery (audit trail gap)", nameof(allowRemoval));
         return DeleteIfExistsAsync(JobPath(scope, scopeId, jobId), null, ct);
     }
 
@@ -160,7 +160,7 @@ public sealed class LogpushClient(ICloudflareApiConnection api) : CloudflareReso
     {
         var d = destinationConf ?? "";
         var schemeEnd = d.IndexOf("://", StringComparison.Ordinal);
-        if (schemeEnd < 0) return d.Length == 0 ? "" : P1.Redacted;
+        if (schemeEnd < 0) return d.Length == 0 ? "" : ResourceKit.Redacted;
         var scheme = d[..schemeEnd];
         var rest = d[(schemeEnd + 3)..];
         var q = rest.IndexOf('?');
@@ -168,11 +168,11 @@ public sealed class LogpushClient(ICloudflareApiConnection api) : CloudflareReso
         var query = q < 0 ? null : rest[(q + 1)..];
         var at = location.IndexOf('@');
         var slash = location.IndexOf('/');
-        if (at >= 0 && (slash < 0 || at < slash)) location = P1.Redacted + "@" + location[(at + 1)..];
+        if (at >= 0 && (slash < 0 || at < slash)) location = ResourceKit.Redacted + "@" + location[(at + 1)..];
         if (!StoragePathSchemes.Contains(scheme.ToLowerInvariant()))
         {
             slash = location.IndexOf('/');
-            if (slash >= 0 && slash < location.Length - 1) location = location[..(slash + 1)] + P1.Redacted;
+            if (slash >= 0 && slash < location.Length - 1) location = location[..(slash + 1)] + ResourceKit.Redacted;
         }
         var sb = new StringBuilder(scheme).Append("://").Append(location);
         if (query is not null)
@@ -182,8 +182,8 @@ public sealed class LogpushClient(ICloudflareApiConnection api) : CloudflareReso
                 var eq = p.IndexOf('=');
                 var name = eq < 0 ? p : p[..eq];
                 var lower = Uri.UnescapeDataString(name).ToLowerInvariant();
-                if (eq < 0) return p.Length == 0 ? p : P1.Redacted;
-                return SecretKeyParts.Any(lower.Contains) ? name + "=" + P1.Redacted : p;
+                if (eq < 0) return p.Length == 0 ? p : ResourceKit.Redacted;
+                return SecretKeyParts.Any(lower.Contains) ? name + "=" + ResourceKit.Redacted : p;
             });
             sb.Append('?').Append(string.Join("&", parts));
         }
@@ -202,7 +202,7 @@ public sealed class LogpushClient(ICloudflareApiConnection api) : CloudflareReso
         var node = JsonNode.Parse(element.GetRawText())!.AsObject();
         if (node["destination_conf"] is JsonValue v && v.TryGetValue<string>(out var dest)) node["destination_conf"] = RedactDestination(dest);
         node.Remove("ownership_challenge");
-        return P1.As<LogpushJobInfo>(JsonSerializer.SerializeToElement(node, CloudflareJson.Options));
+        return ResourceKit.As<LogpushJobInfo>(JsonSerializer.SerializeToElement(node, CloudflareJson.Options));
     }
 
     private string Path(LogpushScope scope, string? scopeId, params string[] rest) =>
@@ -223,14 +223,14 @@ public sealed class LogpushClient(ICloudflareApiConnection api) : CloudflareReso
         if (j.Name is not null && !NamePattern.IsMatch(j.Name)) throw new ArgumentException("Name may contain letters, digits, '-' and '.' only (at most 512).", nameof(j));
         var body = new JsonObject
         {
-            ["dataset"] = P1.Required(j.Dataset, nameof(j), 100),
+            ["dataset"] = ResourceKit.Required(j.Dataset, nameof(j), 100),
             ["destination_conf"] = CheckDestination(j.DestinationConf),
             ["enabled"] = j.Enabled,
         };
         if (j.Name is not null) body["name"] = j.Name;
         if (j.OwnershipChallenge is not null) body["ownership_challenge"] = j.OwnershipChallenge;
-        if (P1.Node(j.OutputOptions) is { } oo) body["output_options"] = oo;
-        if (P1.Node(j.Filter) is { } f) body["filter"] = f.ToJsonString();
+        if (ResourceKit.Node(j.OutputOptions) is { } oo) body["output_options"] = oo;
+        if (ResourceKit.Node(j.Filter) is { } f) body["filter"] = f.ToJsonString();
         if (j.Kind is not null) body["kind"] = j.Kind is "" or "edge" ? j.Kind : throw new ArgumentException("Kind must be \"\" or \"edge\".", nameof(j));
         return body;
     }

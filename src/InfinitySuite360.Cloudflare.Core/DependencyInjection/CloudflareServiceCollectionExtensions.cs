@@ -50,9 +50,16 @@ public static class CloudflareServiceCollectionExtensions
         services.AddHttpClient(AccessKeysHttpClientName, http => http.Timeout = TimeSpan.FromSeconds(8))
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, ConnectTimeout = TimeSpan.FromSeconds(5) });
 
-        services.TryAddTransient<ICloudflareApiConnection>(sp => new CloudflareApiConnection(
-            sp.GetRequiredService<IHttpClientFactory>().CreateClient(ApiHttpClientName),
-            sp.GetRequiredService<IOptions<CloudflareOptions>>()));
+        // One registry per container: every connection with the same token draws from the same budget (0.9.0).
+        services.TryAddSingleton(sp => new CloudflareRateBudgetRegistry(sp.GetService<TimeProvider>()));
+        services.TryAddTransient<ICloudflareApiConnection>(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<CloudflareOptions>>().Value;
+            return new CloudflareApiConnection(sp.GetRequiredService<IHttpClientFactory>().CreateClient(ApiHttpClientName), options)
+            {
+                RateBudget = sp.GetRequiredService<CloudflareRateBudgetRegistry>().For(options),
+            };
+        });
         services.TryAddTransient<ICloudflareClient>(sp => new CloudflareClient(sp.GetRequiredService<ICloudflareApiConnection>()));
         // One instance: it holds the cache of signing keys.
         services.TryAddSingleton<ICloudflareAccessJwtValidator>(sp =>
@@ -65,6 +72,56 @@ public static class CloudflareServiceCollectionExtensions
             sp.GetRequiredService<IHttpClientFactory>().CreateClient(TurnstileHttpClientName),
             sp.GetRequiredService<IOptions<CloudflareOptions>>()));
         return services;
+    }
+
+    /// <summary>
+    /// Registers one tenant (0.9.0) with settings from <paramref name="configuration"/> (for example the section <c>Cloudflare:Tenants:shop-a</c>) as named
+    /// <see cref="CloudflareOptions"/>, and <see cref="ICloudflareClientFactory"/>. The client of the tenant: <c>factory.GetClient("shop-a")</c>. The settings
+    /// are checked when the client is first requested (or at start with <c>ValidateOnStart</c>, see the AspNetCore package).
+    /// </summary>
+    public static IServiceCollection AddCloudflareTenant(this IServiceCollection services, string tenant, IConfiguration configuration, Action<CloudflareOptions>? configure = null)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        var builder = services.AddOptions<CloudflareOptions>(tenant).Bind(configuration);
+        if (configure is not null) builder.Configure(configure);
+        return services.AddCloudflareTenantCore(tenant);
+    }
+
+    /// <summary>Registers one tenant (0.9.0) with settings from code. See <see cref="AddCloudflareTenant(IServiceCollection, string, IConfiguration, Action{CloudflareOptions}?)"/>.</summary>
+    public static IServiceCollection AddCloudflareTenant(this IServiceCollection services, string tenant, Action<CloudflareOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+        services.AddOptions<CloudflareOptions>(tenant).Configure(configure);
+        return services.AddCloudflareTenantCore(tenant);
+    }
+
+    /// <summary>
+    /// Registers <see cref="ICloudflareClientFactory"/> (singleton) with the shared HTTP client and the budget registry. Called by <c>AddCloudflareTenant</c>;
+    /// on its own useful for <see cref="ICloudflareClientFactory.CreateClient"/> with ad-hoc options.
+    /// </summary>
+    public static IServiceCollection AddCloudflareClientFactory(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.AddOptions<CloudflareTenantCatalog>();
+        services.AddHttpClient(ApiHttpClientName);
+        services.TryAddSingleton(sp => new CloudflareRateBudgetRegistry(sp.GetService<TimeProvider>()));
+        services.TryAddSingleton<ICloudflareClientFactory>(sp => new CloudflareClientFactory(
+            sp.GetRequiredService<IOptionsMonitor<CloudflareOptions>>(),
+            sp.GetRequiredService<IHttpClientFactory>(),
+            sp.GetRequiredService<CloudflareRateBudgetRegistry>(),
+            sp.GetRequiredService<IOptions<CloudflareTenantCatalog>>()));
+        return services;
+    }
+
+    private static IServiceCollection AddCloudflareTenantCore(this IServiceCollection services, string tenant)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        CloudflareClientFactory.CheckName(tenant);
+        services.AddOptions<CloudflareOptions>(tenant)
+            .Validate(IsValid, $"Cloudflare tenant \"{tenant}\": BaseAddress must be an absolute HTTPS address (http only for loopback), MaxRetries 0 to 10, RetryBaseDelay not negative, MaxResponseBytes positive, RateBudget valid.")
+            .Validate(o => !string.IsNullOrWhiteSpace(o.ApiToken), $"Cloudflare tenant \"{tenant}\": ApiToken is required.");
+        services.Configure<CloudflareTenantCatalog>(c => c.Names.Add(tenant));
+        return services.AddCloudflareClientFactory();
     }
 
     private static bool IsValid(CloudflareOptions o)

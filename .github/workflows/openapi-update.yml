@@ -39,6 +39,8 @@ jobs:
         run: |
           dotnet restore --force-evaluate
           dotnet build --no-restore --configuration Release
+          # Coverage matrix of the new schema (openapi/COVERAGE.md); the contract test then shows endpoints the curated clients use that are gone.
+          CLOUDFLARE_COVERAGE_WRITE=1 dotnet test --no-build --configuration Release --filter "FullyQualifiedName~CoverageReportTests.Coverage_md_is_current"
           dotnet test --no-build --configuration Release
 
       - name: 📬 Open Pull Request
@@ -55,4 +57,4 @@ jobs:
           git commit -m "Regenerate from cloudflare/api-schemas@${commit:0:12}"
           git push --force origin "$branch"
           gh pr create --base master --head "$branch" --title "OpenAPI: cloudflare/api-schemas@${commit:0:12}" \
-            --body "Automated regeneration from Cloudflare's official OpenAPI schema. See openapi/COVERAGE.md for the counts." || echo "PR already exists."
+            --body "Automated regeneration from Cloudflare's official OpenAPI schema. See openapi/COVERAGE.md (coverage) and openapi/GENERATION.md (counts)." || echo "PR already exists."

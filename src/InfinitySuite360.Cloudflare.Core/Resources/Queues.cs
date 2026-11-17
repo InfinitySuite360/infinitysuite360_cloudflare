@@ -59,7 +59,7 @@ public sealed class QueueBacklog : CloudflareModel
 /// </summary>
 public sealed class QueuesClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
-    private static readonly Regex NamePattern = P2.Rx(@"^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
+    private static readonly Regex NamePattern = ResourceKit.Rx(@"^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
     private const int MaxMessageBytes = 128 * 1024;
     private const int MaxBatch = 100;
     private const int MaxBatchBytes = 256 * 1024;
@@ -101,8 +101,8 @@ public sealed class QueuesClient(ICloudflareApiConnection api) : CloudflareResou
     /// </summary>
     public async Task<CloudflareQueue> UpdateSettingsAsync(string queueId, int? deliveryDelaySeconds = null, bool? deliveryPaused = null, int? messageRetentionSeconds = null, bool allowPause = false, string? accountId = null, CancellationToken ct = default)
     {
-        if (deliveryPaused == true) P2.Allow(allowPause, "pausing delivery stops every consumer of the queue", nameof(allowPause));
-        return await Api.PatchAsync<CloudflareQueue>(AccountPath(accountId, "queues", P1.Required(queueId, nameof(queueId))), SettingsBody(deliveryDelaySeconds, deliveryPaused, messageRetentionSeconds), ct).ConfigureAwait(false);
+        if (deliveryPaused == true) ResourceKit.Allow(allowPause, "pausing delivery stops every consumer of the queue", nameof(allowPause));
+        return await Api.PatchAsync<CloudflareQueue>(AccountPath(accountId, "queues", ResourceKit.Required(queueId, nameof(queueId))), SettingsBody(deliveryDelaySeconds, deliveryPaused, messageRetentionSeconds), ct).ConfigureAwait(false);
     }
 
     public CloudflareChangePreview PreviewRemove(string queueId, string? accountId = null) =>
@@ -111,8 +111,8 @@ public sealed class QueuesClient(ICloudflareApiConnection api) : CloudflareResou
     /// <summary>Deletes a queue. Refused unless <paramref name="allowDelete"/> is true. False when it did not exist.</summary>
     public Task<bool> RemoveAsync(string queueId, bool allowDelete = false, string? accountId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowDelete, "deleting a queue loses its messages and detaches producers and consumers", nameof(allowDelete));
-        return DeleteIfExistsAsync(AccountPath(accountId, "queues", P1.Required(queueId, nameof(queueId))), null, ct);
+        ResourceKit.Allow(allowDelete, "deleting a queue loses its messages and detaches producers and consumers", nameof(allowDelete));
+        return DeleteIfExistsAsync(AccountPath(accountId, "queues", ResourceKit.Required(queueId, nameof(queueId))), null, ct);
     }
 
     public CloudflareChangePreview PreviewPurge(string queueId, string? accountId = null) =>
@@ -121,8 +121,8 @@ public sealed class QueuesClient(ICloudflareApiConnection api) : CloudflareResou
     /// <summary>Deletes every message of a queue. Refused unless <paramref name="allowPurge"/> is true. POST is never repeated automatically.</summary>
     public async Task PurgeAsync(string queueId, bool allowPurge = false, string? accountId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowPurge, "purging deletes all messages of the queue", nameof(allowPurge));
-        await Api.SendAsync<JsonElement>(HttpMethod.Post, AccountPath(accountId, "queues", P1.Required(queueId, nameof(queueId)), "purge"), new JsonObject { ["delete_messages_permanently"] = true }, ct).ConfigureAwait(false);
+        ResourceKit.Allow(allowPurge, "purging deletes all messages of the queue", nameof(allowPurge));
+        await Api.SendAsync<JsonElement>(HttpMethod.Post, AccountPath(accountId, "queues", ResourceKit.Required(queueId, nameof(queueId)), "purge"), new JsonObject { ["delete_messages_permanently"] = true }, ct).ConfigureAwait(false);
     }
 
     public Task<QueueBacklog> GetBacklogAsync(string queueId, string? accountId = null, CancellationToken ct = default) =>
@@ -154,7 +154,7 @@ public sealed class QueuesClient(ICloudflareApiConnection api) : CloudflareResou
 
     /// <summary>Detaches a consumer (messages stay queued). False when it did not exist.</summary>
     public Task<bool> RemoveConsumerAsync(string queueId, string consumerId, string? accountId = null, CancellationToken ct = default) =>
-        DeleteIfExistsAsync(AccountPath(accountId, "queues", queueId, "consumers", P1.Required(consumerId, nameof(consumerId))), null, ct);
+        DeleteIfExistsAsync(AccountPath(accountId, "queues", queueId, "consumers", ResourceKit.Required(consumerId, nameof(consumerId))), null, ct);
 
     // ---- publishing ----
 
@@ -168,7 +168,7 @@ public sealed class QueuesClient(ICloudflareApiConnection api) : CloudflareResou
         MessageBytes(body);
         var payload = new JsonObject { ["body"] = Node(body), ["content_type"] = "json" };
         if (delaySeconds is { } d) payload["delay_seconds"] = CheckDelay(d);
-        await Api.SendAsync<JsonElement>(HttpMethod.Post, AccountPath(accountId, "queues", P1.Required(queueId, nameof(queueId)), "messages"), payload, ct).ConfigureAwait(false);
+        await Api.SendAsync<JsonElement>(HttpMethod.Post, AccountPath(accountId, "queues", ResourceKit.Required(queueId, nameof(queueId)), "messages"), payload, ct).ConfigureAwait(false);
     }
 
     /// <summary>Publishes up to 100 messages (256 KB in total) in one call.</summary>
@@ -179,19 +179,19 @@ public sealed class QueuesClient(ICloudflareApiConnection api) : CloudflareResou
         if (total > MaxBatchBytes) throw new ArgumentException("A batch has at most 256 KB.", nameof(bodies));
         var payload = new JsonObject { ["messages"] = new JsonArray(bodies.Select(b => (JsonNode?)new JsonObject { ["body"] = Node(b), ["content_type"] = "json" }).ToArray()) };
         if (delaySeconds is { } d) payload["delay_seconds"] = CheckDelay(d);
-        await Api.SendAsync<JsonElement>(HttpMethod.Post, AccountPath(accountId, "queues", P1.Required(queueId, nameof(queueId)), "messages", "batch"), payload, ct).ConfigureAwait(false);
+        await Api.SendAsync<JsonElement>(HttpMethod.Post, AccountPath(accountId, "queues", ResourceKit.Required(queueId, nameof(queueId)), "messages", "batch"), payload, ct).ConfigureAwait(false);
     }
 
     // ---- helpers ----
 
-    private static string Name(string? name) => P2.Match(name, "queueName", NamePattern, "letters, digits, '-' and '_', at most 63 characters");
+    private static string Name(string? name) => ResourceKit.Match(name, "queueName", NamePattern, "letters, digits, '-' and '_', at most 63 characters");
 
     private static JsonNode? Node(object body) => body is JsonNode n ? n.DeepClone() : JsonSerializer.SerializeToNode(body, body.GetType(), CloudflareJson.Options);
 
     private static int MessageBytes(object body)
     {
         ArgumentNullException.ThrowIfNull(body);
-        var bytes = P2.Utf8(Node(body)?.ToJsonString() ?? "null");
+        var bytes = ResourceKit.Utf8(Node(body)?.ToJsonString() ?? "null");
         if (bytes > MaxMessageBytes) throw new ArgumentException("A message has at most 128 KB.", nameof(body));
         return bytes;
     }
@@ -212,7 +212,7 @@ public sealed class QueuesClient(ICloudflareApiConnection api) : CloudflareResou
     {
         if (c.Type is not ("worker" or "http_pull")) throw new ArgumentException("Type is worker or http_pull.", nameof(c));
         var body = new JsonObject { ["type"] = c.Type };
-        if (c.Type == "worker") body["script_name"] = P1.Required(c.ScriptName, nameof(c), 63);
+        if (c.Type == "worker") body["script_name"] = ResourceKit.Required(c.ScriptName, nameof(c), 63);
         else if (c.ScriptName is not null) throw new ArgumentException("An HTTP pull consumer has no Worker.", nameof(c));
         if (c.DeadLetterQueue is not null) body["dead_letter_queue"] = Name(c.DeadLetterQueue);
         var settings = new JsonObject();

@@ -138,10 +138,10 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
 {
     // ---- Applications ----
     public Task<IReadOnlyList<AccessApplication>> ListApplicationsAsync(string? accountId = null, CancellationToken ct = default) =>
-        ZT.ListAllAsync<AccessApplication>(Api, AccountPath(accountId, "access", "apps"), 50, ct);
+        ResourceKit.ListAllSecretFreeAsync<AccessApplication>(Api, AccountPath(accountId, "access", "apps"), 50, ct);
 
     public Task<AccessApplication> GetApplicationAsync(string appId, string? accountId = null, CancellationToken ct = default) =>
-        ZT.SendAsync<AccessApplication>(Api, HttpMethod.Get, AccountPath(accountId, "access", "apps", appId), null, ct);
+        ResourceKit.SendSecretFreeAsync<AccessApplication>(Api, HttpMethod.Get, AccountPath(accountId, "access", "apps", appId), null, ct);
 
     // M7 (0.8.1): the obsolete write methods below no longer write unguarded. Each one either goes through its guarded replacement with every allow
     // switch off (so a risky call is refused locally and names the switch), or is always refused where the old signature cannot be made safe (it would
@@ -156,7 +156,7 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
         EnsureWritable(HttpMethod.Post, path);
         var (body, _) = AppBody(app, allowNoPolicy: false, allowLoosen: false, allowBlock: false);
         await CheckReferencedPoliciesAsync(app, allowLoosen: false, accountId, ct).ConfigureAwait(false);
-        return await ZT.SendAsync<AccessApplication>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false);
+        return await ResourceKit.SendSecretFreeAsync<AccessApplication>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false);
     }
 
     /// <summary>Always refused since 0.8.1: a full replacement can drop the policies or the login of an application without any check.</summary>
@@ -248,7 +248,7 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
 
     // ---- Service tokens ----
     public Task<IReadOnlyList<AccessServiceToken>> ListServiceTokensAsync(string? accountId = null, CancellationToken ct = default) =>
-        ZT.ListAllAsync<AccessServiceToken>(Api, AccountPath(accountId, "access", "service_tokens"), 50, ct);
+        ResourceKit.ListAllSecretFreeAsync<AccessServiceToken>(Api, AccountPath(accountId, "access", "service_tokens"), 50, ct);
 
     /// <summary>Always refused since 0.8.1: the old return type would carry the client secret in a model.</summary>
     [Obsolete("Always refused since 0.8.1. Use IssueServiceTokenAsync (0.8.0): the secret is only in a CloudflareOneTimeSecret. Removed in 1.0.")]
@@ -273,7 +273,7 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
 
     /// <summary>Extends the expiry without changing the secret.</summary>
     public Task<AccessServiceToken> RefreshServiceTokenAsync(string tokenId, string? accountId = null, CancellationToken ct = default) =>
-        ZT.SendAsync<AccessServiceToken>(Api, HttpMethod.Post, AccountPath(accountId, "access", "service_tokens", tokenId, "refresh"), null, ct);
+        ResourceKit.SendSecretFreeAsync<AccessServiceToken>(Api, HttpMethod.Post, AccountPath(accountId, "access", "service_tokens", tokenId, "refresh"), null, ct);
 
     /// <summary>Since 0.8.1 <see cref="RemoveServiceTokenAsync"/> without <c>allowDisconnect</c>.</summary>
     [Obsolete("Use RemoveServiceTokenAsync(tokenId, allowDisconnect) (0.8.0); since 0.8.1 this applies its checks with the switch off. Removed in 1.0.")]
@@ -284,10 +284,10 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
     // ---- Identity providers ----
     /// <summary>Identity providers; secret members of <c>config</c> and <c>scim_config</c> are removed (0.8.0).</summary>
     public Task<IReadOnlyList<AccessIdentityProvider>> ListIdentityProvidersAsync(string? accountId = null, CancellationToken ct = default) =>
-        ZT.ListAllAsync<AccessIdentityProvider>(Api, AccountPath(accountId, "access", "identity_providers"), 50, ct);
+        ResourceKit.ListAllSecretFreeAsync<AccessIdentityProvider>(Api, AccountPath(accountId, "access", "identity_providers"), 50, ct);
 
     public Task<AccessIdentityProvider> GetIdentityProviderAsync(string providerId, string? accountId = null, CancellationToken ct = default) =>
-        ZT.SendAsync<AccessIdentityProvider>(Api, HttpMethod.Get, AccountPath(accountId, "access", "identity_providers", providerId), null, ct);
+        ResourceKit.SendSecretFreeAsync<AccessIdentityProvider>(Api, HttpMethod.Get, AccountPath(accountId, "access", "identity_providers", providerId), null, ct);
 
     /// <summary>Creates an identity provider (since 0.8.1 write guard first, type checked, secrets stripped from the answer).</summary>
     [Obsolete("Use EnsureIdentityProviderAsync (0.8.0); since 0.8.1 this checks the write guard and the type first. Removed in 1.0.")]
@@ -296,7 +296,7 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
     {
         var path = AccountPath(accountId, "access", "identity_providers");
         EnsureWritable(HttpMethod.Post, path);
-        return ZT.SendAsync<AccessIdentityProvider>(Api, HttpMethod.Post, path, IdpBody(name, type, config), ct);
+        return ResourceKit.SendSecretFreeAsync<AccessIdentityProvider>(Api, HttpMethod.Post, path, IdpBody(name, type, config), ct);
     }
 
     /// <summary>Always refused since 0.8.1: a full replacement of a login method without any check can lock everybody out.</summary>

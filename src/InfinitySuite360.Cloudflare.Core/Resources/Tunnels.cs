@@ -82,10 +82,10 @@ public sealed partial class TunnelsClient(ICloudflareApiConnection api) : Cloudf
     public const string CatchAllService = "http_status:404";
 
     public Task<IReadOnlyList<Tunnel>> ListAsync(string? name = null, bool includeDeleted = false, string? accountId = null, CancellationToken ct = default) =>
-        ZT.ListAllAsync<Tunnel>(Api, CloudflarePath.WithQuery(AccountPath(accountId, "cfd_tunnel"), ("name", name), ("is_deleted", includeDeleted ? null : "false")), 50, ct);
+        ResourceKit.ListAllSecretFreeAsync<Tunnel>(Api, CloudflarePath.WithQuery(AccountPath(accountId, "cfd_tunnel"), ("name", name), ("is_deleted", includeDeleted ? null : "false")), 50, ct);
 
     public Task<Tunnel> GetAsync(string tunnelId, string? accountId = null, CancellationToken ct = default) =>
-        ZT.SendAsync<Tunnel>(Api, HttpMethod.Get, AccountPath(accountId, "cfd_tunnel", tunnelId), null, ct);
+        ResourceKit.SendSecretFreeAsync<Tunnel>(Api, HttpMethod.Get, AccountPath(accountId, "cfd_tunnel", tunnelId), null, ct);
 
     // M7 (0.8.1): the obsolete write methods go through their guarded replacements with every allow switch off, or are always refused; none of them
     // hands out the run token.
@@ -131,7 +131,7 @@ public sealed partial class TunnelsClient(ICloudflareApiConnection api) : Cloudf
     [EditorBrowsable(EditorBrowsableState.Never)]
     public Task<string> GetTokenAsync(string tunnelId, string? accountId = null, CancellationToken ct = default)
     {
-        AccountPath(accountId, "cfd_tunnel", P1.Required(tunnelId, nameof(tunnelId)), "token");
+        AccountPath(accountId, "cfd_tunnel", ResourceKit.Required(tunnelId, nameof(tunnelId)), "token");
         return Task.FromException<string>(new InvalidOperationException(
             "Refused: GetTokenAsync is obsolete and always refused since 0.8.1 (it returned the run token as a plain string). Use GetRunTokenAsync(tunnelId, allowReadSecret: true)."));
     }

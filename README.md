@@ -7,7 +7,7 @@
 |---|---|
 | `InfinitySuite360.Cloudflare` | Everything: the core plus the generated client (`ICloudflareClient.OpenApi`). One install, nothing else to choose. |
 | `InfinitySuite360.Cloudflare.Core` | The core without the generated client: `ICloudflareClient`, dependency injection, curated clients for common tasks, raw access, Cloudflare Access token validation, Turnstile siteverify. Depends only on `Microsoft.Extensions.*`; for services that need Access JWT or DNS but not the whole API. |
-| `InfinitySuite360.Cloudflare.AspNetCore` | Authentication for applications behind Cloudflare Access: checks the signed token Access adds to every request, so that `[Authorize]` works. Needs only the core. |
+| `InfinitySuite360.Cloudflare.AspNetCore` | Authentication for applications behind Cloudflare Access: checks the signed token Access adds to every request, so that `[Authorize]` works. Since 0.9.0 also the registration of several tenants (`AddCloudflareTenants`, settings checked at start). Needs only the core. |
 | `InfinitySuite360.Cloudflare.OpenApi` | Every operation and model of Cloudflare's [official OpenAPI schema](https://github.com/cloudflare/api-schemas), generated with [Microsoft Kiota](https://learn.microsoft.com/openapi/kiota/). XML documentation comes from the schema. |
 
 Targets **net8.0** and **net10.0**. Community package, not affiliated with Cloudflare, Inc.
@@ -136,6 +136,20 @@ var events = await cloudflare.Analytics.GetSecurityEventsAsync(DateTimeOffset.Ut
 | SSL mode, minimum TLS version, HSTS, TLS switches | `Tls` |
 | Logpush jobs (destinations redacted) | `Logpush` |
 | API tokens: create, roll, revoke, permission groups | `ApiTokens` |
+| Images: images, usage, variants; delete (narrow, 0.9.0) | `Images` |
+| Stream: videos, storage usage; delete (narrow, 0.9.0) | `Stream` |
+| Registrar: registrations, status, auto-renew (narrow, 0.9.0) | `Registrar` |
+| Account members and roles; remove with lock-out protection (narrow, 0.9.0) | `Members` |
+| Account audit log v2 (read-only, 0.9.0) | `AuditLogs` |
+| Radar: domain ranking, ASNs, any dataset (read-only, 0.9.0) | `Radar` |
+| Pages: projects, deployments, rollback (narrow, 0.9.0) | `Pages` |
+| Hyperdrive configurations without passwords; delete (narrow, 0.9.0) | `Hyperdrive` |
+| Workflows: workflows, instances, pause/resume/terminate (narrow, 0.9.0) | `Workflows` |
+| Durable Objects: namespaces, objects (read-only, 0.9.0) | `DurableObjects` |
+| Secrets Store: stores, secret metadata (never values); delete (narrow, 0.9.0) | `SecretsStore` |
+
+How much of each product area the curated clients cover is measured, not estimated: [openapi/COVERAGE.md](openapi/COVERAGE.md) (see
+[Keeping up with the API](#keeping-up-with-the-api)).
 
 Page Shield and API Shield (0.4.0; whether a feature is available depends on the plan and is decided by Cloudflare, an unavailable one throws `CloudflareNotEntitledException`, a subclass of `CloudflareApiException`):
 
@@ -474,6 +488,70 @@ var refused = (await cloudflare.Access.ListRequestLogsAsync(limit: 200)).Where(l
 var ips = await cloudflare.Ips.GetAsync(); var viaCloudflare = ips.Contains(remoteAddress);                    // ranges as trusted proxies
 ```
 
+#### Narrow wrappers for priority-3 areas (0.9.0)
+
+The rest of the API stays reachable through `OpenApi`; for the areas below the package adds small typed wrappers with the same rules as every other client
+(write guard checked before any read, `Preview…` sends nothing, risky changes need an `allow…` switch, POST never repeated after a server error, secrets removed
+from every answer). What is left out is left out on purpose:
+
+| Client | Typed | Writes (with preview) | Deliberately only through `OpenApi`, and why | Plan / limits (developers.cloudflare.com, retrieved 17.11.2026) |
+|---|---|---|---|---|
+| `Images` | list, get, stats, variants | delete (`allowDelete`) | uploads (multipart/direct upload), signing keys (secrets), variant changes | storing images needs the Paid plan ($5 per 100 000 images per month); transformations of images stored elsewhere on Free (`images/pricing/`) |
+| `Stream` | videos, video, storage usage | delete (`allowDelete`) | uploads (tus), signed-URL keys and tokens, live inputs, captions, downloads | storage prepaid in steps of $5 per 1000 minutes, delivery $1 per 1000 minutes (`stream/pricing/`) |
+| `Registrar` | registrations, status | auto-renew; off needs `allowDisableAutoRenew` | registering, transfers, domain search: cost money and need the registrant's contact data | at-cost prices of registry and ICANN (`registrar/about/`) |
+| `Members` | members, roles | remove (`allowRemoval`; never the last super administrator) | invitations (send e-mail to a person) and role changes (access control belongs in the dashboard) | `fundamentals/manage-members/manage/` |
+| `AuditLogs` | audit log v2 (period required) | – | – (v1 stays in `Monitoring.ListAuditLogsAsync`) | 18 months retention (`fundamentals/account/account-security/review-audit-logs/`) |
+| `Radar` | domain ranking, ASN, any dataset below `radar/` | – | the other Radar operations are typed in `OpenApi` | token permission "Account → Radar → Read" (`radar/get-started/first-request/`) |
+| `Pages` | projects, deployments | rollback (`allowDeploy`) | projects, uploads, domains, environment variables (secrets); `env_vars`/`deployment_configs` are removed from answers | Free 500 builds per month, one at a time (`pages/platform/limits/`) |
+| `Hyperdrive` | configurations (password and access secret removed) | delete (`allowDelete`) | create/change (needs the database password) | 10 configurations on Free, 25 on Paid (`hyperdrive/platform/limits/`) |
+| `Workflows` | workflows, instances (parameters and step outputs removed) | pause/resume; terminate/restart need `allowTerminate` | creating instances, events, deleting workflows | Free 100 000 executions per day (`workflows/reference/limits/`) |
+| `DurableObjects` | namespaces, objects | – | SQL query endpoint; namespaces change through Worker deployments | 100 classes on Free, 500 on Workers Paid (`durable-objects/platform/limits/`) |
+| `SecretsStore` | stores, secret metadata (`value` removed) | delete secret (`allowDelete`) | creating secrets and changing values: a value must not pass through a general-purpose client | open beta: 1 store, 100 secrets per account (`secrets-store/manage-secrets/`) |
+
+Turnstile and Email Routing already had curated clients (`Turnstile`, `EmailRouting`). Magic Transit/WAN, AI, billing and the intelligence products (Cloudforce
+One, URL scanner, brand protection) stay `OpenApi` only: the platform does not use them, and money or network routing should not be one call away.
+
+### Several tenants: `ICloudflareClientFactory` (0.9.0)
+
+One client per tenant, each with its own token and settings, all sharing one HTTP connection pool:
+
+```csharp
+// appsettings: "Cloudflare": { "Tenants": { "shop-a": { "ZoneId": "…" }, "shop-b": { … } } }; tokens from the secret store
+builder.Services.AddCloudflareTenants(builder.Configuration.GetSection("Cloudflare:Tenants"),
+    resolve: ctx => ctx.User.FindFirst("tenant")?.Value);           // package InfinitySuite360.Cloudflare.AspNetCore
+
+app.MapGet("/zone", (HttpContext ctx) => ctx.GetCloudflareClient().Zones.GetAsync());
+// elsewhere: factory.GetClient("shop-a")
+```
+
+* Every tenant's settings are checked when the host starts (`ValidateOnStart`): no token, an `http` base address or an invalid budget stops the start.
+* A client is never handed to another tenant; when a tenant's token or settings change, the next `GetClient` creates a new client (the old one keeps the token it
+  was created with). The token is only sent in the `Authorization` header of each request, never set on the shared pool, and never appears in `ToString`
+  (`CloudflareOptions.ToString` shows `[redacted]`), exceptions, events or metrics.
+* Resolve the tenant of a request from something the server trusts (an authenticated claim, the host name), never from a header or query value the caller chooses.
+* Without ASP.NET Core: `services.AddCloudflareTenant("shop-a", configuration.GetSection(…))` (core package) or
+  `new CloudflareClientFactory(new Dictionary<string, CloudflareOptions> { … })`, which owns one `SocketsHttpHandler` and disposes it with the factory.
+
+### Request budget per token (0.9.0)
+
+Cloudflare allows 1200 requests per five minutes per user or token and blocks the token for the rest of the window when it is exceeded
+([API limits](https://developers.cloudflare.com/fundamentals/api/reference/limits/), retrieved 17.11.2026). Every client from dependency injection or the factory
+counts against one shared budget per token (also the generated client and other tenants with the same token) and **waits before sending** once the share of its
+kind is used up, instead of running into HTTP 429:
+
+| Setting (`Cloudflare:RateBudget:…`) | Default | Meaning |
+|---|---|---|
+| `Enabled` | `true` | count and delay |
+| `RequestsPerWindow`, `Window` | 1200, 5 min | Cloudflare's limit (Enterprise can have more) |
+| `ReadShare` | 0.8 (960) | reads (also GraphQL) never use the last 20 % |
+| `WriteShare` | 0.95 (1140) | writes keep their headroom when watchers have used the read share |
+| `MaxDelay` | 5 min | a longer wait fails with `CloudflareRateBudgetExceededException` before anything is sent |
+| `Name` | tenant name or `token-<keyed hash>` | label in events and metrics, never the token |
+
+A 429 from Cloudflare blocks the whole budget until `Retry-After`. Events `Delayed`/`Throttled`, `Snapshot()` and the meter `InfinitySuite360.Cloudflare`
+(`cloudflare.budget.requests`, `cloudflare.budget.delays`, `cloudflare.budget.delay` in ms; tags `budget`, `kind`) show it. `CloudflareClient.Create` without
+a registry does not count (scripts, tests); set `RateBudget = registry.For(options)` on the connection to opt in.
+
 ### Raw access
 
 Any endpoint, with the same guard, retries and error handling. `Api` and the generated `OpenApi` client know only `AllowWrites` and `WriteFilter`: none of the
@@ -564,8 +642,27 @@ dotnet run tools/generate.cs
 dotnet run tools/generate.cs -- --update
 ```
 
-The schema is normalized before generation; see [openapi/normalization.md](openapi/normalization.md). Counts per area are in
-[openapi/COVERAGE.md](openapi/COVERAGE.md).
+The schema is normalized before generation; see [openapi/normalization.md](openapi/normalization.md). Counts of the generated client are in
+[openapi/GENERATION.md](openapi/GENERATION.md).
+
+**Coverage matrix and contract tests (0.9.0).** [openapi/COVERAGE.md](openapi/COVERAGE.md) is generated, not maintained by hand: every public method of every
+curated client is called with sample arguments against a fake handler (no network), and every request is matched against `openapi/operations.tsv`, a compact
+index (method, path template) of the pinned schema. Per product area it lists the operations, how many are curated (GET and writes), how many are only reachable
+through `OpenApi`, and the priority of the plan. The numbers are a lower bound: a method whose sample arguments are refused locally does not count.
+
+```bash
+dotnet run tools/coverage.cs               # write openapi/COVERAGE.md
+dotnet run tools/coverage.cs -- --check    # fail when it is stale (the test CoverageReportTests does the same in CI)
+dotnet run tools/coverage.cs -- --index    # rewrite openapi/operations.tsv from the pinned schema (generate.cs calls it)
+```
+
+The same recording is the contract test: a curated method that sends a method/path the schema does not know fails the build, unless it is listed as a known
+deviation with its reason (shown at the end of COVERAGE.md). After a schema update the test shows which curated endpoints disappeared.
+
+**Writing a client.** All clients follow one pattern, with the helpers in `ResourceKit` and `CloudflareResourceClient` (0.9.0, formerly `P1`/`P2`/`ZT`): check
+inputs locally (`CloudflarePath.Of` refuses `..`), call `EnsureWritable` before any preparing read, refuse risky changes without an `allow…` switch, remove secrets
+from every answer (`StripSecrets`, `SendSecretFreeAsync`) and preview (`Preview`, which redacts secret-looking members), and offer a `Preview…` sister. Reflective
+tests check every public method of every client automatically: nothing is sent without `AllowWrites`, no preparing read before the guard, no path with `..`.
 
 ## Build, test, release
 
