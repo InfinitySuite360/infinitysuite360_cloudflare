@@ -63,7 +63,7 @@ public class Priority2Tests
             () => cf.Workers.RemoveScriptAsync("w", allowDelete: true),
             () => cf.Workers.EnsureRouteAsync("example.com/api/*", "w"),
             () => cf.Workers.RemoveRouteAsync("r1"),
-            () => cf.Workers.AttachDomainAsync("app.example.com", "w"),
+            () => cf.Workers.AttachDomainAsync("app.example.com", "w", allowDeploy: true),
             () => cf.Workers.DetachDomainAsync("d1", allowRemoval: true),
             () => cf.Workers.SetSchedulesAsync("w", ["*/5 * * * *"]),
             () => cf.Workers.DeployVersionsAsync("w", [new(version, 100)], allowDeploy: true),

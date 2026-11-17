@@ -116,41 +116,63 @@ public sealed class ZonesClient(ICloudflareApiConnection api) : CloudflareResour
     public Task<ZoneSetting> GetSettingAsync(string settingId, string? zoneId = null, CancellationToken ct = default) =>
         Api.GetAsync<ZoneSetting>(ZonePath(zoneId, "settings", settingId), ct);
 
-    /// <summary>Sets one setting. <paramref name="value"/> for example "on", "strict", "1.2" or an object (security_header).</summary>
-    public Task<ZoneSetting> SetSettingAsync(string settingId, object value, string? zoneId = null, CancellationToken ct = default) =>
-        Api.PatchAsync<ZoneSetting>(ZonePath(zoneId, "settings", settingId), new JsonObject { ["value"] = JsonSerializer.SerializeToNode(value, value.GetType(), CloudflareJson.Options) }, ct);
-
-    /// <summary>Sets several settings in one call.</summary>
-    public Task<List<ZoneSetting>> SetSettingsAsync(IReadOnlyDictionary<string, object> values, string? zoneId = null, CancellationToken ct = default)
+    /// <summary>
+    /// Sets one setting. <paramref name="value"/> for example "on", "strict", "1.2" or an object (security_header).
+    /// Since 0.7.1 the TLS guards of <see cref="TlsSettingsClient"/> apply with their safe defaults: a weaker <c>ssl</c> mode or <c>min_tls_version</c>, TLS 1.3
+    /// only, and switching <c>tls_1_3</c>, <c>always_use_https</c> or <c>opportunistic_encryption</c> off are refused (use <c>Tls</c> with <c>allowWeaken</c>).
+    /// </summary>
+    public async Task<ZoneSetting> SetSettingAsync(string settingId, object value, string? zoneId = null, CancellationToken ct = default)
     {
-        var items = new JsonArray(values.Select(kv => (JsonNode)new JsonObject
+        ArgumentNullException.ThrowIfNull(value);
+        var node = JsonSerializer.SerializeToNode(value, value.GetType(), CloudflareJson.Options);
+        var path = ZonePath(zoneId, "settings", settingId);
+        if (TlsSettingsClient.IsGuarded(settingId))
         {
-            ["id"] = kv.Key,
-            ["value"] = JsonSerializer.SerializeToNode(kv.Value, kv.Value.GetType(), CloudflareJson.Options),
-        }).ToArray());
-        return Api.PatchAsync<List<ZoneSetting>>(ZonePath(zoneId, "settings"), new JsonObject { ["items"] = items }, ct);
+            EnsureWritable(HttpMethod.Patch, path);
+            await new TlsSettingsClient(Api).RefuseWeakeningAsync([(settingId, node)], zoneId, ct).ConfigureAwait(false);
+        }
+        return await Api.PatchAsync<ZoneSetting>(path, new JsonObject { ["value"] = node }, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>Sets several settings in one call. The TLS guards of <see cref="SetSettingAsync"/> apply to every item (one read of the settings).</summary>
+    public async Task<List<ZoneSetting>> SetSettingsAsync(IReadOnlyDictionary<string, object> values, string? zoneId = null, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        var nodes = values.Select(kv => (Id: kv.Key, Value: JsonSerializer.SerializeToNode(kv.Value, kv.Value.GetType(), CloudflareJson.Options))).ToList();
+        var path = ZonePath(zoneId, "settings");
+        if (nodes.Any(n => TlsSettingsClient.IsGuarded(n.Id)))
+        {
+            EnsureWritable(HttpMethod.Patch, path);
+            await new TlsSettingsClient(Api).RefuseWeakeningAsync(nodes, zoneId, ct).ConfigureAwait(false);
+        }
+        var items = new JsonArray(nodes.Select(n => (JsonNode)new JsonObject { ["id"] = n.Id, ["value"] = n.Value?.DeepClone() }).ToArray());
+        return await Api.PatchAsync<List<ZoneSetting>>(path, new JsonObject { ["items"] = items }, ct).ConfigureAwait(false);
     }
 
     // ---- Cache ----
 
-    [Obsolete("Purging everything needs an explicit switch. Use Cache.PurgeEverythingAsync(allowPurgeAll: true) (0.7.0). Removed in 1.0.")]
-    public Task<IdResult> PurgeEverythingAsync(string? zoneId = null, CancellationToken ct = default) =>
-        Purge(new JsonObject { ["purge_everything"] = true }, zoneId, ct);
+    /// <summary>Always refused since 0.7.1 (no switch in this signature): use <c>Cache.PurgeEverythingAsync(allowPurgeAll: true)</c>.</summary>
+    [Obsolete("Always refused since 0.7.1: purging everything needs an explicit switch. Use Cache.PurgeEverythingAsync(allowPurgeAll: true). Removed in 1.0.")]
+    public async Task<IdResult> PurgeEverythingAsync(string? zoneId = null, CancellationToken ct = default) =>
+        await new CacheClient(Api).PurgeEverythingAsync(allowPurgeAll: false, zoneId, ct).ConfigureAwait(false);
 
-    public Task<IdResult> PurgeFilesAsync(IEnumerable<string> urls, string? zoneId = null, CancellationToken ct = default) => PurgeList("files", urls, zoneId, ct);
-    public Task<IdResult> PurgeTagsAsync(IEnumerable<string> tags, string? zoneId = null, CancellationToken ct = default) => PurgeList("tags", tags, zoneId, ct);
-    public Task<IdResult> PurgeHostsAsync(IEnumerable<string> hosts, string? zoneId = null, CancellationToken ct = default) => PurgeList("hosts", hosts, zoneId, ct);
-    public Task<IdResult> PurgePrefixesAsync(IEnumerable<string> prefixes, string? zoneId = null, CancellationToken ct = default) => PurgeList("prefixes", prefixes, zoneId, ct);
+    /// <summary>Same checks as <see cref="CacheClient.PurgeUrlsAsync"/> (since 0.7.1); returns the id of the first request.</summary>
+    public async Task<IdResult> PurgeFilesAsync(IEnumerable<string> urls, string? zoneId = null, CancellationToken ct = default) =>
+        First(await new CacheClient(Api).PurgeUrlsAsync(urls, zoneId, ct).ConfigureAwait(false));
 
-    private Task<IdResult> PurgeList(string kind, IEnumerable<string> values, string? zoneId, CancellationToken ct)
-    {
-        var list = values.Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
-        if (list.Count == 0) throw new ArgumentException("At least one entry is required.", nameof(values));
-        return Purge(new JsonObject { [kind] = new JsonArray(list.Select(v => (JsonNode)JsonValue.Create(v)!).ToArray()) }, zoneId, ct);
-    }
+    /// <summary>Same checks as <see cref="CacheClient.PurgeTagsAsync"/> (since 0.7.1); returns the id of the first request.</summary>
+    public async Task<IdResult> PurgeTagsAsync(IEnumerable<string> tags, string? zoneId = null, CancellationToken ct = default) =>
+        First(await new CacheClient(Api).PurgeTagsAsync(tags, zoneId, ct).ConfigureAwait(false));
 
-    private Task<IdResult> Purge(JsonObject body, string? zoneId, CancellationToken ct) =>
-        Api.PostAsync<IdResult>(ZonePath(zoneId, "purge_cache"), body, ct);
+    /// <summary>Same checks as <see cref="CacheClient.PurgeHostsAsync"/> (bare hostnames, since 0.7.1); returns the id of the first request.</summary>
+    public async Task<IdResult> PurgeHostsAsync(IEnumerable<string> hosts, string? zoneId = null, CancellationToken ct = default) =>
+        First(await new CacheClient(Api).PurgeHostsAsync(hosts, zoneId, ct).ConfigureAwait(false));
+
+    /// <summary>Same checks as <see cref="CacheClient.PurgePrefixesAsync"/> (host and path, since 0.7.1); returns the id of the first request.</summary>
+    public async Task<IdResult> PurgePrefixesAsync(IEnumerable<string> prefixes, string? zoneId = null, CancellationToken ct = default) =>
+        First(await new CacheClient(Api).PurgePrefixesAsync(prefixes, zoneId, ct).ConfigureAwait(false));
+
+    private static IdResult First(IReadOnlyList<IdResult> ids) => ids.Count > 0 ? ids[0] : new IdResult();
 
     public Task<ZoneSetting> GetTieredCacheSmartTopologyAsync(string? zoneId = null, CancellationToken ct = default) =>
         Api.GetAsync<ZoneSetting>(ZonePath(zoneId, "cache", "tiered_cache_smart_topology_enable"), ct);

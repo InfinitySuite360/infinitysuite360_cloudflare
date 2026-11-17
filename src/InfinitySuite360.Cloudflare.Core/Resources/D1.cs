@@ -27,24 +27,48 @@ public sealed class D1StatementResult : CloudflareModel
 /// <summary>What a SQL text does, judged locally before anything is sent. Order matters: a higher value needs more permission.</summary>
 public enum D1SqlKind
 {
-    /// <summary>SELECT, EXPLAIN, WITH … SELECT, PRAGMA of a read-only list.</summary>
+    /// <summary>SELECT, EXPLAIN, WITH … SELECT, PRAGMA in its reading form.</summary>
     ReadOnly = 0,
     /// <summary>INSERT, UPDATE or DELETE with WHERE, REPLACE, CREATE, other PRAGMA, anything not recognised.</summary>
     Write = 1,
-    /// <summary>DROP, ALTER, DELETE or UPDATE without WHERE, VACUUM, ATTACH, TRUNCATE.</summary>
+    /// <summary>DROP, ALTER, DELETE or UPDATE without a selective WHERE, VACUUM, ATTACH, TRUNCATE, triggers that delete or update, setting schema_version or writable_schema.</summary>
     Destructive = 2,
 }
 
-/// <summary>Local classification of SQL text (conservative: anything unknown counts as a write).</summary>
+/// <summary>
+/// Local classification of SQL text (conservative: anything unknown counts as a write). Since 0.7.1 (M-5): a PRAGMA counts as read-only only in its
+/// reading form (no <c>=</c>, no argument for the pragmas that set a value with one, such as <c>user_version(5)</c>); setting <c>schema_version</c> or
+/// <c>writable_schema</c> is destructive; DELETE or UPDATE whose WHERE clause has a part without a column (<c>WHERE 1</c>, <c>WHERE 1=1</c>, <c>WHERE ?</c>,
+/// <c>… OR 'a'='a'</c>) or compares a column with itself (<c>WHERE id = id</c>) is destructive; a trigger whose body deletes, updates or drops is destructive.
+/// Limit: the check is syntactic and does not evaluate expressions; read the preview.
+/// </summary>
 public static class D1Sql
 {
-    private static readonly HashSet<string> ReadPragmas = new(StringComparer.Ordinal)
+    // Read without argument; with an argument or '=' they set a value.
+    private static readonly HashSet<string> ReadPragmasNoArgument = new(StringComparer.Ordinal)
     {
-        "table_info", "table_xinfo", "table_list", "index_list", "index_info", "index_xinfo", "foreign_key_list", "database_list",
-        "compile_options", "function_list", "collation_list", "user_version", "schema_version", "page_count", "page_size", "encoding",
+        "database_list", "compile_options", "function_list", "collation_list", "pragma_list", "module_list", "user_version", "schema_version",
+        "application_id", "page_count", "page_size", "encoding", "freelist_count", "data_version",
     };
 
-    private static readonly Regex Token = new(@"[A-Za-z_][A-Za-z0-9_]*|=|\S", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+    // Read with a table or index name as argument.
+    private static readonly HashSet<string> ReadPragmasWithArgument = new(StringComparer.Ordinal)
+    {
+        "table_info", "table_xinfo", "table_list", "index_list", "index_info", "index_xinfo", "foreign_key_list", "foreign_key_check",
+    };
+
+    private static readonly HashSet<string> DestructivePragmas = new(StringComparer.Ordinal) { "schema_version", "writable_schema" };
+
+    // Words that are not columns in a WHERE clause.
+    private static readonly HashSet<string> Keywords = new(StringComparer.Ordinal)
+    {
+        "and", "or", "not", "null", "is", "in", "like", "glob", "regexp", "match", "between", "escape", "collate", "case", "when", "then", "else", "end",
+        "true", "false", "exists", "cast", "as", "integer", "text", "real", "blob", "numeric", "current_date", "current_time", "current_timestamp", "isnull", "notnull",
+    };
+
+    private static readonly HashSet<string> ClauseEnd = new(StringComparer.Ordinal) { "order", "limit", "returning", "group", "having", "window", "from" };
+
+    private static readonly Regex Token = new(@"[A-Za-z_][A-Za-z0-9_$]*|\d+(?:\.\d+)?|==|!=|<>|<=|>=|=|\S", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
 
     /// <summary>Classifies every statement; the result is the most dangerous one. Comments and string literals are ignored for the keywords.</summary>
     public static D1SqlKind Classify(string sql)
@@ -65,11 +89,11 @@ public static class D1Sql
     {
         if (t.Count == 0) return D1SqlKind.ReadOnly;
         var first = t[0];
-        var hasWhere = t.Contains("where");
         bool Has(params string[] words) => t.Any(x => Array.IndexOf(words, x) >= 0);
         if (Has("drop", "alter", "truncate", "vacuum", "attach", "detach")) return D1SqlKind.Destructive;
+        if (first == "create" && Has("trigger") && Has("delete", "update")) return D1SqlKind.Destructive;
         if (first is "delete" or "update" || (first == "with" && Has("delete", "update")))
-            return hasWhere ? D1SqlKind.Write : D1SqlKind.Destructive;
+            return HasSelectiveWhere(t) ? D1SqlKind.Write : D1SqlKind.Destructive;
         switch (first)
         {
             case "select" or "explain" or "values":
@@ -77,13 +101,80 @@ public static class D1Sql
             case "with":
                 return Has("insert", "replace") ? D1SqlKind.Write : D1SqlKind.ReadOnly;
             case "pragma":
-                return t.Count >= 2 && ReadPragmas.Contains(t[1]) && !t.Contains("=") ? D1SqlKind.ReadOnly : D1SqlKind.Write;
+                return Pragma(t);
             default:
                 return D1SqlKind.Write;
         }
     }
 
-    // Replaces comments and quoted text by spaces so that keywords inside strings or comments do not count (and a ';' inside a string does not split).
+    private static D1SqlKind Pragma(List<string> t)
+    {
+        // PRAGMA [schema.]name [= value | (value)]
+        var i = t.Count >= 4 && t[2] == "." ? 3 : 1;
+        if (t.Count <= i) return D1SqlKind.Write;
+        var name = t[i];
+        var rest = t.Skip(i + 1).ToList();
+        var setsValue = rest.Contains("=");
+        var hasArgument = rest.Contains("(");
+        if (!setsValue && rest.Count == 0 && (ReadPragmasNoArgument.Contains(name) || ReadPragmasWithArgument.Contains(name))) return D1SqlKind.ReadOnly;
+        if (!setsValue && hasArgument && ReadPragmasWithArgument.Contains(name)) return D1SqlKind.ReadOnly;
+        return DestructivePragmas.Contains(name) ? D1SqlKind.Destructive : D1SqlKind.Write;
+    }
+
+    // True when the statement has a WHERE clause and every OR-part of it names a column (and does not compare a column with itself).
+    private static bool HasSelectiveWhere(List<string> t)
+    {
+        var where = -1;
+        var depth = 0;
+        for (var i = 0; i < t.Count && where < 0; i++)
+        {
+            if (t[i] == "(") depth++;
+            else if (t[i] == ")") depth--;
+            else if (depth == 0 && t[i] == "where") where = i;
+        }
+        if (where < 0) return false;
+        var clause = new List<string>();
+        depth = 0;
+        for (var i = where + 1; i < t.Count; i++)
+        {
+            var x = t[i];
+            if (x == "(") depth++;
+            else if (x == ")") { if (depth == 0) break; depth--; }
+            else if (depth == 0 && ClauseEnd.Contains(x)) break;
+            clause.Add(x);
+        }
+        if (clause.Count == 0) return false;
+        var parts = new List<List<string>> { new() };
+        depth = 0;
+        foreach (var x in clause)
+        {
+            if (x == "(") depth++;
+            else if (x == ")") depth--;
+            if (depth == 0 && x == "or") { parts.Add([]); continue; }
+            parts[^1].Add(x);
+        }
+        return parts.All(Selective);
+    }
+
+    private static bool Selective(List<string> part)
+    {
+        var columns = new List<int>();
+        for (var i = 0; i < part.Count; i++)
+        {
+            var x = part[i];
+            var identifier = char.IsLetter(x[0]) || x[0] == '_';
+            var function = i + 1 < part.Count && part[i + 1] == "(";
+            if (identifier && !function && !Keywords.Contains(x)) columns.Add(i);
+        }
+        if (columns.Count == 0) return false;
+        // "a = a", "a == a", "a is a": always true (apart from NULL).
+        for (var i = 0; i + 2 < part.Count; i++)
+            if (columns.Contains(i) && part[i + 1] is "=" or "==" or "is" && part[i + 2] == part[i]) return false;
+        return true;
+    }
+
+    // Replaces comments by spaces and literals by placeholders so that keywords inside strings or comments do not count (and a ';' inside a string does not
+    // split): string literals become a value (?), quoted identifiers an identifier (x).
     private static string Strip(string sql)
     {
         var sb = new StringBuilder(sql.Length);
@@ -100,7 +191,7 @@ public static class D1Sql
                     if (i + 1 < sql.Length && sql[i + 1] == c) { i++; continue; }
                     break;
                 }
-                sb.Append(" x ");
+                sb.Append(c == '\'' ? " ? " : " x ");
             }
             else if (c == '[') { var end = sql.IndexOf(']', i + 1); i = end < 0 ? sql.Length : end; sb.Append(" x "); }
             else sb.Append(c);

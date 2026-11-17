@@ -43,11 +43,11 @@ public class ShieldWriteTests
             () => cf.ApiShield.CreateTokenValidationConfigAsync(new TokenValidationConfigInput { Title = "t", Description = "", TokenSources = ["http.request.headers[\"authorization\"][0]"], Keys = keys }),
             () => cf.ApiShield.ReplaceTokenValidationKeysAsync("c1", keys),
             () => cf.ApiShield.CreateTokenValidationRuleAsync(new TokenValidationRuleInput { Title = "r", Expression = "is_jwt_valid(\"c1\")" }),
-            () => cf.ApiShield.DeleteTokenValidationRuleAsync("r1"),
+            () => cf.ApiShield.DeleteTokenValidationRuleAsync("r1", allowRemoval: true),
             () => cf.ApiShield.EnsureUserLabelAsync("team-a"),
             () => cf.ApiShield.AddLabelsToOperationsAsync(["o1"], userLabels: ["team-a"]),
             () => cf.ApiShield.CreateClientCertificateAsync("-----BEGIN CERTIFICATE REQUEST-----\nMIIB\n-----END CERTIFICATE REQUEST-----"),
-            () => cf.ApiShield.RevokeClientCertificateAsync("cc1"),
+            () => cf.ApiShield.RevokeClientCertificateAsync("cc1", allowRevoke: true),
             () => cf.ApiShield.ReplaceHostnameAssociationsAsync(["api.example.com"]),
             () => cf.PageShield.EnsurePolicyAsync(new PageShieldPolicyInput { Description = "d", Expression = "e", Value = "v" }),
             () => cf.PageShield.DeletePolicyAsync("p1"),
@@ -268,7 +268,7 @@ public class ShieldWriteTests
         Assert.DoesNotContain(SymmetricSecret, JsonSerializer.Serialize(config));
 
         h.Responses.Enqueue(FakeHandler.Ok($$"""{"keys":[{"kid":"h1","kty":"oct","alg":"HS256","k":"{{SymmetricSecret}}"}]}"""));
-        var replaced = await cf.ApiShield.ReplaceTokenValidationKeysAsync("c1", keys);
+        var replaced = await cf.ApiShield.ReplaceTokenValidationKeysAsync("c1", keys, allowKeyRemoval: true);
         Assert.DoesNotContain(SymmetricSecret, replaced.GetRawText());
         Assert.Equal(HttpMethod.Put, h.Requests[1].Method);
 
@@ -352,7 +352,7 @@ public class ShieldWriteTests
         Assert.Equal(before + 1, h.Requests.Count);
 
         h.Responses.Enqueue(FakeHandler.Ok("""{"id":"cc1","status":"pending_revocation"}"""));
-        Assert.Equal("pending_revocation", (await cf.ApiShield.RevokeClientCertificateAsync("cc1")).Status);
+        Assert.Equal("pending_revocation", (await cf.ApiShield.RevokeClientCertificateAsync("cc1", allowRevoke: true)).Status);
         h.Responses.Enqueue(FakeHandler.Ok("""{"id":"cc1","status":"pending_reactivation"}"""));
         Assert.Equal("pending_reactivation", (await cf.ApiShield.ReactivateClientCertificateAsync("cc1")).Status);
         Assert.Contains("\"reactivate\":true", h.Requests[^1].Body);

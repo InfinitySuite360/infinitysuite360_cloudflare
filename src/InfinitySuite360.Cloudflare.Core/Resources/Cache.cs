@@ -20,7 +20,10 @@ public sealed class CacheRuleInput
     public bool? Cache { get; init; }
     public CacheTtl? EdgeTtl { get; init; }
     public CacheTtl? BrowserTtl { get; init; }
-    /// <summary>Extra members of <c>action_parameters</c> (for example <c>cache_key</c>, <c>serve_stale</c>, <c>respect_strong_etags</c>), merged into the typed ones.</summary>
+    /// <summary>
+    /// Extra members of <c>action_parameters</c> (for example <c>cache_key</c>, <c>serve_stale</c>, <c>respect_strong_etags</c>), merged into the typed ones.
+    /// <c>cache</c>, <c>edge_ttl</c> and <c>browser_ttl</c> are refused here (0.7.1): set them with the typed members, which carry the checks.
+    /// </summary>
     public JsonElement? ExtraParameters { get; init; }
 }
 
@@ -144,7 +147,16 @@ public sealed class CacheClient(ICloudflareApiConnection api) : RulesetPhaseClie
         if (r.Cache is { } cache) ap["cache"] = cache;
         if (r.EdgeTtl is { } e) ap["edge_ttl"] = Ttl(e, edge: true);
         if (r.BrowserTtl is { } b) ap["browser_ttl"] = Ttl(b, edge: false);
-        if (P1.Node(r.ExtraParameters) is JsonObject extra) foreach (var (k, v) in extra) ap[k] = v?.DeepClone();
+        if (P1.Node(r.ExtraParameters) is JsonObject extra)
+            foreach (var (k, v) in extra)
+            {
+                // M-2 (0.7.1): the typed members carry the guards (allowBroadCache, allowLongTtl); ExtraParameters must not override them.
+                if (k is "cache" or "edge_ttl" or "browser_ttl")
+                    throw new ArgumentException($"ExtraParameters must not set \"{k}\"; use Cache, EdgeTtl or BrowserTtl (they carry the checks).", nameof(r));
+                ap[k] = v?.DeepClone();
+            }
+        else if (r.ExtraParameters is { ValueKind: not (JsonValueKind.Undefined or JsonValueKind.Null) })
+            throw new ArgumentException("ExtraParameters must be a JSON object.", nameof(r));
         if (ap.Count == 0) throw new ArgumentException("A cache rule sets at least one of cache, edge TTL or browser TTL.", nameof(r));
         if (r.Cache == true && MatchesAll(r.Expression))
             P2.Allow(allowBroadCache, "caching every request also caches HTML, API answers and logged-in pages (data leak between visitors)", nameof(allowBroadCache));

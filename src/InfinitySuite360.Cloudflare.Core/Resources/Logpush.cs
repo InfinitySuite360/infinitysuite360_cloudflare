@@ -68,13 +68,14 @@ public sealed class LogpushCheckResult : CloudflareModel
 /// <summary>
 /// Logpush jobs of a zone or account, typed and with redacted destinations (developers.cloudflare.com/logs/logpush/, 17.11.2026: all plans; datasets depend
 /// on the products of the account; up to 1000 jobs; a disabled or failing job loses the logs of that time, they are not backfilled).
-/// Token permission: "Zone: Logs: Edit" or "Account: Logs: Edit" (reading "Logs: Read"). The older <see cref="MonitoringClient"/> Logpush methods return
-/// the unredacted destination.
+/// Token permission: "Zone: Logs: Edit" or "Account: Logs: Edit" (reading "Logs: Read"). Disabling or deleting a job needs <c>allowRemoval</c> (0.7.1).
+/// Since 0.7.1 the older <see cref="MonitoringClient"/> Logpush methods redact the destination too.
 /// </summary>
 public sealed class LogpushClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
     private static readonly Regex NamePattern = new(@"^[a-zA-Z0-9\-\.]{0,512}$", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
     private static readonly Regex SchemePattern = new(@"^[a-z0-9+.\-]+://", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+    private static readonly HashSet<string> StoragePathSchemes = ["r2", "s3", "gs", "azure"];
     private static readonly string[] SecretKeyParts = ["secret", "key", "token", "password", "passwd", "sig", "auth", "credential", "header_", "sas", "api"];
 
     public Task<IReadOnlyList<LogpushJobInfo>> ListJobsAsync(LogpushScope scope = LogpushScope.Zone, string? scopeId = null, CancellationToken ct = default) =>
@@ -119,16 +120,24 @@ public sealed class LogpushClient(ICloudflareApiConnection api) : CloudflareReso
         new("PUT", JobPath(scope, scopeId, jobId), new JsonObject { ["enabled"] = enabled },
             enabled ? $"Enable Logpush job {jobId}." : $"Disable Logpush job {jobId}. WARNING: logs of the time it is off are lost (no backfill).");
 
-    /// <summary>Enables or disables a job (PUT, idempotent). Logs of the time it is off are lost.</summary>
-    public async Task<LogpushJobInfo> SetJobEnabledAsync(int jobId, bool enabled, LogpushScope scope = LogpushScope.Zone, string? scopeId = null, CancellationToken ct = default) =>
-        Redact((await Api.SendAsync<JsonElement>(HttpMethod.Put, JobPath(scope, scopeId, jobId), new JsonObject { ["enabled"] = enabled }, ct).ConfigureAwait(false)).Result)!;
+    /// <summary>
+    /// Enables or disables a job (PUT, idempotent). Logs of the time it is off are lost (audit trail gap): disabling needs <paramref name="allowRemoval"/> (M-8, 0.7.1).
+    /// </summary>
+    public async Task<LogpushJobInfo> SetJobEnabledAsync(int jobId, bool enabled, LogpushScope scope = LogpushScope.Zone, string? scopeId = null, bool allowRemoval = false, CancellationToken ct = default)
+    {
+        if (!enabled) P2.Allow(allowRemoval, "a disabled Logpush job loses the logs of that time (no backfill)", nameof(allowRemoval));
+        return Redact((await Api.SendAsync<JsonElement>(HttpMethod.Put, JobPath(scope, scopeId, jobId), new JsonObject { ["enabled"] = enabled }, ct).ConfigureAwait(false)).Result)!;
+    }
 
     public CloudflareChangePreview PreviewDeleteJob(int jobId, LogpushScope scope = LogpushScope.Zone, string? scopeId = null) =>
         new("DELETE", JobPath(scope, scopeId, jobId), null, $"Delete Logpush job {jobId}. WARNING: no more logs are pushed.");
 
-    /// <summary>Deletes a job. True when deleted, false when it did not exist.</summary>
-    public Task<bool> DeleteJobAsync(int jobId, LogpushScope scope = LogpushScope.Zone, string? scopeId = null, CancellationToken ct = default) =>
-        DeleteIfExistsAsync(JobPath(scope, scopeId, jobId), null, ct);
+    /// <summary>Deletes a job (no more logs are pushed): needs <paramref name="allowRemoval"/> (M-8, 0.7.1). True when deleted, false when it did not exist.</summary>
+    public Task<bool> DeleteJobAsync(int jobId, LogpushScope scope = LogpushScope.Zone, string? scopeId = null, bool allowRemoval = false, CancellationToken ct = default)
+    {
+        P2.Allow(allowRemoval, "deleting a Logpush job stops the log delivery (audit trail gap)", nameof(allowRemoval));
+        return DeleteIfExistsAsync(JobPath(scope, scopeId, jobId), null, ct);
+    }
 
     public CloudflareChangePreview PreviewRequestOwnershipChallenge(string destinationConf, LogpushScope scope = LogpushScope.Zone, string? scopeId = null) =>
         new("POST", Path(scope, scopeId, "logpush", "ownership"), new JsonObject { ["destination_conf"] = RedactDestination(CheckDestination(destinationConf)) },
@@ -144,7 +153,8 @@ public sealed class LogpushClient(ICloudflareApiConnection api) : CloudflareReso
 
     /// <summary>
     /// Replaces credentials in a destination: user info, query values whose name contains secret, key, token, password, sig, auth, credential, header_, sas or api,
-    /// and the path of http(s) destinations (often a secret collector token). Scheme, host and other parameters (region, account) stay.
+    /// query parameters without <c>=</c> (a bare value can be a token) and the path of every destination except the storage schemes r2, s3, gs and azure
+    /// (a collector path often carries a token, also for splunk://, datadog:// and similar; N-6, 0.7.1). Scheme, host and other parameters (region, account) stay.
     /// </summary>
     public static string RedactDestination(string? destinationConf)
     {
@@ -159,7 +169,7 @@ public sealed class LogpushClient(ICloudflareApiConnection api) : CloudflareReso
         var at = location.IndexOf('@');
         var slash = location.IndexOf('/');
         if (at >= 0 && (slash < 0 || at < slash)) location = P1.Redacted + "@" + location[(at + 1)..];
-        if (scheme is "http" or "https")
+        if (!StoragePathSchemes.Contains(scheme.ToLowerInvariant()))
         {
             slash = location.IndexOf('/');
             if (slash >= 0 && slash < location.Length - 1) location = location[..(slash + 1)] + P1.Redacted;
@@ -172,7 +182,8 @@ public sealed class LogpushClient(ICloudflareApiConnection api) : CloudflareReso
                 var eq = p.IndexOf('=');
                 var name = eq < 0 ? p : p[..eq];
                 var lower = Uri.UnescapeDataString(name).ToLowerInvariant();
-                return eq >= 0 && SecretKeyParts.Any(lower.Contains) ? name + "=" + P1.Redacted : p;
+                if (eq < 0) return p.Length == 0 ? p : P1.Redacted;
+                return SecretKeyParts.Any(lower.Contains) ? name + "=" + P1.Redacted : p;
             });
             sb.Append('?').Append(string.Join("&", parts));
         }

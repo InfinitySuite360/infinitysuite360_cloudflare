@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -19,27 +20,35 @@ public enum ApiTokenOwner
 /// which hands it over and clears this object. Store it in a secret store at once, never in logs, audit entries or exceptions.
 /// </summary>
 [JsonConverter(typeof(ApiTokenSecretConverter))]
+[DebuggerDisplay("ApiTokenSecret([redacted])")]
 public sealed class ApiTokenSecret : IDisposable
 {
-    private string? _value;
+    // N-5 (0.7.1): kept as a character buffer that Dispose/TakeValue overwrite; hidden from the debugger's variable views.
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private char[]? _value;
 
-    internal ApiTokenSecret(string value) => _value = value;
+    internal ApiTokenSecret(string value) => _value = value.ToCharArray();
 
     /// <summary>False after <see cref="TakeValue"/> or <see cref="Dispose"/>.</summary>
     public bool HasValue => _value is not null;
 
     /// <summary>The token value. Throws once the value was taken or disposed.</summary>
-    public string Reveal() => _value ?? throw new ObjectDisposedException(nameof(ApiTokenSecret), "The token value was already taken or disposed.");
+    public string Reveal() => _value is { } v ? new string(v) : throw new ObjectDisposedException(nameof(ApiTokenSecret), "The token value was already taken or disposed.");
 
-    /// <summary>Returns the value and clears it here (one-time hand-over).</summary>
+    /// <summary>Returns the value and clears it here (one-time hand-over; the internal buffer is overwritten).</summary>
     public string TakeValue()
     {
         var v = Reveal();
-        _value = null;
+        Dispose();
         return v;
     }
 
-    public void Dispose() => _value = null;
+    /// <summary>Overwrites and drops the internal buffer. Strings handed out before (<see cref="Reveal"/>) cannot be wiped by .NET.</summary>
+    public void Dispose()
+    {
+        if (_value is { } v) Array.Clear(v);
+        _value = null;
+    }
 
     public override string ToString() => $"ApiTokenSecret({(HasValue ? P1.Redacted : "taken")})";
 }
@@ -209,10 +218,19 @@ public sealed class ApiTokensClient(ICloudflareApiConnection api) : CloudflareRe
         return new("PUT", Base(owner, accountId, tokenId), body, $"Replace API token {tokenId} (\"{token.Name}\"): {summary}");
     }
 
-    /// <summary>Replaces name, policies, condition, expiry and status of a token (PUT, the value stays the same).</summary>
-    public Task<ApiToken> UpdateAsync(string tokenId, ApiTokenInput token, bool allowBroadResources = false, bool allowNoExpiry = false, ApiTokenOwner owner = ApiTokenOwner.User,
-        string? accountId = null, CancellationToken ct = default) =>
-        P1.SendStrippedAsync<ApiToken>(Api, HttpMethod.Put, Base(owner, accountId, tokenId), TokenBody(token, allowBroadResources, allowNoExpiry, includeStatus: true).Body, ct, Secret);
+    /// <summary>
+    /// Replaces name, policies, condition, expiry and status of a token (PUT, the value stays the same). Changing the token this client uses (new policies,
+    /// IP condition, expiry or status can cut the client off) needs <paramref name="allowSelf"/>: the own token is verified first (M-7, 0.7.1).
+    /// </summary>
+    public async Task<ApiToken> UpdateAsync(string tokenId, ApiTokenInput token, bool allowBroadResources = false, bool allowNoExpiry = false,
+        ApiTokenOwner owner = ApiTokenOwner.User, string? accountId = null, bool allowSelf = false, CancellationToken ct = default)
+    {
+        var body = TokenBody(token, allowBroadResources, allowNoExpiry, includeStatus: true).Body;
+        var path = Base(owner, accountId, tokenId);
+        EnsureWritable(HttpMethod.Put, path);
+        await RefuseSelfAsync(tokenId, allowSelf, "changing", owner, accountId, ct).ConfigureAwait(false);
+        return await P1.SendStrippedAsync<ApiToken>(Api, HttpMethod.Put, path, body, ct, Secret).ConfigureAwait(false);
+    }
 
     /// <summary>Plan of a status change (reads the token to keep its policies).</summary>
     public async Task<CloudflareChangePreview> PreviewSetStatusAsync(string tokenId, string status, ApiTokenOwner owner = ApiTokenOwner.User, string? accountId = null, CancellationToken ct = default)
@@ -241,7 +259,8 @@ public sealed class ApiTokensClient(ICloudflareApiConnection api) : CloudflareRe
 
     /// <summary>
     /// Rolls the token: Cloudflare issues a new value and invalidates the old one at once (same permissions). The new value is only in the returned secret.
-    /// Rolling the token this client uses needs <paramref name="allowSelf"/> (the client fails with the old value afterwards).
+    /// Rolling the token this client uses needs <paramref name="allowSelf"/> (the client fails with the old value afterwards). The PUT is never repeated
+    /// automatically after a server error (N-1, 0.7.1): a repeat would roll again and invalidate the value of the first answer.
     /// </summary>
     public async Task<ApiTokenSecret> RollAsync(string tokenId, bool allowSelf = false, ApiTokenOwner owner = ApiTokenOwner.User, string? accountId = null, CancellationToken ct = default)
     {
