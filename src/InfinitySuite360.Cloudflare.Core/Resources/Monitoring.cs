@@ -43,6 +43,7 @@ public sealed class LogpushJob : CloudflareModel
     public string? Name { get; init; }
     public string Dataset { get; init; } = "";
     public bool Enabled { get; init; }
+    /// <summary>Destination as Cloudflare returns it; it can contain credentials. <see cref="LogpushClient"/> returns it redacted.</summary>
     public string? DestinationConf { get; init; }
     public string? LastError { get; init; }
     public string? ErrorMessage { get; init; }
