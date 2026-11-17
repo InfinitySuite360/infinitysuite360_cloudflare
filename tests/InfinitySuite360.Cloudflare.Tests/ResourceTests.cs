@@ -1,3 +1,4 @@
+#pragma warning disable CS0618 // covers the old, unguarded R2 methods until they are removed
 using System.Net;
 using System.Text.Json;
 using InfinitySuite360.Cloudflare.Resources;

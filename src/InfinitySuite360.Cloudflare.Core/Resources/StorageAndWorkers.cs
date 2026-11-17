@@ -22,7 +22,7 @@ internal sealed class R2BucketList
 }
 
 /// <summary>R2 bucket management. Object access uses the S3-compatible API.</summary>
-public sealed class R2Client(ICloudflareApiConnection api) : CloudflareResourceClient(api)
+public sealed partial class R2Client(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
     /// <summary>S3-compatible endpoint of the account (for the AWS SDK and similar tools).</summary>
     public string S3Endpoint(string? accountId = null) => $"https://{Account(accountId)}.r2.cloudflarestorage.com";
@@ -34,6 +34,7 @@ public sealed class R2Client(ICloudflareApiConnection api) : CloudflareResourceC
         Api.GetAsync<R2Bucket>(AccountPath(accountId, "r2", "buckets", name), ct);
 
     /// <summary>Creates a bucket. <paramref name="locationHint"/> for example "weur", "eeur", "enam"; <paramref name="storageClass"/> "Standard" or "InfrequentAccess".</summary>
+    [Obsolete("No local checks and no preview. Use EnsureBucketAsync (0.7.0). Removed in 1.0.")]
     public Task<R2Bucket> CreateBucketAsync(string name, string? locationHint = null, string? storageClass = null, string? accountId = null, CancellationToken ct = default)
     {
         // This endpoint expects camelCase in the body.
@@ -43,6 +44,7 @@ public sealed class R2Client(ICloudflareApiConnection api) : CloudflareResourceC
         return Api.PostAsync<R2Bucket>(AccountPath(accountId, "r2", "buckets"), body, ct);
     }
 
+    [Obsolete("Deleting data needs an explicit switch. Use RemoveBucketAsync(name, allowDelete) (0.7.0). Removed in 1.0.")]
     public Task DeleteBucketAsync(string name, string? accountId = null, CancellationToken ct = default) =>
         Api.DeleteAsync(AccountPath(accountId, "r2", "buckets", name), ct);
 
@@ -50,12 +52,14 @@ public sealed class R2Client(ICloudflareApiConnection api) : CloudflareResourceC
         Api.GetAsync<JsonElement>(AccountPath(accountId, "r2", "buckets", bucket, "lifecycle"), ct);
 
     /// <summary>Sets lifecycle rules (body for example <c>{ "rules": [ … ] }</c>).</summary>
+    [Obsolete("Untyped, no checks for rules that delete objects. Use SetLifecycleAsync (0.7.0). Removed in 1.0.")]
     public Task<JsonElement> PutLifecycleAsync(string bucket, object rules, string? accountId = null, CancellationToken ct = default) =>
         Api.PutAsync<JsonElement>(AccountPath(accountId, "r2", "buckets", bucket, "lifecycle"), rules, ct);
 
     public Task<JsonElement> GetCorsAsync(string bucket, string? accountId = null, CancellationToken ct = default) =>
         Api.GetAsync<JsonElement>(AccountPath(accountId, "r2", "buckets", bucket, "cors"), ct);
 
+    [Obsolete("Untyped, no check for wildcard origins. Use SetCorsAsync (0.7.0). Removed in 1.0.")]
     public Task<JsonElement> PutCorsAsync(string bucket, object cors, string? accountId = null, CancellationToken ct = default) =>
         Api.PutAsync<JsonElement>(AccountPath(accountId, "r2", "buckets", bucket, "cors"), cors, ct);
 }
@@ -79,6 +83,8 @@ public sealed class WorkerMetadata
     [JsonPropertyName("compatibility_flags")] public List<string>? CompatibilityFlags { get; init; }
     /// <summary>Bindings, for example <c>new { type = "plain_text", name = "TITLE", text = "…" }</c> or KV/R2/secrets.</summary>
     [JsonPropertyName("bindings")] public List<object>? Bindings { get; init; }
+    /// <summary>Binding types to keep from the previous upload. <see cref="WorkersClient.UploadScriptAsync"/> defaults to <c>secret_text</c> and <c>secret_key</c>, so a redeploy does not drop the secrets.</summary>
+    [JsonPropertyName("keep_bindings")] public List<string>? KeepBindings { get; init; }
 }
 
 public sealed class WorkerRoute : CloudflareModel
@@ -89,7 +95,7 @@ public sealed class WorkerRoute : CloudflareModel
 }
 
 /// <summary>Workers scripts and routes.</summary>
-public sealed class WorkersClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
+public sealed partial class WorkersClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
     public Task<List<WorkerScript>> ListScriptsAsync(string? accountId = null, CancellationToken ct = default) =>
         Api.GetAsync<List<WorkerScript>>(AccountPath(accountId, "workers", "scripts"), ct);
@@ -99,6 +105,7 @@ public sealed class WorkersClient(ICloudflareApiConnection api) : CloudflareReso
         Api.GetRawAsync(AccountPath(accountId, "workers", "scripts", scriptName), ct);
 
     /// <summary>Uploads or replaces an ES module Worker.</summary>
+    [Obsolete("Deploying code needs an explicit switch. Use UploadScriptAsync(..., allowDeploy: true) (0.7.0). Removed in 1.0.")]
     public Task<CloudflareResponse<WorkerScript>> UploadModuleAsync(string scriptName, string moduleSource, WorkerMetadata? metadata = null, string? accountId = null, CancellationToken ct = default)
     {
         var meta = metadata ?? new WorkerMetadata();
@@ -114,6 +121,7 @@ public sealed class WorkersClient(ICloudflareApiConnection api) : CloudflareReso
         }, ct);
     }
 
+    [Obsolete("Deleting a Worker needs an explicit switch. Use RemoveScriptAsync(name, allowDelete) (0.7.0). Removed in 1.0.")]
     public Task DeleteScriptAsync(string scriptName, bool force = false, string? accountId = null, CancellationToken ct = default) =>
         Api.DeleteAsync(CloudflarePath.WithQuery(AccountPath(accountId, "workers", "scripts", scriptName), ("force", force ? "true" : null)), ct);
 
@@ -121,9 +129,11 @@ public sealed class WorkersClient(ICloudflareApiConnection api) : CloudflareReso
         Api.GetAsync<List<WorkerRoute>>(ZonePath(zoneId, "workers", "routes"), ct);
 
     /// <summary>Creates a route, for example pattern "example.com/api/*".</summary>
+    [Obsolete("No pattern checks. Use EnsureRouteAsync (0.7.0). Removed in 1.0.")]
     public Task<WorkerRoute> CreateRouteAsync(string pattern, string scriptName, string? zoneId = null, CancellationToken ct = default) =>
         Api.PostAsync<WorkerRoute>(ZonePath(zoneId, "workers", "routes"), new { pattern, script = scriptName }, ct);
 
+    [Obsolete("Use RemoveRouteAsync (idempotent, with preview) (0.7.0). Removed in 1.0.")]
     public Task DeleteRouteAsync(string routeId, string? zoneId = null, CancellationToken ct = default) =>
         Api.DeleteAsync(ZonePath(zoneId, "workers", "routes", routeId), ct);
 
