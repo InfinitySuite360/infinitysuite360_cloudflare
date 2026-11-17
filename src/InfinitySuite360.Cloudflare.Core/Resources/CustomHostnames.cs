@@ -127,19 +127,19 @@ public sealed class CustomHostnamesClient(ICloudflareApiConnection api) : Cloudf
         var list = new List<CustomHostname>();
         await foreach (var item in Api.ListAllAsync<JsonElement>(path, 50, ct).ConfigureAwait(false))
         {
-            list.Add(P1.As<CustomHostname>(P1.Strip(item, Secret)));
+            list.Add(ResourceKit.As<CustomHostname>(ResourceKit.Strip(item, Secret)));
             if (list.Count >= query.MaxItems) break;
         }
         return list;
     }
 
     public Task<CustomHostname> GetAsync(string customHostnameId, string? zoneId = null, CancellationToken ct = default) =>
-        P1.SendStrippedAsync<CustomHostname>(Api, HttpMethod.Get, ZonePath(zoneId, "custom_hostnames", customHostnameId), null, ct, Secret);
+        ResourceKit.SendStrippedAsync<CustomHostname>(Api, HttpMethod.Get, ZonePath(zoneId, "custom_hostnames", customHostnameId), null, ct, Secret);
 
     /// <summary>The custom hostname with exactly this name, or null.</summary>
     public async Task<CustomHostname?> FindAsync(string hostname, string? zoneId = null, CancellationToken ct = default)
     {
-        var host = P1.Hostname(hostname, nameof(hostname), allowWildcard: true);
+        var host = ResourceKit.Hostname(hostname, nameof(hostname), allowWildcard: true);
         return (await ListAsync(new CustomHostnameQuery { Hostname = host }, zoneId, ct).ConfigureAwait(false))
             .FirstOrDefault(h => string.Equals(h.Hostname, host, StringComparison.OrdinalIgnoreCase));
     }
@@ -154,7 +154,7 @@ public sealed class CustomHostnamesClient(ICloudflareApiConnection api) : Cloudf
     /// <summary>Adds a custom hostname and requests its certificate (POST, not retried; see <see cref="EnsureAsync"/>). The answer carries the validation records.</summary>
     /// <inheritdoc cref="PreviewCreate" path="/param"/>
     public Task<CustomHostname> CreateAsync(CustomHostnameInput input, bool allowEmailValidation = false, string? zoneId = null, bool allowWeaken = false, CancellationToken ct = default) =>
-        P1.SendStrippedAsync<CustomHostname>(Api, HttpMethod.Post, ZonePath(zoneId, "custom_hostnames"), CreateBody(input, allowEmailValidation, allowWeaken), ct, Secret);
+        ResourceKit.SendStrippedAsync<CustomHostname>(Api, HttpMethod.Post, ZonePath(zoneId, "custom_hostnames"), CreateBody(input, allowEmailValidation, allowWeaken), ct, Secret);
 
     /// <summary>Idempotent: returns the existing hostname of this name (unchanged) or adds it. Survives a concurrent create (409).</summary>
     /// <inheritdoc cref="PreviewCreate" path="/param"/>
@@ -166,7 +166,7 @@ public sealed class CustomHostnamesClient(ICloudflareApiConnection api) : Cloudf
         if (existing is not null) return (existing, false);
         try
         {
-            return (await P1.SendStrippedAsync<CustomHostname>(Api, HttpMethod.Post, ZonePath(zoneId, "custom_hostnames"), body, ct, Secret).ConfigureAwait(false), true);
+            return (await ResourceKit.SendStrippedAsync<CustomHostname>(Api, HttpMethod.Post, ZonePath(zoneId, "custom_hostnames"), body, ct, Secret).ConfigureAwait(false), true);
         }
         catch (CloudflareConflictException)
         {
@@ -183,7 +183,7 @@ public sealed class CustomHostnamesClient(ICloudflareApiConnection api) : Cloudf
     /// <summary>Changes validation method, minimum TLS version, origin or metadata (PATCH). Sending the same validation method again restarts validation.</summary>
     /// <inheritdoc cref="PreviewCreate" path="/param"/>
     public Task<CustomHostname> UpdateAsync(string customHostnameId, CustomHostnameChange change, bool allowEmailValidation = false, string? zoneId = null, bool allowWeaken = false, CancellationToken ct = default) =>
-        P1.SendStrippedAsync<CustomHostname>(Api, HttpMethod.Patch, ZonePath(zoneId, "custom_hostnames", customHostnameId), ChangeBody(change, allowEmailValidation, allowWeaken), ct, Secret);
+        ResourceKit.SendStrippedAsync<CustomHostname>(Api, HttpMethod.Patch, ZonePath(zoneId, "custom_hostnames", customHostnameId), ChangeBody(change, allowEmailValidation, allowWeaken), ct, Secret);
 
     public CloudflareChangePreview PreviewDelete(string customHostnameId, string? zoneId = null) =>
         new("DELETE", ZonePath(zoneId, "custom_hostnames", customHostnameId), null,
@@ -200,11 +200,11 @@ public sealed class CustomHostnamesClient(ICloudflareApiConnection api) : Cloudf
         GetOrNullAsync<CustomHostnameFallbackOrigin>(ZonePath(zoneId, "custom_hostnames", "fallback_origin"), ct);
 
     public CloudflareChangePreview PreviewSetFallbackOrigin(string origin, string? zoneId = null) =>
-        new("PUT", ZonePath(zoneId, "custom_hostnames", "fallback_origin"), new JsonObject { ["origin"] = P1.Hostname(origin, nameof(origin)) },
+        new("PUT", ZonePath(zoneId, "custom_hostnames", "fallback_origin"), new JsonObject { ["origin"] = ResourceKit.Hostname(origin, nameof(origin)) },
             $"Send custom hostname traffic without own origin to {origin} (must be a proxied record of the zone).");
 
     public Task<CustomHostnameFallbackOrigin> SetFallbackOriginAsync(string origin, string? zoneId = null, CancellationToken ct = default) =>
-        Api.PutAsync<CustomHostnameFallbackOrigin>(ZonePath(zoneId, "custom_hostnames", "fallback_origin"), new JsonObject { ["origin"] = P1.Hostname(origin, nameof(origin)) }, ct);
+        Api.PutAsync<CustomHostnameFallbackOrigin>(ZonePath(zoneId, "custom_hostnames", "fallback_origin"), new JsonObject { ["origin"] = ResourceKit.Hostname(origin, nameof(origin)) }, ct);
 
     public CloudflareChangePreview PreviewRemoveFallbackOrigin(string? zoneId = null) =>
         new("DELETE", ZonePath(zoneId, "custom_hostnames", "fallback_origin"), null,
@@ -220,7 +220,7 @@ public sealed class CustomHostnamesClient(ICloudflareApiConnection api) : Cloudf
 
     private static JsonObject CreateBody(CustomHostnameInput input, bool allowEmailValidation, bool allowWeaken)
     {
-        var body = new JsonObject { ["hostname"] = P1.Hostname(input.Hostname, nameof(input), allowWildcard: true) };
+        var body = new JsonObject { ["hostname"] = ResourceKit.Hostname(input.Hostname, nameof(input), allowWildcard: true) };
         var ssl = new JsonObject { ["method"] = Method(input.ValidationMethod, allowEmailValidation), ["type"] = "dv" };
         if (input.BundleMethod is { } bm) ssl["bundle_method"] = bm is "ubiquitous" or "optimal" or "force" ? bm : throw new ArgumentException("Bundle method must be ubiquitous, optimal or force.", nameof(input));
         if (input.CertificateAuthority is { } ca) ssl["certificate_authority"] = ca is "google" or "lets_encrypt" or "ssl_com" ? ca : throw new ArgumentException("Certificate authority must be google, lets_encrypt or ssl_com.", nameof(input));
@@ -248,8 +248,8 @@ public sealed class CustomHostnamesClient(ICloudflareApiConnection api) : Cloudf
 
     private static void Origin(JsonObject body, string? server, string? sni, IReadOnlyDictionary<string, string>? metadata)
     {
-        if (server is not null) body["custom_origin_server"] = P1.Hostname(server, nameof(server));
-        if (sni is not null) body["custom_origin_sni"] = sni == ":request_host_header:" ? sni : P1.Hostname(sni, nameof(sni));
+        if (server is not null) body["custom_origin_server"] = ResourceKit.Hostname(server, nameof(server));
+        if (sni is not null) body["custom_origin_sni"] = sni == ":request_host_header:" ? sni : ResourceKit.Hostname(sni, nameof(sni));
         if (metadata is { Count: > 0 })
         {
             var md = new JsonObject();

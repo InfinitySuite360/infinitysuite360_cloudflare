@@ -63,7 +63,7 @@ public sealed class ManagedRulesetOverrides
             var arr = new JsonArray();
             foreach (var c in Categories)
             {
-                var co = new JsonObject { ["category"] = P1.Required(c.Category, nameof(Categories)) };
+                var co = new JsonObject { ["category"] = ResourceKit.Required(c.Category, nameof(Categories)) };
                 if (c.Action is not null) { co["action"] = c.Action; if (c.Action is WafActions.Log or WafActions.Skip) loosenings.Add($"category {c.Category} {c.Action}"); }
                 if (c.Enabled is { } ce) { co["enabled"] = ce; if (!ce) loosenings.Add($"category {c.Category} disabled"); }
                 arr.Add(co);
@@ -75,7 +75,7 @@ public sealed class ManagedRulesetOverrides
             var arr = new JsonArray();
             foreach (var r in Rules)
             {
-                var ro = new JsonObject { ["id"] = P1.Required(r.Id, nameof(Rules)) };
+                var ro = new JsonObject { ["id"] = ResourceKit.Required(r.Id, nameof(Rules)) };
                 if (r.Action is not null) { ro["action"] = r.Action; if (r.Action is WafActions.Log or WafActions.Skip) loosenings.Add($"rule {r.Id} {r.Action}"); }
                 if (r.Enabled is { } re) { ro["enabled"] = re; if (!re) loosenings.Add($"rule {r.Id} disabled"); }
                 if (r.ScoreThreshold is { } st) ro["score_threshold"] = st;
@@ -195,7 +195,7 @@ public sealed class WafClient(ICloudflareApiConnection api) : RulesetPhaseClient
     private static (RulesetRule, string) BuildCustom(WafCustomRuleInput r, bool allowSkip, bool allowBroadMatch)
     {
         var reference = CheckRef(r.Ref);
-        P1.Required(r.Expression, nameof(r), 4096);
+        ResourceKit.Required(r.Expression, nameof(r), 4096);
         if (!CustomActions.Contains(r.Action ?? "")) throw new ArgumentException("Action must be block, managed_challenge, js_challenge, challenge, log or skip.", nameof(r));
         if (r.Action == WafActions.Skip && !allowSkip)
             throw new ArgumentException("A skip rule lets matching requests bypass later rules or security products (a loosening). Pass allowSkip: true deliberately.", nameof(r));
@@ -210,8 +210,8 @@ public sealed class WafClient(ICloudflareApiConnection api) : RulesetPhaseClient
 
     private static (RulesetRule, string) BuildDeployment(string rulesetId, string reference, ManagedRulesetOverrides? overrides, string expression, bool allowLoosen)
     {
-        P1.Required(rulesetId, nameof(rulesetId), 64);
-        P1.Required(expression, nameof(expression), 4096);
+        ResourceKit.Required(rulesetId, nameof(rulesetId), 64);
+        ResourceKit.Required(expression, nameof(expression), 4096);
         List<string> loosenings = [];
         JsonObject? ov = null;
         if (overrides is not null) ov = overrides.ToJson(out loosenings);

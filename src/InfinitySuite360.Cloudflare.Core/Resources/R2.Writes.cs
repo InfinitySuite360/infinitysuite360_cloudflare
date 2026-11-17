@@ -45,11 +45,11 @@ public sealed class R2ManagedDomain : CloudflareModel
 /// </summary>
 public sealed partial class R2Client
 {
-    private static readonly Regex BucketNamePattern = P2.Rx(@"^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$");
+    private static readonly Regex BucketNamePattern = ResourceKit.Rx(@"^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$");
     private static readonly HashSet<string> CorsMethods = ["GET", "PUT", "POST", "DELETE", "HEAD"];
     private static readonly HashSet<string> StorageClasses = ["Standard", "InfrequentAccess"];
     private static readonly HashSet<string> LocationHints = ["wnam", "enam", "weur", "eeur", "apac", "oc"];
-    private static readonly Regex OriginPattern = P2.Rx(@"^(https?)://([A-Za-z0-9*.\-]+)(:[0-9]{1,5})?$");
+    private static readonly Regex OriginPattern = ResourceKit.Rx(@"^(https?)://([A-Za-z0-9*.\-]+)(:[0-9]{1,5})?$");
 
     // ---- buckets ----
 
@@ -78,7 +78,7 @@ public sealed partial class R2Client
     /// <summary>Deletes an empty bucket. Refused unless <paramref name="allowDelete"/> is true; a bucket with objects is refused (one read). False when it did not exist.</summary>
     public async Task<bool> RemoveBucketAsync(string name, bool allowDelete = false, string? accountId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowDelete, "deleting a bucket", nameof(allowDelete));
+        ResourceKit.Allow(allowDelete, "deleting a bucket", nameof(allowDelete));
         var path = AccountPath(accountId, "r2", "buckets", BucketName(name));
         EnsureWritable(HttpMethod.Delete, path);
         try
@@ -95,13 +95,13 @@ public sealed partial class R2Client
 
     public async Task<List<R2CustomDomain>> ListCustomDomainsAsync(string bucket, string? accountId = null, CancellationToken ct = default)
     {
-        var result = await P2.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "r2", "buckets", BucketName(bucket), "domains", "custom"), null, ct).ConfigureAwait(false);
-        return P2.TryGet(result, "domains", out var d) ? P1.As<List<R2CustomDomain>>(CamelToSnake(d)) : [];
+        var result = await ResourceKit.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "r2", "buckets", BucketName(bucket), "domains", "custom"), null, ct).ConfigureAwait(false);
+        return ResourceKit.TryGet(result, "domains", out var d) ? ResourceKit.As<List<R2CustomDomain>>(CamelToSnake(d)) : [];
     }
 
     public CloudflareChangePreview PreviewAddCustomDomain(string bucket, string domain, string zoneId, bool allowPublicAccess = false, string? accountId = null)
     {
-        P2.Allow(allowPublicAccess, "a custom domain makes every object of the bucket readable by anyone at that hostname", nameof(allowPublicAccess));
+        ResourceKit.Allow(allowPublicAccess, "a custom domain makes every object of the bucket readable by anyone at that hostname", nameof(allowPublicAccess));
         return new("POST", AccountPath(accountId, "r2", "buckets", BucketName(bucket), "domains", "custom"), DomainBody(domain, zoneId, true, "1.2"),
             $"Serve bucket \"{bucket}\" publicly at {domain}. WARNING: all objects become readable by anyone.");
     }
@@ -112,26 +112,26 @@ public sealed partial class R2Client
     /// </summary>
     public async Task<(R2CustomDomain Domain, bool Created)> EnsureCustomDomainAsync(string bucket, string domain, string zoneId, bool allowPublicAccess = false, string minTls = "1.2", string? accountId = null, bool allowWeaken = false, CancellationToken ct = default)
     {
-        P2.Allow(allowPublicAccess, "a custom domain makes every object of the bucket readable by anyone at that hostname", nameof(allowPublicAccess));
-        if (minTls is "1.0" or "1.1") P2.Allow(allowWeaken, $"minimum TLS {minTls} accepts outdated protocol versions", nameof(allowWeaken));
+        ResourceKit.Allow(allowPublicAccess, "a custom domain makes every object of the bucket readable by anyone at that hostname", nameof(allowPublicAccess));
+        if (minTls is "1.0" or "1.1") ResourceKit.Allow(allowWeaken, $"minimum TLS {minTls} accepts outdated protocol versions", nameof(allowWeaken));
         var body = DomainBody(domain, zoneId, true, minTls);
         var path = AccountPath(accountId, "r2", "buckets", BucketName(bucket), "domains", "custom");
         EnsureWritable(HttpMethod.Post, path);
         var existing = (await ListCustomDomainsAsync(bucket, accountId, ct).ConfigureAwait(false)).FirstOrDefault(d => string.Equals(d.Domain, domain, StringComparison.OrdinalIgnoreCase));
         if (existing is not null) return (existing, false);
-        var created = await P2.ResultAsync(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false);
-        return (P1.As<R2CustomDomain>(CamelToSnake(created)), true);
+        var created = await ResourceKit.ResultAsync(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false);
+        return (ResourceKit.As<R2CustomDomain>(CamelToSnake(created)), true);
     }
 
     /// <summary>Removes a custom domain from a bucket. Refused unless <paramref name="allowRemoval"/> is true. False when it did not exist.</summary>
     public Task<bool> RemoveCustomDomainAsync(string bucket, string domain, bool allowRemoval = false, string? accountId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowRemoval, "removing the custom domain stops serving the bucket at that hostname", nameof(allowRemoval));
-        return DeleteIfExistsAsync(AccountPath(accountId, "r2", "buckets", BucketName(bucket), "domains", "custom", P1.Hostname(domain, nameof(domain))), null, ct);
+        ResourceKit.Allow(allowRemoval, "removing the custom domain stops serving the bucket at that hostname", nameof(allowRemoval));
+        return DeleteIfExistsAsync(AccountPath(accountId, "r2", "buckets", BucketName(bucket), "domains", "custom", ResourceKit.Hostname(domain, nameof(domain))), null, ct);
     }
 
     public async Task<R2ManagedDomain> GetManagedDomainAsync(string bucket, string? accountId = null, CancellationToken ct = default) =>
-        P1.As<R2ManagedDomain>(CamelToSnake(await P2.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "r2", "buckets", BucketName(bucket), "domains", "managed"), null, ct).ConfigureAwait(false)));
+        ResourceKit.As<R2ManagedDomain>(CamelToSnake(await ResourceKit.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "r2", "buckets", BucketName(bucket), "domains", "managed"), null, ct).ConfigureAwait(false)));
 
     public CloudflareChangePreview PreviewSetManagedDomain(string bucket, bool enabled, string? accountId = null) =>
         new("PUT", AccountPath(accountId, "r2", "buckets", BucketName(bucket), "domains", "managed"), new JsonObject { ["enabled"] = enabled },
@@ -140,9 +140,9 @@ public sealed partial class R2Client
     /// <summary>Enables or disables the r2.dev address (PUT, idempotent). Enabling needs <paramref name="allowPublicAccess"/>; disabling is always allowed.</summary>
     public async Task<R2ManagedDomain> SetManagedDomainAsync(string bucket, bool enabled, bool allowPublicAccess = false, string? accountId = null, CancellationToken ct = default)
     {
-        if (enabled) P2.Allow(allowPublicAccess, "the r2.dev address makes every object of the bucket readable by anyone", nameof(allowPublicAccess));
-        var result = await P2.ResultAsync(Api, HttpMethod.Put, AccountPath(accountId, "r2", "buckets", BucketName(bucket), "domains", "managed"), new JsonObject { ["enabled"] = enabled }, ct).ConfigureAwait(false);
-        return P1.As<R2ManagedDomain>(CamelToSnake(result));
+        if (enabled) ResourceKit.Allow(allowPublicAccess, "the r2.dev address makes every object of the bucket readable by anyone", nameof(allowPublicAccess));
+        var result = await ResourceKit.ResultAsync(Api, HttpMethod.Put, AccountPath(accountId, "r2", "buckets", BucketName(bucket), "domains", "managed"), new JsonObject { ["enabled"] = enabled }, ct).ConfigureAwait(false);
+        return ResourceKit.As<R2ManagedDomain>(CamelToSnake(result));
     }
 
     // ---- CORS ----
@@ -151,15 +151,15 @@ public sealed partial class R2Client
     public async Task<IReadOnlyList<R2CorsRule>> GetCorsRulesAsync(string bucket, string? accountId = null, CancellationToken ct = default)
     {
         JsonElement result;
-        try { result = await P2.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "r2", "buckets", BucketName(bucket), "cors"), null, ct).ConfigureAwait(false); }
+        try { result = await ResourceKit.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "r2", "buckets", BucketName(bucket), "cors"), null, ct).ConfigureAwait(false); }
         catch (CloudflareApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound) { return []; }
         var rules = new List<R2CorsRule>();
-        if (P2.TryGet(result, "rules", out var arr) && arr.ValueKind == JsonValueKind.Array)
+        if (ResourceKit.TryGet(result, "rules", out var arr) && arr.ValueKind == JsonValueKind.Array)
             foreach (var r in arr.EnumerateArray())
             {
-                P2.TryGet(r, "allowed", out var allowed);
+                ResourceKit.TryGet(r, "allowed", out var allowed);
                 rules.Add(new R2CorsRule(Strings(allowed, "origins"), Strings(allowed, "methods"), Strings(allowed, "headers"), Strings(r, "exposeHeaders"),
-                    P2.TryGet(r, "maxAgeSeconds", out var age) && age.ValueKind == JsonValueKind.Number ? age.GetInt32() : null, P2.Str(r, "id")));
+                    ResourceKit.TryGet(r, "maxAgeSeconds", out var age) && age.ValueKind == JsonValueKind.Number ? age.GetInt32() : null, ResourceKit.Str(r, "id")));
             }
         return rules;
     }
@@ -182,17 +182,17 @@ public sealed partial class R2Client
     public async Task<IReadOnlyList<R2LifecycleRule>> GetLifecycleRulesAsync(string bucket, string? accountId = null, CancellationToken ct = default)
     {
         JsonElement result;
-        try { result = await P2.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "r2", "buckets", BucketName(bucket), "lifecycle"), null, ct).ConfigureAwait(false); }
+        try { result = await ResourceKit.ResultAsync(Api, HttpMethod.Get, AccountPath(accountId, "r2", "buckets", BucketName(bucket), "lifecycle"), null, ct).ConfigureAwait(false); }
         catch (CloudflareApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound) { return []; }
         var rules = new List<R2LifecycleRule>();
-        if (P2.TryGet(result, "rules", out var arr) && arr.ValueKind == JsonValueKind.Array)
+        if (ResourceKit.TryGet(result, "rules", out var arr) && arr.ValueKind == JsonValueKind.Array)
             foreach (var r in arr.EnumerateArray())
             {
-                TimeSpan? AgeOf(string member) => P2.TryGet(r, member, out var t) && P2.TryGet(t, "condition", out var c) && P2.TryGet(c, "maxAge", out var a) && a.ValueKind == JsonValueKind.Number ? TimeSpan.FromSeconds(a.GetInt64()) : null;
-                TimeSpan? Transition() => P2.TryGet(r, "storageClassTransitions", out var t) && t.ValueKind == JsonValueKind.Array && t.GetArrayLength() > 0
-                    && P2.TryGet(t[0], "condition", out var c) && P2.TryGet(c, "maxAge", out var a) && a.ValueKind == JsonValueKind.Number ? TimeSpan.FromSeconds(a.GetInt64()) : null;
-                rules.Add(new R2LifecycleRule(P2.Str(r, "id") ?? "", !(P2.TryGet(r, "enabled", out var en) && en.ValueKind == JsonValueKind.False),
-                    P2.TryGet(r, "conditions", out var cond) ? P2.Str(cond, "prefix") : null, AgeOf("deleteObjectsTransition"), AgeOf("abortMultipartUploadsTransition"), Transition()));
+                TimeSpan? AgeOf(string member) => ResourceKit.TryGet(r, member, out var t) && ResourceKit.TryGet(t, "condition", out var c) && ResourceKit.TryGet(c, "maxAge", out var a) && a.ValueKind == JsonValueKind.Number ? TimeSpan.FromSeconds(a.GetInt64()) : null;
+                TimeSpan? Transition() => ResourceKit.TryGet(r, "storageClassTransitions", out var t) && t.ValueKind == JsonValueKind.Array && t.GetArrayLength() > 0
+                    && ResourceKit.TryGet(t[0], "condition", out var c) && ResourceKit.TryGet(c, "maxAge", out var a) && a.ValueKind == JsonValueKind.Number ? TimeSpan.FromSeconds(a.GetInt64()) : null;
+                rules.Add(new R2LifecycleRule(ResourceKit.Str(r, "id") ?? "", !(ResourceKit.TryGet(r, "enabled", out var en) && en.ValueKind == JsonValueKind.False),
+                    ResourceKit.TryGet(r, "conditions", out var cond) ? ResourceKit.Str(cond, "prefix") : null, AgeOf("deleteObjectsTransition"), AgeOf("abortMultipartUploadsTransition"), Transition()));
             }
         return rules;
     }
@@ -207,7 +207,7 @@ public sealed partial class R2Client
 
     // ---- helpers ----
 
-    private static string BucketName(string? name) => P2.Match(name, "bucket", BucketNamePattern, "3 to 63 characters: lowercase letters, digits and '-', starting and ending with a letter or digit");
+    private static string BucketName(string? name) => ResourceKit.Match(name, "bucket", BucketNamePattern, "3 to 63 characters: lowercase letters, digits and '-', starting and ending with a letter or digit");
 
     private static JsonObject BucketBody(string name, string? locationHint, string? storageClass)
     {
@@ -219,9 +219,9 @@ public sealed partial class R2Client
 
     private static JsonObject DomainBody(string domain, string zoneId, bool enabled, string minTls) => new()
     {
-        ["domain"] = P1.Hostname(domain, nameof(domain)),
+        ["domain"] = ResourceKit.Hostname(domain, nameof(domain)),
         ["enabled"] = enabled,
-        ["zoneId"] = P1.Required(zoneId, nameof(zoneId), 64),
+        ["zoneId"] = ResourceKit.Required(zoneId, nameof(zoneId), 64),
         ["minTLS"] = minTls is "1.0" or "1.1" or "1.2" or "1.3" ? minTls : throw new ArgumentException("Minimum TLS: 1.0, 1.1, 1.2 or 1.3.", nameof(minTls)),
     };
 
@@ -231,7 +231,7 @@ public sealed partial class R2Client
     /// </summary>
     internal static void CheckCorsOrigin(string origin, bool allowAnyOrigin, bool allowHttp)
     {
-        if (origin == "*") { P2.Allow(allowAnyOrigin, "the origin * lets every website call the bucket from a browser", nameof(allowAnyOrigin)); return; }
+        if (origin == "*") { ResourceKit.Allow(allowAnyOrigin, "the origin * lets every website call the bucket from a browser", nameof(allowAnyOrigin)); return; }
         var m = OriginPattern.Match(origin ?? "");
         if (!m.Success) throw new ArgumentException($"\"{origin}\" is not an origin (scheme://host[:port], no path).", "rules");
         if (m.Groups[1].Value == "http" && !allowHttp) throw new ArgumentException($"\"{origin}\" is not https.", "rules");
@@ -240,7 +240,7 @@ public sealed partial class R2Client
         var labels = host.Split('.');
         if (host == "*" || (labels[0] == "*" && labels.Length < 3 && labels.Skip(1).All(l => l.Length > 0)))
         {
-            P2.Allow(allowAnyOrigin, $"the origin {origin} lets (nearly) every website call the bucket from a browser", nameof(allowAnyOrigin));
+            ResourceKit.Allow(allowAnyOrigin, $"the origin {origin} lets (nearly) every website call the bucket from a browser", nameof(allowAnyOrigin));
             return;
         }
         if (labels[0] != "*" || labels.Skip(1).Any(l => l.Length == 0 || l.Contains('*')))
@@ -256,11 +256,11 @@ public sealed partial class R2Client
             if (r.Origins.Count == 0 || r.Methods.Count == 0) throw new ArgumentException("A rule needs origins and methods.", nameof(rules));
             foreach (var o in r.Origins) CheckCorsOrigin(o, allowAnyOrigin, allowHttp: true);
             foreach (var m in r.Methods) if (!CorsMethods.Contains(m)) throw new ArgumentException($"\"{m}\" is not an allowed method (GET, PUT, POST, DELETE, HEAD).", nameof(rules));
-            var allowed = new JsonObject { ["origins"] = P1.Arr(r.Origins), ["methods"] = P1.Arr(r.Methods) };
-            if (r.Headers is { Count: > 0 }) allowed["headers"] = P1.Arr(r.Headers);
+            var allowed = new JsonObject { ["origins"] = ResourceKit.Arr(r.Origins), ["methods"] = ResourceKit.Arr(r.Methods) };
+            if (r.Headers is { Count: > 0 }) allowed["headers"] = ResourceKit.Arr(r.Headers);
             var o2 = new JsonObject { ["allowed"] = allowed };
             if (r.Id is not null) o2["id"] = r.Id;
-            if (r.ExposeHeaders is { Count: > 0 }) o2["exposeHeaders"] = P1.Arr(r.ExposeHeaders);
+            if (r.ExposeHeaders is { Count: > 0 }) o2["exposeHeaders"] = ResourceKit.Arr(r.ExposeHeaders);
             if (r.MaxAgeSeconds is { } age) o2["maxAgeSeconds"] = age is >= 0 and <= 86_400 ? age : throw new ArgumentOutOfRangeException(nameof(rules), "Max age 0 to 86400 seconds.");
             arr.Add(o2);
         }
@@ -276,7 +276,7 @@ public sealed partial class R2Client
         {
             if (string.IsNullOrWhiteSpace(r.Id) || r.Id.Length > 255) throw new ArgumentException("Every rule needs an id of at most 255 characters.", nameof(rules));
             if (r.DeleteAfter is null && r.AbortIncompleteUploadsAfter is null && r.InfrequentAccessAfter is null) throw new ArgumentException($"Rule \"{r.Id}\" does nothing.", nameof(rules));
-            if (r.DeleteAfter is not null) P2.Allow(allowDeletion, $"rule \"{r.Id}\" deletes objects automatically", nameof(allowDeletion));
+            if (r.DeleteAfter is not null) ResourceKit.Allow(allowDeletion, $"rule \"{r.Id}\" deletes objects automatically", nameof(allowDeletion));
             var o = new JsonObject { ["id"] = r.Id, ["enabled"] = r.Enabled, ["conditions"] = new JsonObject { ["prefix"] = r.Prefix ?? "" } };
             if (r.DeleteAfter is { } d) o["deleteObjectsTransition"] = Age(d);
             if (r.AbortIncompleteUploadsAfter is { } a) o["abortMultipartUploadsTransition"] = Age(a);
@@ -291,7 +291,7 @@ public sealed partial class R2Client
         new() { ["condition"] = new JsonObject { ["type"] = "Age", ["maxAge"] = age >= TimeSpan.FromSeconds(1) ? (long)age.TotalSeconds : throw new ArgumentOutOfRangeException(nameof(age), "At least one second.") } };
 
     private static List<string> Strings(JsonElement e, string name) =>
-        P2.TryGet(e, name, out var arr) && arr.ValueKind == JsonValueKind.Array ? arr.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString()!).ToList() : [];
+        ResourceKit.TryGet(e, name, out var arr) && arr.ValueKind == JsonValueKind.Array ? arr.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString()!).ToList() : [];
 
     // The domain endpoints answer in camelCase (zoneId, minTLS, bucketId); the models use the package's snake_case naming.
     private static JsonElement CamelToSnake(JsonElement e)

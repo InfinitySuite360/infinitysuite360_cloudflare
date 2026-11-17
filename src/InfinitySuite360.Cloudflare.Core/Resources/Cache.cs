@@ -110,7 +110,7 @@ public sealed class CacheClient(ICloudflareApiConnection api) : RulesetPhaseClie
     /// <summary>Purges the whole cache. Refused unless <paramref name="allowPurgeAll"/> is true. POST is never repeated automatically.</summary>
     public async Task<IdResult> PurgeEverythingAsync(bool allowPurgeAll = false, string? zoneId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowPurgeAll, "purging everything sends the full load to the origin at once", nameof(allowPurgeAll));
+        ResourceKit.Allow(allowPurgeAll, "purging everything sends the full load to the origin at once", nameof(allowPurgeAll));
         return await Api.PostAsync<IdResult>(ZonePath(zoneId, "purge_cache"), new JsonObject { ["purge_everything"] = true }, ct).ConfigureAwait(false);
     }
 
@@ -126,7 +126,7 @@ public sealed class CacheClient(ICloudflareApiConnection api) : RulesetPhaseClie
     /// <summary>Switches Cache Reserve. Enabling is billed and needs <paramref name="allowBilling"/>.</summary>
     public Task<CacheSetting> SetCacheReserveAsync(bool enabled, bool allowBilling = false, string? zoneId = null, CancellationToken ct = default)
     {
-        if (enabled) P2.Allow(allowBilling, "Cache Reserve is billed for storage and operations", nameof(allowBilling));
+        if (enabled) ResourceKit.Allow(allowBilling, "Cache Reserve is billed for storage and operations", nameof(allowBilling));
         return Api.PatchAsync<CacheSetting>(ZonePath(zoneId, "cache", "cache_reserve"), new JsonObject { ["value"] = enabled ? "on" : "off" }, ct);
     }
 
@@ -142,12 +142,12 @@ public sealed class CacheClient(ICloudflareApiConnection api) : RulesetPhaseClie
     private static (RulesetRule Rule, string Summary) Build(CacheRuleInput r, bool allowBroadCache, bool allowLongTtl)
     {
         var reference = CheckRef(r.Ref);
-        P1.Required(r.Expression, nameof(r), 4096);
+        ResourceKit.Required(r.Expression, nameof(r), 4096);
         var ap = new JsonObject();
         if (r.Cache is { } cache) ap["cache"] = cache;
         if (r.EdgeTtl is { } e) ap["edge_ttl"] = Ttl(e, edge: true);
         if (r.BrowserTtl is { } b) ap["browser_ttl"] = Ttl(b, edge: false);
-        if (P1.Node(r.ExtraParameters) is JsonObject extra)
+        if (ResourceKit.Node(r.ExtraParameters) is JsonObject extra)
             foreach (var (k, v) in extra)
             {
                 // M-2 (0.7.1): the typed members carry the guards (allowBroadCache, allowLongTtl); ExtraParameters must not override them.
@@ -159,9 +159,9 @@ public sealed class CacheClient(ICloudflareApiConnection api) : RulesetPhaseClie
             throw new ArgumentException("ExtraParameters must be a JSON object.", nameof(r));
         if (ap.Count == 0) throw new ArgumentException("A cache rule sets at least one of cache, edge TTL or browser TTL.", nameof(r));
         if (r.Cache == true && MatchesAll(r.Expression))
-            P2.Allow(allowBroadCache, "caching every request also caches HTML, API answers and logged-in pages (data leak between visitors)", nameof(allowBroadCache));
+            ResourceKit.Allow(allowBroadCache, "caching every request also caches HTML, API answers and logged-in pages (data leak between visitors)", nameof(allowBroadCache));
         if (r.EdgeTtl is { Mode: "override_origin", Seconds: > 86_400 })
-            P2.Allow(allowLongTtl, "an edge TTL above one day keeps stale content for visitors after changes", nameof(allowLongTtl));
+            ResourceKit.Allow(allowLongTtl, "an edge TTL above one day keeps stale content for visitors after changes", nameof(allowLongTtl));
         var rule = new RulesetRule { Ref = reference, Action = "set_cache_settings", Expression = r.Expression, Description = r.Description, Enabled = r.Enabled, ActionParameters = El(ap) };
         return (rule, $"set cache settings when {(r.Expression.Length <= 120 ? r.Expression : r.Expression[..117] + "...")}.");
     }
@@ -188,7 +188,7 @@ public sealed class CacheClient(ICloudflareApiConnection api) : RulesetPhaseClie
         return list;
     }
 
-    private static List<string> CheckHosts(IEnumerable<string> hosts) => Items(hosts, "hostnames").Select(h => P1.Hostname(h, nameof(hosts))).ToList();
+    private static List<string> CheckHosts(IEnumerable<string> hosts) => Items(hosts, "hostnames").Select(h => ResourceKit.Hostname(h, nameof(hosts))).ToList();
 
     private static List<string> CheckTags(IEnumerable<string> tags)
     {
@@ -216,7 +216,7 @@ public sealed class CacheClient(ICloudflareApiConnection api) : RulesetPhaseClie
     }
 
     private CloudflareChangePreview PurgePreview(string kind, List<string> items, string? zoneId, string noun) =>
-        new("POST", ZonePath(zoneId, "purge_cache"), new JsonObject { [kind] = P1.Arr(items.Take(PurgeBatch)) },
+        new("POST", ZonePath(zoneId, "purge_cache"), new JsonObject { [kind] = ResourceKit.Arr(items.Take(PurgeBatch)) },
             $"Purge {items.Count} {noun}(s) from the cache{(items.Count > PurgeBatch ? $" in {(items.Count + PurgeBatch - 1) / PurgeBatch} requests (the body shows the first)" : "")}.");
 
     private async Task<IReadOnlyList<IdResult>> PurgeAsync(string kind, List<string> items, string? zoneId, CancellationToken ct)
@@ -224,8 +224,8 @@ public sealed class CacheClient(ICloudflareApiConnection api) : RulesetPhaseClie
         var path = ZonePath(zoneId, "purge_cache");
         EnsureWritable(HttpMethod.Post, path);
         var ids = new List<IdResult>();
-        foreach (var chunk in P2.Chunk(items, PurgeBatch))
-            ids.Add(await Api.PostAsync<IdResult>(path, new JsonObject { [kind] = P1.Arr(chunk) }, ct).ConfigureAwait(false));
+        foreach (var chunk in ResourceKit.Chunk(items, PurgeBatch))
+            ids.Add(await Api.PostAsync<IdResult>(path, new JsonObject { [kind] = ResourceKit.Arr(chunk) }, ct).ConfigureAwait(false));
         return ids;
     }
 }
@@ -246,7 +246,7 @@ public sealed class ArgoClient(ICloudflareApiConnection api) : CloudflareResourc
     /// <summary>Switches Argo Smart Routing. Enabling is billed and needs <paramref name="allowBilling"/>.</summary>
     public Task<CacheSetting> SetSmartRoutingAsync(bool enabled, bool allowBilling = false, string? zoneId = null, CancellationToken ct = default)
     {
-        if (enabled) P2.Allow(allowBilling, "Argo Smart Routing is billed per gigabyte", nameof(allowBilling));
+        if (enabled) ResourceKit.Allow(allowBilling, "Argo Smart Routing is billed per gigabyte", nameof(allowBilling));
         return Api.PatchAsync<CacheSetting>(ZonePath(zoneId, "argo", "smart_routing"), new JsonObject { ["value"] = enabled ? "on" : "off" }, ct);
     }
 

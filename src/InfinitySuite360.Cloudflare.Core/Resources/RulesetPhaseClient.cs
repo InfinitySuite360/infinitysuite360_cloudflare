@@ -32,7 +32,7 @@ public abstract class RulesetPhaseClient(ICloudflareApiConnection api) : Cloudfl
         var body = RuleBody(rule);
         if (existing is not null)
         {
-            if (P1.Covers(RuleBody(existing), body)) return null;
+            if (ResourceKit.Covers(RuleBody(existing), body)) return null;
             return new("PATCH", ZonePath(zoneId, "rulesets", current!.Id, "rules", existing.Id ?? throw new InvalidOperationException("Rule without id.")), body,
                 $"Change rule \"{rule.Ref}\" in phase {phase}: {summary}");
         }
@@ -191,9 +191,9 @@ internal static class RulesetRisk
             ["ref"] = r.Ref, ["action"] = r.Action, ["expression"] = r.Expression, ["enabled"] = r.Enabled,
         };
         if (r.Description is not null) o["description"] = r.Description;
-        if (P1.Node(r.ActionParameters) is { } ap) o["action_parameters"] = ap;
-        if (P1.Node(r.Ratelimit) is { } rl) o["ratelimit"] = rl;
-        if (P1.Node(r.Logging) is { } lg) o["logging"] = lg;
+        if (ResourceKit.Node(r.ActionParameters) is { } ap) o["action_parameters"] = ap;
+        if (ResourceKit.Node(r.Ratelimit) is { } rl) o["ratelimit"] = rl;
+        if (ResourceKit.Node(r.Logging) is { } lg) o["logging"] = lg;
         return o;
     }
 

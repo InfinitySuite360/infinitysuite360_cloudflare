@@ -61,7 +61,7 @@ public sealed partial class R2Client(ICloudflareApiConnection api) : CloudflareR
     {
         var node = ToNode(rules);
         if (node is JsonObject o && o["rules"] is JsonArray arr && arr.OfType<JsonObject>().Any(r => r["deleteObjectsTransition"] is not null && r["enabled"]?.GetValueKind() != JsonValueKind.False))
-            P2.Allow(false, "a lifecycle rule deletes objects automatically (use SetLifecycleAsync with allowDeletion)", "allowDeletion");
+            ResourceKit.Allow(false, "a lifecycle rule deletes objects automatically (use SetLifecycleAsync with allowDeletion)", "allowDeletion");
         return Api.PutAsync<JsonElement>(AccountPath(accountId, "r2", "buckets", BucketName(bucket), "lifecycle"), node, ct);
     }
 

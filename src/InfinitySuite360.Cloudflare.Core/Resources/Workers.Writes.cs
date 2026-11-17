@@ -28,7 +28,7 @@ public sealed class WorkerSecretText : IDisposable
     public static WorkerSecretText From(string value)
     {
         if (string.IsNullOrEmpty(value)) throw new ArgumentException("A secret value is required.", nameof(value));
-        if (P2.Utf8(value) > 5 * 1024) throw new ArgumentException("A secret value may have at most 5 KiB.", nameof(value));
+        if (ResourceKit.Utf8(value) > 5 * 1024) throw new ArgumentException("A secret value may have at most 5 KiB.", nameof(value));
         return new(value);
     }
 
@@ -41,7 +41,7 @@ public sealed class WorkerSecretText : IDisposable
         _value = null;
     }
 
-    public override string ToString() => $"WorkerSecretText({P1.Redacted})";
+    public override string ToString() => $"WorkerSecretText({ResourceKit.Redacted})";
 }
 
 internal sealed class WorkerSecretTextConverter : JsonConverter<WorkerSecretText>
@@ -49,7 +49,7 @@ internal sealed class WorkerSecretTextConverter : JsonConverter<WorkerSecretText
     public override WorkerSecretText Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
         throw new NotSupportedException("Worker secret values are not deserialized.");
 
-    public override void Write(Utf8JsonWriter writer, WorkerSecretText value, JsonSerializerOptions options) => writer.WriteStringValue(P1.Redacted);
+    public override void Write(Utf8JsonWriter writer, WorkerSecretText value, JsonSerializerOptions options) => writer.WriteStringValue(ResourceKit.Redacted);
 }
 
 /// <summary>Name and type of a Worker secret (never the value).</summary>
@@ -139,10 +139,10 @@ public sealed class WorkerScriptSettings : CloudflareModel
 /// </summary>
 public sealed partial class WorkersClient
 {
-    private static readonly Regex ScriptNamePattern = P2.Rx(@"^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
-    private static readonly Regex SecretNamePattern = P2.Rx(@"^[A-Za-z_$][A-Za-z0-9_$]{0,63}$");
-    private static readonly Regex CronPattern = P2.Rx(@"^[0-9A-Za-z*/,\-?#LW]+( [0-9A-Za-z*/,\-?#LW]+){4}$");
-    private static readonly Regex VersionIdPattern = P2.Rx(@"^[0-9a-fA-F-]{32,36}$");
+    private static readonly Regex ScriptNamePattern = ResourceKit.Rx(@"^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
+    private static readonly Regex SecretNamePattern = ResourceKit.Rx(@"^[A-Za-z_$][A-Za-z0-9_$]{0,63}$");
+    private static readonly Regex CronPattern = ResourceKit.Rx(@"^[0-9A-Za-z*/,\-?#LW]+( [0-9A-Za-z*/,\-?#LW]+){4}$");
+    private static readonly Regex VersionIdPattern = ResourceKit.Rx(@"^[0-9a-fA-F-]{32,36}$");
     private const int MaxScriptBytes = 64 * 1024 * 1024;
 
     // ---- reading ----
@@ -153,7 +153,7 @@ public sealed partial class WorkersClient
 
     /// <summary>Names and types of the secrets of a Worker (values are never returned by Cloudflare).</summary>
     public Task<IReadOnlyList<WorkerSecretInfo>> ListSecretsAsync(string scriptName, string? accountId = null, CancellationToken ct = default) =>
-        P1.ListStrippedAsync<WorkerSecretInfo>(Api, AccountPath(accountId, "workers", "scripts", Script(scriptName), "secrets"), 100, ct, "text", "value");
+        ResourceKit.ListStrippedAsync<WorkerSecretInfo>(Api, AccountPath(accountId, "workers", "scripts", Script(scriptName), "secrets"), 100, ct, "text", "value");
 
     public async Task<IReadOnlyList<WorkerSchedule>> ListSchedulesAsync(string scriptName, string? accountId = null, CancellationToken ct = default) =>
         (await Api.GetAsync<WorkerScheduleList>(AccountPath(accountId, "workers", "scripts", Script(scriptName), "schedules"), ct).ConfigureAwait(false))?.Schedules ?? [];
@@ -184,7 +184,7 @@ public sealed partial class WorkersClient
             ["main_module"] = meta["main_module"]?.DeepClone(),
             ["compatibility_date"] = meta["compatibility_date"]?.DeepClone(),
             ["source_bytes"] = bytes.Length,
-            ["source_sha256"] = P2.Sha256(bytes),
+            ["source_sha256"] = ResourceKit.Sha256(bytes),
             ["bindings"] = new JsonArray((meta["bindings"] as JsonArray)?.Select(b => (JsonNode?)JsonValue.Create($"{b?["type"]} {b?["name"]}")).ToArray() ?? []),
             ["keep_bindings"] = meta["keep_bindings"]?.DeepClone(),
         };
@@ -198,7 +198,7 @@ public sealed partial class WorkersClient
     /// </summary>
     public Task<CloudflareResponse<WorkerScript>> UploadScriptAsync(string scriptName, string moduleSource, WorkerMetadata? metadata = null, bool allowDeploy = false, string? accountId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowDeploy, "uploading a Worker replaces the code that runs on the edge at once", nameof(allowDeploy));
+        ResourceKit.Allow(allowDeploy, "uploading a Worker replaces the code that runs on the edge at once", nameof(allowDeploy));
         var (meta, _) = PrepareUpload(scriptName, moduleSource, metadata);
         var metaJson = meta.ToJsonString(CloudflareJson.Options);
         var mainModule = meta["main_module"]!.GetValue<string>();
@@ -223,8 +223,8 @@ public sealed partial class WorkersClient
     /// </summary>
     public Task<bool> RemoveScriptAsync(string scriptName, bool allowDelete = false, bool force = false, bool allowForce = false, string? accountId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowDelete, "deleting a Worker removes its code, versions and triggers", nameof(allowDelete));
-        if (force) P2.Allow(allowForce, "force also deletes bindings and dependent resources", nameof(allowForce));
+        ResourceKit.Allow(allowDelete, "deleting a Worker removes its code, versions and triggers", nameof(allowDelete));
+        if (force) ResourceKit.Allow(allowForce, "force also deletes bindings and dependent resources", nameof(allowForce));
         return DeleteIfExistsAsync(CloudflarePath.WithQuery(AccountPath(accountId, "workers", "scripts", Script(scriptName)), ("force", force ? "true" : null)), null, ct);
     }
 
@@ -274,15 +274,15 @@ public sealed partial class WorkersClient
     /// </summary>
     public Task<WorkerDomain> AttachDomainAsync(string hostname, string scriptName, string? zoneId = null, string environment = "production", string? accountId = null, bool allowDeploy = false, CancellationToken ct = default)
     {
-        P2.Allow(allowDeploy, "attaching a domain makes the Worker answer every request of that hostname at once", nameof(allowDeploy));
+        ResourceKit.Allow(allowDeploy, "attaching a domain makes the Worker answer every request of that hostname at once", nameof(allowDeploy));
         return Api.PutAsync<WorkerDomain>(AccountPath(accountId, "workers", "domains"), DomainBody(hostname, scriptName, zoneId, environment), ct);
     }
 
     /// <summary>Detaches a custom domain: the hostname stops being served by the Worker. Refused unless <paramref name="allowRemoval"/> is true. False when it did not exist.</summary>
     public Task<bool> DetachDomainAsync(string domainId, bool allowRemoval = false, string? accountId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowRemoval, "detaching the custom domain stops the Worker answering for that hostname", nameof(allowRemoval));
-        return DeleteIfExistsAsync(AccountPath(accountId, "workers", "domains", P1.Required(domainId, nameof(domainId))), null, ct);
+        ResourceKit.Allow(allowRemoval, "detaching the custom domain stops the Worker answering for that hostname", nameof(allowRemoval));
+        return DeleteIfExistsAsync(AccountPath(accountId, "workers", "domains", ResourceKit.Required(domainId, nameof(domainId))), null, ct);
     }
 
     // ---- cron triggers ----
@@ -291,7 +291,7 @@ public sealed partial class WorkersClient
     {
         var list = CheckCrons(crons, allowClear);
         return new("PUT", AccountPath(accountId, "workers", "scripts", Script(scriptName), "schedules"), ScheduleBody(list),
-            list.Count == 0 ? $"Remove every cron trigger of \"{scriptName}\"." : $"Set the cron triggers of \"{scriptName}\" to: {P1.Join(list)}.");
+            list.Count == 0 ? $"Remove every cron trigger of \"{scriptName}\"." : $"Set the cron triggers of \"{scriptName}\" to: {ResourceKit.Join(list)}.");
     }
 
     /// <summary>
@@ -324,7 +324,7 @@ public sealed partial class WorkersClient
     /// </summary>
     public async Task<WorkerDeployment> DeployVersionsAsync(string scriptName, IReadOnlyList<WorkerDeploymentVersion> versions, string? message = null, bool allowDeploy = false, string? accountId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowDeploy, "deploying a version changes what runs on the edge at once", nameof(allowDeploy));
+        ResourceKit.Allow(allowDeploy, "deploying a version changes what runs on the edge at once", nameof(allowDeploy));
         var body = DeploymentBody(versions, message);
         return await Api.PostAsync<WorkerDeployment>(AccountPath(accountId, "workers", "scripts", Script(scriptName), "deployments"), body, ct).ConfigureAwait(false);
     }
@@ -334,16 +334,16 @@ public sealed partial class WorkersClient
     /// <summary>Plan of a secret change. The value is shown as <c>[redacted]</c>.</summary>
     public CloudflareChangePreview PreviewPutSecret(string scriptName, string secretName, string? accountId = null) =>
         new("PUT", AccountPath(accountId, "workers", "scripts", Script(scriptName), "secrets"),
-            new JsonObject { ["name"] = SecretName(secretName), ["text"] = P1.Redacted, ["type"] = "secret_text" },
+            new JsonObject { ["name"] = SecretName(secretName), ["text"] = ResourceKit.Redacted, ["type"] = "secret_text" },
             $"Set secret \"{secretName}\" of Worker \"{scriptName}\". WARNING: Cloudflare deploys the change at once.");
 
     /// <summary>Creates or replaces a secret (PUT, idempotent). Refused unless <paramref name="allowDeploy"/> is true. Only name and type come back.</summary>
     public Task<WorkerSecretInfo> PutSecretAsync(string scriptName, string secretName, WorkerSecretText value, bool allowDeploy = false, string? accountId = null, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(value);
-        P2.Allow(allowDeploy, "changing a secret creates a new version that Cloudflare deploys at once", nameof(allowDeploy));
+        ResourceKit.Allow(allowDeploy, "changing a secret creates a new version that Cloudflare deploys at once", nameof(allowDeploy));
         var body = new JsonObject { ["name"] = SecretName(secretName), ["text"] = value.Reveal(), ["type"] = "secret_text" };
-        return P1.SendStrippedAsync<WorkerSecretInfo>(Api, HttpMethod.Put, AccountPath(accountId, "workers", "scripts", Script(scriptName), "secrets"), body, ct, "text", "value");
+        return ResourceKit.SendStrippedAsync<WorkerSecretInfo>(Api, HttpMethod.Put, AccountPath(accountId, "workers", "scripts", Script(scriptName), "secrets"), body, ct, "text", "value");
     }
 
     public CloudflareChangePreview PreviewRemoveSecret(string scriptName, string secretName, string? accountId = null) =>
@@ -353,32 +353,32 @@ public sealed partial class WorkersClient
     /// <summary>Deletes a secret by name. Refused unless <paramref name="allowDeploy"/> is true. False when it did not exist.</summary>
     public Task<bool> RemoveSecretAsync(string scriptName, string secretName, bool allowDeploy = false, string? accountId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowDeploy, "deleting a secret creates a new version that Cloudflare deploys at once", nameof(allowDeploy));
+        ResourceKit.Allow(allowDeploy, "deleting a secret creates a new version that Cloudflare deploys at once", nameof(allowDeploy));
         return DeleteIfExistsAsync(AccountPath(accountId, "workers", "scripts", Script(scriptName), "secrets", SecretName(secretName)), null, ct);
     }
 
     // ---- helpers ----
 
-    private static string Script(string? name) => P2.Match(name, "scriptName", ScriptNamePattern, "letters, digits, '-' and '_', at most 63 characters");
+    private static string Script(string? name) => ResourceKit.Match(name, "scriptName", ScriptNamePattern, "letters, digits, '-' and '_', at most 63 characters");
 
-    private static string SecretName(string? name) => P2.Match(name, "secretName", SecretNamePattern, "an identifier of letters, digits, '_' and '$', at most 64 characters");
+    private static string SecretName(string? name) => ResourceKit.Match(name, "secretName", SecretNamePattern, "an identifier of letters, digits, '_' and '$', at most 64 characters");
 
-    private static string CheckVersionId(string? id) => P2.Match(id, "versionId", VersionIdPattern, "a version UUID");
+    private static string CheckVersionId(string? id) => ResourceKit.Match(id, "versionId", VersionIdPattern, "a version UUID");
 
     private static void CheckPattern(string? pattern, bool allowBroadRoute)
     {
-        P1.Required(pattern, nameof(pattern), 255);
+        ResourceKit.Required(pattern, nameof(pattern), 255);
         if (pattern!.Contains("://", StringComparison.Ordinal) || pattern.Contains(' ')) throw new ArgumentException("A route pattern has no scheme and no spaces, for example example.com/api/*.", nameof(pattern));
         var slash = pattern.IndexOf('/');
         var host = slash < 0 ? pattern : pattern[..slash];
         if (host.Length == 0) throw new ArgumentException("A route pattern starts with the host.", nameof(pattern));
-        if (host.StartsWith('*')) P2.Allow(allowBroadRoute, $"\"{pattern}\" puts the Worker in front of every matching hostname, including subdomains you may not mean", nameof(allowBroadRoute));
+        if (host.StartsWith('*')) ResourceKit.Allow(allowBroadRoute, $"\"{pattern}\" puts the Worker in front of every matching hostname, including subdomains you may not mean", nameof(allowBroadRoute));
     }
 
     private JsonObject DomainBody(string hostname, string scriptName, string? zoneId, string environment) => new()
     {
-        ["environment"] = P1.Required(environment, nameof(environment), 64),
-        ["hostname"] = P1.Hostname(hostname, nameof(hostname)),
+        ["environment"] = ResourceKit.Required(environment, nameof(environment), 64),
+        ["hostname"] = ResourceKit.Hostname(hostname, nameof(hostname)),
         ["service"] = Script(scriptName),
         ["zone_id"] = Zone(zoneId),
     };
@@ -386,7 +386,7 @@ public sealed partial class WorkersClient
     private static List<string> CheckCrons(IEnumerable<string> crons, bool allowClear)
     {
         var list = crons.Select(c => (c ?? "").Trim()).ToList();
-        if (list.Count == 0) P2.Allow(allowClear, "an empty list removes every cron trigger", nameof(allowClear));
+        if (list.Count == 0) ResourceKit.Allow(allowClear, "an empty list removes every cron trigger", nameof(allowClear));
         foreach (var c in list)
             if (c.Length > 100 || !CronPattern.IsMatch(c)) throw new ArgumentException($"\"{c}\" is not a cron expression with five fields (minute hour day-of-month month day-of-week).", nameof(crons));
         return list.Distinct(StringComparer.Ordinal).ToList();
@@ -416,7 +416,7 @@ public sealed partial class WorkersClient
     private static (JsonObject Metadata, byte[] Source) PrepareUpload(string scriptName, string moduleSource, WorkerMetadata? metadata)
     {
         Script(scriptName);
-        P1.Required(moduleSource, nameof(moduleSource));
+        ResourceKit.Required(moduleSource, nameof(moduleSource));
         var bytes = Encoding.UTF8.GetBytes(moduleSource);
         if (bytes.Length > MaxScriptBytes) throw new ArgumentException("A Worker may have at most 64 MiB uncompressed (Cloudflare's limit).", nameof(moduleSource));
         var meta = metadata ?? new WorkerMetadata();

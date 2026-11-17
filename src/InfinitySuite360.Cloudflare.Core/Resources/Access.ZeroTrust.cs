@@ -31,7 +31,7 @@ public sealed class IssuedServiceToken
     /// <summary>Header <c>CF-Access-Client-Secret</c>; <see cref="CloudflareOneTimeSecret.TakeValue"/> hands it over once.</summary>
     public CloudflareOneTimeSecret ClientSecret { get; }
 
-    public override string ToString() => $"IssuedServiceToken({Token.Id}, \"{Token.Name}\", client secret {P1.Redacted})";
+    public override string ToString() => $"IssuedServiceToken({Token.Id}, \"{Token.Name}\", client secret {ResourceKit.Redacted})";
 }
 
 /// <summary>State of an Access policy test (<c>access/policy-tests</c>): how many users the tested policies would let in.</summary>
@@ -175,9 +175,9 @@ internal static class AccessPolicyRisk
             {
                 case "everyone": return true;
                 case "any_valid_service_token" when !asRequire: return true;
-                case "ip" when P2.Str(p.Value, "ip") is { } ip && ZT.IsBroadCidr(ip): return true;
+                case "ip" when ResourceKit.Str(p.Value, "ip") is { } ip && ResourceKit.IsBroadCidr(ip): return true;
                 case "email_domain":
-                    var domain = (P2.Str(p.Value, "domain") ?? "").Trim().TrimStart('@');
+                    var domain = (ResourceKit.Str(p.Value, "domain") ?? "").Trim().TrimStart('@');
                     if (domain.Length == 0 || domain.Contains('*') || PublicMailDomains.Contains(domain)) return true;
                     break;
             }
@@ -195,7 +195,7 @@ internal static class AccessPolicyRisk
     public static bool AdmitsEveryone(AccessPolicyShape s) => AdmitsEveryone(s.Decision, s.Include, s.Require);
 
     public static bool DeniesEveryone(string decision, IReadOnlyList<JsonElement> include) =>
-        decision == "deny" && include.Any(r => Has([r], "everyone") || (r.ValueKind == JsonValueKind.Object && r.TryGetProperty("ip", out var ip) && ZT.IsBroadCidr(P2.Str(ip, "ip"))));
+        decision == "deny" && include.Any(r => Has([r], "everyone") || (r.ValueKind == JsonValueKind.Object && r.TryGetProperty("ip", out var ip) && ResourceKit.IsBroadCidr(ResourceKit.Str(ip, "ip"))));
 
     private static bool Same(JsonElement a, JsonElement b) => JsonNode.DeepEquals(JsonNode.Parse(a.GetRawText()), JsonNode.Parse(b.GetRawText()));
 
@@ -225,7 +225,7 @@ internal static class AccessPolicyRisk
         if (Removed(current.Require, next.Require)) return "require rules would be removed";
         if (Removed(current.Exclude, next.Exclude)) return "exclude rules would be removed";
         if (next.Precedence is { } np && current.Precedence is { } cp && np < cp) return $"an admitting policy would be evaluated earlier (precedence {cp} → {np})";
-        if (ZT.Longer(current.SessionDuration, next.SessionDuration)) return $"longer sessions ({current.SessionDuration ?? "default"} → {next.SessionDuration})";
+        if (ResourceKit.Longer(current.SessionDuration, next.SessionDuration)) return $"longer sessions ({current.SessionDuration ?? "default"} → {next.SessionDuration})";
         return null;
     }
 
@@ -248,8 +248,8 @@ public sealed partial class AccessClient
     public CloudflareChangePreview PreviewEnsureApplication(AccessApplicationInput app, bool allowNoPolicy = false, string? accountId = null)
     {
         var (body, inline) = AppBody(app, allowNoPolicy, allowLoosen: true, allowBlock: true);
-        return new("POST", AccountPath(accountId, "access", "apps"), ZT.Redact(body),
-            $"Create Access application \"{app.Name}\" for {app.Domain} ({app.Type}) with {ZT.Plural(app.Policies?.Count ?? 0, "policy", "policies")}. "
+        return new("POST", AccountPath(accountId, "access", "apps"), ResourceKit.Redact(body),
+            $"Create Access application \"{app.Name}\" for {app.Domain} ({app.Type}) with {ResourceKit.Plural(app.Policies?.Count ?? 0, "policy", "policies")}. "
             + "WARNING: from then on the hostname needs an Access login."
             + (inline.Any(p => AccessPolicyRisk.AdmitsEveryone(p)) ? " WARNING: an inline policy admits everyone (needs allowLoosen)." : "")
             + (inline.Any(p => AccessPolicyRisk.DeniesEveryone(p.Decision, p.Include)) ? " WARNING: an inline policy denies everyone (needs allowBlock)." : ""));
@@ -271,11 +271,11 @@ public sealed partial class AccessClient
         var existing = await FindApplicationAsync(app, accountId, ct).ConfigureAwait(false);
         if (existing is not null) return (existing, false);
         await CheckReferencedPoliciesAsync(app, allowLoosen, accountId, ct).ConfigureAwait(false);
-        try { return (await ZT.SendAsync<AccessApplication>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), true); }
+        try { return (await ResourceKit.SendSecretFreeAsync<AccessApplication>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), true); }
         catch (CloudflareConflictException)
         {
             var again = await FindApplicationAsync(app, accountId, ct).ConfigureAwait(false);
-            return again is null ? throw ZT.Conflict("POST", path, $"Application for {app.Domain} is reported as existing but was not found.") : (again, false);
+            return again is null ? throw ResourceKit.Conflict("POST", path, $"Application for {app.Domain} is reported as existing but was not found.") : (again, false);
         }
     }
 
@@ -286,9 +286,9 @@ public sealed partial class AccessClient
     /// <summary>Deletes an application. This always loosens (the hostname loses its login), so it needs <paramref name="allowUnprotect"/>. False when it did not exist.</summary>
     public Task<bool> RemoveApplicationAsync(string appId, bool allowUnprotect = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "apps", P1.Required(appId, nameof(appId)));
+        var path = AccountPath(accountId, "access", "apps", ResourceKit.Required(appId, nameof(appId)));
         EnsureWritable(HttpMethod.Delete, path);
-        P2.Allow(allowUnprotect, "deleting an Access application removes the login protection of its hostname", nameof(allowUnprotect));
+        ResourceKit.Allow(allowUnprotect, "deleting an Access application removes the login protection of its hostname", nameof(allowUnprotect));
         return DeleteIfExistsAsync(path, null, ct);
     }
 
@@ -299,9 +299,9 @@ public sealed partial class AccessClient
     /// <summary>Logs every user of the application out (POST, not retried). Needs <paramref name="allowDisconnect"/>.</summary>
     public async Task RevokeApplicationTokensAsync(string appId, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "apps", P1.Required(appId, nameof(appId)), "revoke_tokens");
+        var path = AccountPath(accountId, "access", "apps", ResourceKit.Required(appId, nameof(appId)), "revoke_tokens");
         EnsureWritable(HttpMethod.Post, path);
-        P2.Allow(allowDisconnect, "revoking the tokens of an application logs every user out at once", nameof(allowDisconnect));
+        ResourceKit.Allow(allowDisconnect, "revoking the tokens of an application logs every user out at once", nameof(allowDisconnect));
         await Api.SendAsync<JsonElement>(HttpMethod.Post, path, null, ct).ConfigureAwait(false);
     }
 
@@ -315,27 +315,27 @@ public sealed partial class AccessClient
     /// </summary>
     private static (JsonObject Body, List<AccessPolicyShape> Inline) AppBody(AccessApplicationInput app, bool allowNoPolicy, bool allowLoosen, bool allowBlock)
     {
-        P1.Required(app.Name, nameof(app), 350);
-        var domain = P1.Required(app.Domain, nameof(app)).Trim();
+        ResourceKit.Required(app.Name, nameof(app), 350);
+        var domain = ResourceKit.Required(app.Domain, nameof(app)).Trim();
         if (domain.Contains("://", StringComparison.Ordinal)) throw new ArgumentException("Domain without scheme, for example app.example.com/admin.", nameof(app));
         if (!AppTypes.Contains(app.Type)) throw new ArgumentException($"Unknown application type \"{app.Type}\".", nameof(app));
         if (app.Policies is not { Count: > 0 })
-            P2.Allow(allowNoPolicy, "an Access application without policies denies everyone", nameof(allowNoPolicy));
+            ResourceKit.Allow(allowNoPolicy, "an Access application without policies denies everyone", nameof(allowNoPolicy));
         var body = new JsonObject { ["name"] = app.Name, ["domain"] = domain, ["type"] = app.Type, ["session_duration"] = app.SessionDuration };
         if (app.AppLauncherVisible is { } v) body["app_launcher_visible"] = v;
         if (app.AutoRedirectToIdentity is { } r) body["auto_redirect_to_identity"] = r;
-        if (app.AllowedIdps is { Count: > 0 } idps) body["allowed_idps"] = P1.Arr(idps);
+        if (app.AllowedIdps is { Count: > 0 } idps) body["allowed_idps"] = ResourceKit.Arr(idps);
         var inline = new List<AccessPolicyShape>();
         if (app.Policies is { Count: > 0 } policies)
         {
             var nodes = new JsonArray();
             foreach (var entry in policies)
             {
-                var node = ZT.ToNode(entry);
+                var node = ResourceKit.ToNode(entry);
                 switch (node)
                 {
                     case JsonValue s when s.TryGetValue<string>(out var id):
-                        P1.Required(id, nameof(app));
+                        ResourceKit.Required(id, nameof(app));
                         nodes.Add(JsonValue.Create(id));
                         break;
                     case JsonObject o when o.ContainsKey("decision") || o.ContainsKey("include"):
@@ -376,7 +376,7 @@ public sealed partial class AccessClient
     {
         foreach (var entry in app.Policies ?? [])
         {
-            var id = ZT.ToNode(entry) switch
+            var id = ResourceKit.ToNode(entry) switch
             {
                 JsonValue s when s.TryGetValue<string>(out var v) => v,
                 JsonObject o when !(o.ContainsKey("decision") || o.ContainsKey("include")) && o["id"] is JsonValue idValue && idValue.TryGetValue<string>(out var v) => v,
@@ -385,7 +385,7 @@ public sealed partial class AccessClient
             if (id is null) continue;
             var policy = await GetPolicyAsync(id, accountId, ct).ConfigureAwait(false);
             if (AccessPolicyRisk.AdmitsEveryone(AccessPolicyRisk.Of(policy)))
-                P2.Allow(allowLoosen, $"reusable policy \"{policy.Name}\" ({policy.Decision}) admits everyone to application \"{app.Name}\"", nameof(allowLoosen));
+                ResourceKit.Allow(allowLoosen, $"reusable policy \"{policy.Name}\" ({policy.Decision}) admits everyone to application \"{app.Name}\"", nameof(allowLoosen));
         }
     }
 
@@ -400,7 +400,7 @@ public sealed partial class AccessClient
     /// </summary>
     public Task<AccessPolicy> AddApplicationPolicyAsync(string appId, AccessPolicyInput policy, bool allowLoosen = false, bool allowBlock = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "apps", P1.Required(appId, nameof(appId)), "policies");
+        var path = AccountPath(accountId, "access", "apps", ResourceKit.Required(appId, nameof(appId)), "policies");
         EnsureWritable(HttpMethod.Post, path);
         return Api.PostAsync<AccessPolicy>(path, PolicyBody(policy, allowLoosen, allowBlock, null), ct);
     }
@@ -424,19 +424,19 @@ public sealed partial class AccessClient
     public async Task<(AccessPolicy Policy, bool Changed)> ChangeApplicationPolicyAsync(string appId, string policyId, AccessPolicyInput policy, bool allowLoosen = false, bool allowBlock = false,
         string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "apps", P1.Required(appId, nameof(appId)), "policies", P1.Required(policyId, nameof(policyId)));
+        var path = AccountPath(accountId, "access", "apps", ResourceKit.Required(appId, nameof(appId)), "policies", ResourceKit.Required(policyId, nameof(policyId)));
         EnsureWritable(HttpMethod.Put, path);
         return await ReplacePolicyAsync(path, policy, allowLoosen, allowBlock, ct).ConfigureAwait(false);
     }
 
     private async Task<(AccessPolicy Policy, bool Changed)> ReplacePolicyAsync(string path, AccessPolicyInput policy, bool allowLoosen, bool allowBlock, CancellationToken ct)
     {
-        var currentRaw = await ZT.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
-        var current = P1.As<AccessPolicy>(currentRaw);
+        var currentRaw = await ResourceKit.SecretFreeResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
+        var current = ResourceKit.As<AccessPolicy>(currentRaw);
         var body = PolicyBody(policy, allowLoosen, allowBlock, current);
-        if (P1.Covers(P1.Node(currentRaw), body)) return (current, false);
-        var merged = ZT.Merge(currentRaw, body, AccessPolicyRisk.ReadOnlyMembers);
-        return (await ZT.SendAsync<AccessPolicy>(Api, HttpMethod.Put, path, merged, ct).ConfigureAwait(false), true);
+        if (ResourceKit.Covers(ResourceKit.Node(currentRaw), body)) return (current, false);
+        var merged = ResourceKit.Merge(currentRaw, body, AccessPolicyRisk.ReadOnlyMembers);
+        return (await ResourceKit.SendSecretFreeAsync<AccessPolicy>(Api, HttpMethod.Put, path, merged, ct).ConfigureAwait(false), true);
     }
 
     public CloudflareChangePreview PreviewRemoveApplicationPolicy(string appId, string policyId, string? accountId = null) =>
@@ -450,7 +450,7 @@ public sealed partial class AccessClient
     /// </summary>
     public async Task<bool> RemoveApplicationPolicyAsync(string appId, string policyId, bool allowRemoveLast = false, bool allowLoosen = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "apps", P1.Required(appId, nameof(appId)), "policies", P1.Required(policyId, nameof(policyId)));
+        var path = AccountPath(accountId, "access", "apps", ResourceKit.Required(appId, nameof(appId)), "policies", ResourceKit.Required(policyId, nameof(policyId)));
         EnsureWritable(HttpMethod.Delete, path);
         List<AccessPolicy> policies;
         try { policies = await ListApplicationPoliciesAsync(appId, accountId, ct).ConfigureAwait(false) ?? []; }
@@ -458,10 +458,10 @@ public sealed partial class AccessClient
         var target = policies.FirstOrDefault(p => p.Id == policyId);
         if (target is null) return false;
         var rest = policies.Where(p => p.Id != policyId).ToList();
-        if (rest.Count == 0) P2.Allow(allowRemoveLast, $"policy \"{target.Name}\" is the last policy of application {appId}; without it nobody gets in", nameof(allowRemoveLast));
+        if (rest.Count == 0) ResourceKit.Allow(allowRemoveLast, $"policy \"{target.Name}\" is the last policy of application {appId}; without it nobody gets in", nameof(allowRemoveLast));
         else if (AccessPolicyRisk.Admits(target.Decision) && !rest.Any(p => AccessPolicyRisk.Admits(p.Decision)))
-            P2.Allow(allowRemoveLast, $"policy \"{target.Name}\" is the last policy of application {appId} that admits anyone", nameof(allowRemoveLast));
-        if (target.Decision == "deny") P2.Allow(allowLoosen, $"removing deny policy \"{target.Name}\" loosens application {appId}", nameof(allowLoosen));
+            ResourceKit.Allow(allowRemoveLast, $"policy \"{target.Name}\" is the last policy of application {appId} that admits anyone", nameof(allowRemoveLast));
+        if (target.Decision == "deny") ResourceKit.Allow(allowLoosen, $"removing deny policy \"{target.Name}\" loosens application {appId}", nameof(allowLoosen));
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 
@@ -485,7 +485,7 @@ public sealed partial class AccessClient
         catch (CloudflareConflictException)
         {
             var again = (await ListPoliciesAsync(accountId, ct).ConfigureAwait(false)).FirstOrDefault(p => p.Name == policy.Name);
-            return again is null ? throw ZT.Conflict("POST", path, $"Policy \"{policy.Name}\" is reported as existing but was not found.") : (again, false);
+            return again is null ? throw ResourceKit.Conflict("POST", path, $"Policy \"{policy.Name}\" is reported as existing but was not found.") : (again, false);
         }
     }
 
@@ -493,7 +493,7 @@ public sealed partial class AccessClient
     public async Task<(AccessPolicy Policy, bool Changed)> ChangePolicyAsync(string policyId, AccessPolicyInput policy, bool allowLoosen = false, bool allowBlock = false,
         string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "policies", P1.Required(policyId, nameof(policyId)));
+        var path = AccountPath(accountId, "access", "policies", ResourceKit.Required(policyId, nameof(policyId)));
         EnsureWritable(HttpMethod.Put, path);
         return await ReplacePolicyAsync(path, policy, allowLoosen, allowBlock, ct).ConfigureAwait(false);
     }
@@ -505,7 +505,7 @@ public sealed partial class AccessClient
     /// </summary>
     public async Task<bool> RemovePolicyAsync(string policyId, bool allowRemoveLast = false, bool allowLoosen = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "policies", P1.Required(policyId, nameof(policyId)));
+        var path = AccountPath(accountId, "access", "policies", ResourceKit.Required(policyId, nameof(policyId)));
         EnsureWritable(HttpMethod.Delete, path);
         AccessPolicy target;
         try { target = await GetPolicyAsync(policyId, accountId, ct).ConfigureAwait(false); }
@@ -516,22 +516,22 @@ public sealed partial class AccessClient
             var ids = app.Policies.Select(PolicyId).ToList();
             if (!ids.Contains(policyId)) continue;
             var rest = app.Policies.Where(p => PolicyId(p) != policyId).ToList();
-            if (rest.Count == 0 || (AccessPolicyRisk.Admits(target.Decision) && !rest.Any(p => AccessPolicyRisk.Admits(P2.Str(p, "decision") ?? ""))))
-                P2.Allow(allowRemoveLast, $"policy \"{target.Name}\" is the last policy that admits anyone to application {app.Name}", nameof(allowRemoveLast));
+            if (rest.Count == 0 || (AccessPolicyRisk.Admits(target.Decision) && !rest.Any(p => AccessPolicyRisk.Admits(ResourceKit.Str(p, "decision") ?? ""))))
+                ResourceKit.Allow(allowRemoveLast, $"policy \"{target.Name}\" is the last policy that admits anyone to application {app.Name}", nameof(allowRemoveLast));
         }
-        if (target.Decision == "deny") P2.Allow(allowLoosen, $"removing deny policy \"{target.Name}\" loosens every application that uses it", nameof(allowLoosen));
+        if (target.Decision == "deny") ResourceKit.Allow(allowLoosen, $"removing deny policy \"{target.Name}\" loosens every application that uses it", nameof(allowLoosen));
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 
-    private static string? PolicyId(JsonElement p) => p.ValueKind == JsonValueKind.String ? p.GetString() : P2.Str(p, "id");
+    private static string? PolicyId(JsonElement p) => p.ValueKind == JsonValueKind.String ? p.GetString() : ResourceKit.Str(p, "id");
 
     // ------------------------------------------------------------------ policy tests (POST that only reads)
 
     public CloudflareChangePreview PreviewStartPolicyTest(IEnumerable<string> policyIds, string? accountId = null)
     {
-        var ids = policyIds.Select(id => P1.Required(id, nameof(policyIds))).ToList();
-        return new("POST", AccountPath(accountId, "access", "policy-tests"), new JsonObject { ["policies"] = P1.Arr(ids) },
-            $"Start an Access policy test over {ZT.Plural(ids.Count, "policy", "policies")} (reads only, but is a POST).");
+        var ids = policyIds.Select(id => ResourceKit.Required(id, nameof(policyIds))).ToList();
+        return new("POST", AccountPath(accountId, "access", "policy-tests"), new JsonObject { ["policies"] = ResourceKit.Arr(ids) },
+            $"Start an Access policy test over {ResourceKit.Plural(ids.Count, "policy", "policies")} (reads only, but is a POST).");
     }
 
     /// <summary>
@@ -546,11 +546,11 @@ public sealed partial class AccessClient
     }
 
     public Task<AccessPolicyTest> GetPolicyTestAsync(string testId, string? accountId = null, CancellationToken ct = default) =>
-        Api.GetAsync<AccessPolicyTest>(AccountPath(accountId, "access", "policy-tests", P1.Required(testId, nameof(testId))), ct);
+        Api.GetAsync<AccessPolicyTest>(AccountPath(accountId, "access", "policy-tests", ResourceKit.Required(testId, nameof(testId))), ct);
 
     /// <summary>Users of a test result, optionally only "approved", "blocked" or "error" (personal data: do not log).</summary>
     public Task<IReadOnlyList<AccessPolicyTestUser>> ListPolicyTestUsersAsync(string testId, string? status = null, string? accountId = null, CancellationToken ct = default) =>
-        Api.ListAllToListAsync<AccessPolicyTestUser>(CloudflarePath.WithQuery(AccountPath(accountId, "access", "policy-tests", P1.Required(testId, nameof(testId)), "users"), ("status", status)), 50, ct);
+        Api.ListAllToListAsync<AccessPolicyTestUser>(CloudflarePath.WithQuery(AccountPath(accountId, "access", "policy-tests", ResourceKit.Required(testId, nameof(testId)), "users"), ("status", status)), 50, ct);
 
     // ------------------------------------------------------------------ groups
 
@@ -570,7 +570,7 @@ public sealed partial class AccessClient
         catch (CloudflareConflictException)
         {
             var again = (await ListGroupsAsync(accountId, ct).ConfigureAwait(false)).FirstOrDefault(g => g.Name == group.Name);
-            return again is null ? throw ZT.Conflict("POST", path, $"Group \"{group.Name}\" is reported as existing but was not found.") : (again, false);
+            return again is null ? throw ResourceKit.Conflict("POST", path, $"Group \"{group.Name}\" is reported as existing but was not found.") : (again, false);
         }
     }
 
@@ -582,18 +582,18 @@ public sealed partial class AccessClient
     public async Task<(AccessGroup Group, bool Changed)> ChangeGroupAsync(string groupId, AccessGroupInput group, bool allowLoosen = false, string? accountId = null,
         bool allowInUse = false, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "groups", P1.Required(groupId, nameof(groupId)));
+        var path = AccountPath(accountId, "access", "groups", ResourceKit.Required(groupId, nameof(groupId)));
         EnsureWritable(HttpMethod.Put, path);
-        var currentRaw = await ZT.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
-        var current = P1.As<AccessGroup>(currentRaw);
+        var currentRaw = await ResourceKit.SecretFreeResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
+        var current = ResourceKit.As<AccessGroup>(currentRaw);
         var body = GroupBody(group, allowLoosen, current);
-        if (P1.Covers(P1.Node(currentRaw), body)) return (current, false);
-        var now = P1.Node(currentRaw);
+        if (ResourceKit.Covers(ResourceKit.Node(currentRaw), body)) return (current, false);
+        var now = ResourceKit.Node(currentRaw);
         var rulesChange = new[] { "include", "exclude", "require" }.Any(k => !JsonNode.DeepEquals(now?[k] ?? new JsonArray(), body[k] ?? new JsonArray()));
         if (rulesChange && !allowInUse && await GroupUsersAsync(groupId, accountId, ct).ConfigureAwait(false) is { Count: > 0 } users)
             throw new InvalidOperationException($"Refused: group \"{current.Name}\" is used by {string.Join(", ", users)}; changing its rules changes who passes them. Pass allowInUse: true deliberately.");
-        var merged = ZT.Merge(currentRaw, body, AccessPolicyRisk.ReadOnlyMembers);
-        return (await ZT.SendAsync<AccessGroup>(Api, HttpMethod.Put, path, merged, ct).ConfigureAwait(false), true);
+        var merged = ResourceKit.Merge(currentRaw, body, AccessPolicyRisk.ReadOnlyMembers);
+        return (await ResourceKit.SendSecretFreeAsync<AccessGroup>(Api, HttpMethod.Put, path, merged, ct).ConfigureAwait(false), true);
     }
 
     /// <summary>
@@ -602,7 +602,7 @@ public sealed partial class AccessClient
     /// </summary>
     public async Task<bool> RemoveGroupAsync(string groupId, bool allowInUse = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "groups", P1.Required(groupId, nameof(groupId)));
+        var path = AccountPath(accountId, "access", "groups", ResourceKit.Required(groupId, nameof(groupId)));
         EnsureWritable(HttpMethod.Delete, path);
         if (!allowInUse && await GroupUsersAsync(groupId, accountId, ct).ConfigureAwait(false) is { Count: > 0 } users)
             throw new InvalidOperationException($"Refused: group {groupId} is used by {string.Join(", ", users)}. Remove the references first or pass allowInUse: true deliberately.");
@@ -614,11 +614,11 @@ public sealed partial class AccessClient
     {
         var users = new List<string>();
         foreach (var p in await ListPoliciesAsync(accountId, ct).ConfigureAwait(false))
-            if (ZT.References(ToElement(new { p.Include, p.Exclude, p.Require }), "group", "id", groupId)) users.Add($"policy \"{p.Name}\"");
+            if (ResourceKit.References(ToElement(new { p.Include, p.Exclude, p.Require }), "group", "id", groupId)) users.Add($"policy \"{p.Name}\"");
         foreach (var a in await ListApplicationsAsync(accountId, ct).ConfigureAwait(false))
-            if (a.Policies.Any(x => ZT.References(x, "group", "id", groupId))) users.Add($"application \"{a.Name}\"");
+            if (a.Policies.Any(x => ResourceKit.References(x, "group", "id", groupId))) users.Add($"application \"{a.Name}\"");
         foreach (var g in await ListGroupsAsync(accountId, ct).ConfigureAwait(false))
-            if (g.Id != groupId && ZT.References(ToElement(new { g.Include, g.Exclude, g.Require }), "group", "id", groupId)) users.Add($"group \"{g.Name}\"");
+            if (g.Id != groupId && ResourceKit.References(ToElement(new { g.Include, g.Exclude, g.Require }), "group", "id", groupId)) users.Add($"group \"{g.Name}\"");
         return users;
     }
 
@@ -636,7 +636,7 @@ public sealed partial class AccessClient
     {
         var path = AccountPath(accountId, "access", "service_tokens");
         var body = ServiceTokenBody(name, duration, allowNoExpiry);
-        return Issued(await P2.ResultAsync(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), "POST", path);
+        return Issued(await ResourceKit.ResultAsync(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), "POST", path);
     }
 
     public CloudflareChangePreview PreviewRotateServiceTokenSecret(string tokenId, TimeSpan? previousSecretGrace = null, string? accountId = null) =>
@@ -652,12 +652,12 @@ public sealed partial class AccessClient
     public async Task<IssuedServiceToken> RotateServiceTokenSecretAsync(string tokenId, TimeSpan? previousSecretGrace = null, bool allowDisconnect = false,
         string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "service_tokens", P1.Required(tokenId, nameof(tokenId)), "rotate");
+        var path = AccountPath(accountId, "access", "service_tokens", ResourceKit.Required(tokenId, nameof(tokenId)), "rotate");
         EnsureWritable(HttpMethod.Post, path);
         if (previousSecretGrace is { } g && (g <= TimeSpan.Zero || g > TimeSpan.FromDays(30))) throw new ArgumentOutOfRangeException(nameof(previousSecretGrace), "Grace period above zero and at most 30 days.");
         if (previousSecretGrace is null)
-            P2.Allow(allowDisconnect, "rotating without a grace period invalidates the old secret at once", nameof(allowDisconnect));
-        return Issued(await P2.ResultAsync(Api, HttpMethod.Post, path, RotateBody(previousSecretGrace), ct).ConfigureAwait(false), "POST", path);
+            ResourceKit.Allow(allowDisconnect, "rotating without a grace period invalidates the old secret at once", nameof(allowDisconnect));
+        return Issued(await ResourceKit.ResultAsync(Api, HttpMethod.Post, path, RotateBody(previousSecretGrace), ct).ConfigureAwait(false), "POST", path);
     }
 
     public CloudflareChangePreview PreviewRemoveServiceToken(string tokenId, string? accountId = null) =>
@@ -670,9 +670,9 @@ public sealed partial class AccessClient
     /// </summary>
     public async Task<bool> RemoveServiceTokenAsync(string tokenId, bool allowDisconnect = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "service_tokens", P1.Required(tokenId, nameof(tokenId)));
+        var path = AccountPath(accountId, "access", "service_tokens", ResourceKit.Required(tokenId, nameof(tokenId)));
         EnsureWritable(HttpMethod.Delete, path);
-        var token = await ZT.GetOrNullAsync<AccessServiceToken>(Api, path, ct).ConfigureAwait(false);
+        var token = await ResourceKit.GetSecretFreeOrNullAsync<AccessServiceToken>(Api, path, ct).ConfigureAwait(false);
         if (token is null) return false;
         if (!allowDisconnect)
         {
@@ -680,11 +680,11 @@ public sealed partial class AccessClient
                 throw new InvalidOperationException($"Refused: service token \"{token.Name}\" was used (last seen {token.LastSeenAt:yyyy-MM-dd}); deleting it cuts those machines off. Pass allowDisconnect: true deliberately.");
             var used = new List<string>();
             foreach (var p in await ListPoliciesAsync(accountId, ct).ConfigureAwait(false))
-                if (ZT.References(ToElement(new { p.Include, p.Exclude, p.Require }), "service_token", "token_id", tokenId)) used.Add($"policy \"{p.Name}\"");
+                if (ResourceKit.References(ToElement(new { p.Include, p.Exclude, p.Require }), "service_token", "token_id", tokenId)) used.Add($"policy \"{p.Name}\"");
             foreach (var g in await ListGroupsAsync(accountId, ct).ConfigureAwait(false))
-                if (ZT.References(ToElement(new { g.Include, g.Exclude, g.Require }), "service_token", "token_id", tokenId)) used.Add($"group \"{g.Name}\"");
+                if (ResourceKit.References(ToElement(new { g.Include, g.Exclude, g.Require }), "service_token", "token_id", tokenId)) used.Add($"group \"{g.Name}\"");
             foreach (var a in await ListApplicationsAsync(accountId, ct).ConfigureAwait(false))
-                if (a.Policies.Any(x => ZT.References(x, "service_token", "token_id", tokenId))) used.Add($"application \"{a.Name}\"");
+                if (a.Policies.Any(x => ResourceKit.References(x, "service_token", "token_id", tokenId))) used.Add($"application \"{a.Name}\"");
             if (used.Count > 0)
                 throw new InvalidOperationException($"Refused: service token \"{token.Name}\" is used by {string.Join(", ", used)}. Pass allowDisconnect: true deliberately.");
         }
@@ -693,9 +693,9 @@ public sealed partial class AccessClient
 
     private static JsonObject ServiceTokenBody(string name, string duration, bool allowNoExpiry)
     {
-        P1.Required(name, nameof(name), 256);
-        var d = P1.Required(duration, nameof(duration)).Trim();
-        if (d == "forever") P2.Allow(allowNoExpiry, "a service token that never expires", nameof(allowNoExpiry));
+        ResourceKit.Required(name, nameof(name), 256);
+        var d = ResourceKit.Required(duration, nameof(duration)).Trim();
+        if (d == "forever") ResourceKit.Allow(allowNoExpiry, "a service token that never expires", nameof(allowNoExpiry));
         else if (!System.Text.RegularExpressions.Regex.IsMatch(d, @"^\d+h$", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1)))
             throw new ArgumentException("Duration in hours, for example \"8760h\", or \"forever\".", nameof(duration));
         return new JsonObject { ["name"] = name, ["duration"] = d };
@@ -712,14 +712,14 @@ public sealed partial class AccessClient
             throw new CloudflareApiException(HttpStatusCode.OK, method, CloudflarePath.Normalize(path),
                 [new CloudflareError { Message = "The answer carries no client secret; the token may exist without a known secret. Rotate or delete it." }]);
         var secret = new CloudflareOneTimeSecret(s.GetString()!, "access-service-token-secret");
-        return new IssuedServiceToken(P1.As<AccessServiceToken>(ZT.Strip(result)), secret);
+        return new IssuedServiceToken(ResourceKit.As<AccessServiceToken>(ResourceKit.StripSecrets(result)), secret);
     }
 
     // ------------------------------------------------------------------ identity providers
 
     public CloudflareChangePreview PreviewEnsureIdentityProvider(string name, string type, object? config = null, string? accountId = null) =>
-        new("POST", AccountPath(accountId, "access", "identity_providers"), ZT.Redact(IdpBody(name, type, config)),
-            $"Create identity provider \"{name}\" ({type}); secrets in the configuration are shown as {P1.Redacted}.");
+        new("POST", AccountPath(accountId, "access", "identity_providers"), ResourceKit.Redact(IdpBody(name, type, config)),
+            $"Create identity provider \"{name}\" ({type}); secrets in the configuration are shown as {ResourceKit.Redacted}.");
 
     /// <summary>
     /// Returns the identity provider with this name and type or creates it. The configuration (for example <c>client_secret</c>) goes into the request body
@@ -732,11 +732,11 @@ public sealed partial class AccessClient
         var body = IdpBody(name, type, config);
         var existing = (await ListIdentityProvidersAsync(accountId, ct).ConfigureAwait(false)).FirstOrDefault(p => p.Name == name && p.Type == type);
         if (existing is not null) return (existing, false);
-        try { return (await ZT.SendAsync<AccessIdentityProvider>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), true); }
+        try { return (await ResourceKit.SendSecretFreeAsync<AccessIdentityProvider>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), true); }
         catch (CloudflareConflictException)
         {
             var again = (await ListIdentityProvidersAsync(accountId, ct).ConfigureAwait(false)).FirstOrDefault(p => p.Name == name && p.Type == type);
-            return again is null ? throw ZT.Conflict("POST", path, $"Identity provider \"{name}\" is reported as existing but was not found.") : (again, false);
+            return again is null ? throw ResourceKit.Conflict("POST", path, $"Identity provider \"{name}\" is reported as existing but was not found.") : (again, false);
         }
     }
 
@@ -747,45 +747,45 @@ public sealed partial class AccessClient
     /// </summary>
     public async Task<bool> RemoveIdentityProviderAsync(string providerId, bool allowRemoveLast = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "identity_providers", P1.Required(providerId, nameof(providerId)));
+        var path = AccountPath(accountId, "access", "identity_providers", ResourceKit.Required(providerId, nameof(providerId)));
         EnsureWritable(HttpMethod.Delete, path);
         var all = await ListIdentityProvidersAsync(accountId, ct).ConfigureAwait(false);
         var target = all.FirstOrDefault(p => p.Id == providerId);
         if (target is null) return false;
-        if (all.Count == 1) P2.Allow(allowRemoveLast, $"\"{target.Name}\" is the last identity provider; without it nobody can log in", nameof(allowRemoveLast));
+        if (all.Count == 1) ResourceKit.Allow(allowRemoveLast, $"\"{target.Name}\" is the last identity provider; without it nobody can log in", nameof(allowRemoveLast));
         if (!allowRemoveLast)
         {
             var remaining = all.Where(p => p.Id != providerId).Select(p => p.Id).ToHashSet(StringComparer.Ordinal);
             var stranded = (await ListApplicationsAsync(accountId, ct).ConfigureAwait(false))
                 .Where(a => a.AllowedIdps.Contains(providerId, StringComparer.Ordinal) && !a.AllowedIdps.Any(remaining.Contains)).Select(a => $"\"{a.Name}\"").ToList();
             if (stranded.Count > 0)
-                P2.Allow(false, $"application(s) {string.Join(", ", stranded)} allow only identity provider \"{target.Name}\"; without it nobody can log in there", nameof(allowRemoveLast));
+                ResourceKit.Allow(false, $"application(s) {string.Join(", ", stranded)} allow only identity provider \"{target.Name}\"; without it nobody can log in there", nameof(allowRemoveLast));
         }
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 
     private static JsonObject IdpBody(string name, string type, object? config)
     {
-        P1.Required(name, nameof(name), 256);
+        ResourceKit.Required(name, nameof(name), 256);
         if (!IdpTypes.Contains(type)) throw new ArgumentException($"Unknown identity provider type \"{type}\".", nameof(type));
-        return new JsonObject { ["name"] = name, ["type"] = type, ["config"] = ZT.ToNode(config) ?? new JsonObject() };
+        return new JsonObject { ["name"] = name, ["type"] = type, ["config"] = ResourceKit.ToNode(config) ?? new JsonObject() };
     }
 
     // ------------------------------------------------------------------ mTLS certificates
 
     public Task<IReadOnlyList<AccessCertificate>> ListCertificatesAsync(string? accountId = null, CancellationToken ct = default) =>
-        ZT.ListAllAsync<AccessCertificate>(Api, AccountPath(accountId, "access", "certificates"), 50, ct);
+        ResourceKit.ListAllSecretFreeAsync<AccessCertificate>(Api, AccountPath(accountId, "access", "certificates"), 50, ct);
 
     public Task<AccessCertificate> GetCertificateAsync(string certificateId, string? accountId = null, CancellationToken ct = default) =>
-        ZT.SendAsync<AccessCertificate>(Api, HttpMethod.Get, AccountPath(accountId, "access", "certificates", certificateId), null, ct);
+        ResourceKit.SendSecretFreeAsync<AccessCertificate>(Api, HttpMethod.Get, AccountPath(accountId, "access", "certificates", certificateId), null, ct);
 
     /// <summary>Plan of a new mTLS root certificate: shows size and SHA-256 of the PEM, not the PEM itself.</summary>
     public CloudflareChangePreview PreviewEnsureCertificate(string name, string certificatePem, IEnumerable<string>? hostnames = null, string? accountId = null)
     {
         var (_, hosts, sha) = CertificateBody(name, certificatePem, hostnames);
         return new("POST", AccountPath(accountId, "access", "certificates"),
-            new JsonObject { ["name"] = name, ["certificate"] = $"[PEM, {Encoding.UTF8.GetByteCount(certificatePem)} bytes, sha256 {sha}]", ["associated_hostnames"] = P1.Arr(hosts) },
-            $"Add mTLS root certificate \"{name}\" for {P1.Join(hosts)}.");
+            new JsonObject { ["name"] = name, ["certificate"] = $"[PEM, {Encoding.UTF8.GetByteCount(certificatePem)} bytes, sha256 {sha}]", ["associated_hostnames"] = ResourceKit.Arr(hosts) },
+            $"Add mTLS root certificate \"{name}\" for {ResourceKit.Join(hosts)}.");
     }
 
     /// <summary>
@@ -800,7 +800,7 @@ public sealed partial class AccessClient
         var (body, _, _) = CertificateBody(name, certificatePem, hostnames);
         var existing = (await ListCertificatesAsync(accountId, ct).ConfigureAwait(false)).FirstOrDefault(c => c.Name == name);
         if (existing is not null) return (existing, false);
-        return (await ZT.SendAsync<AccessCertificate>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), true);
+        return (await ResourceKit.SendSecretFreeAsync<AccessCertificate>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), true);
     }
 
     /// <summary>
@@ -810,26 +810,26 @@ public sealed partial class AccessClient
     public async Task<(AccessCertificate Certificate, bool Changed)> SetCertificateHostnamesAsync(string certificateId, IEnumerable<string> hostnames, bool allowRemovals = false,
         string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "certificates", P1.Required(certificateId, nameof(certificateId)));
+        var path = AccountPath(accountId, "access", "certificates", ResourceKit.Required(certificateId, nameof(certificateId)));
         EnsureWritable(HttpMethod.Put, path);
-        var next = hostnames.Select(h => P1.Hostname(h, nameof(hostnames))).Distinct().OrderBy(h => h, StringComparer.Ordinal).ToList();
+        var next = hostnames.Select(h => ResourceKit.Hostname(h, nameof(hostnames))).Distinct().OrderBy(h => h, StringComparer.Ordinal).ToList();
         var current = await GetCertificateAsync(certificateId, accountId, ct).ConfigureAwait(false);
         var removed = current.AssociatedHostnames.Where(h => !next.Contains(h, StringComparer.OrdinalIgnoreCase)).ToList();
-        if (removed.Count > 0) P2.Allow(allowRemovals, $"removing {P1.Join(removed)} from certificate \"{current.Name}\" ends mTLS there", nameof(allowRemovals));
+        if (removed.Count > 0) ResourceKit.Allow(allowRemovals, $"removing {ResourceKit.Join(removed)} from certificate \"{current.Name}\" ends mTLS there", nameof(allowRemovals));
         if (removed.Count == 0 && next.All(h => current.AssociatedHostnames.Contains(h, StringComparer.OrdinalIgnoreCase))) return (current, false);
-        var body = new JsonObject { ["name"] = current.Name, ["associated_hostnames"] = P1.Arr(next) };
-        return (await ZT.SendAsync<AccessCertificate>(Api, HttpMethod.Put, path, body, ct).ConfigureAwait(false), true);
+        var body = new JsonObject { ["name"] = current.Name, ["associated_hostnames"] = ResourceKit.Arr(next) };
+        return (await ResourceKit.SendSecretFreeAsync<AccessCertificate>(Api, HttpMethod.Put, path, body, ct).ConfigureAwait(false), true);
     }
 
     /// <summary>Deletes a root certificate after a fresh read; one that still has hostnames needs <paramref name="allowRemovals"/>. False when it did not exist.</summary>
     public async Task<bool> RemoveCertificateAsync(string certificateId, bool allowRemovals = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "access", "certificates", P1.Required(certificateId, nameof(certificateId)));
+        var path = AccountPath(accountId, "access", "certificates", ResourceKit.Required(certificateId, nameof(certificateId)));
         EnsureWritable(HttpMethod.Delete, path);
-        var current = await ZT.GetOrNullAsync<AccessCertificate>(Api, path, ct).ConfigureAwait(false);
+        var current = await ResourceKit.GetSecretFreeOrNullAsync<AccessCertificate>(Api, path, ct).ConfigureAwait(false);
         if (current is null) return false;
         if (current.AssociatedHostnames.Count > 0)
-            P2.Allow(allowRemovals, $"certificate \"{current.Name}\" still protects {P1.Join(current.AssociatedHostnames)}", nameof(allowRemovals));
+            ResourceKit.Allow(allowRemovals, $"certificate \"{current.Name}\" still protects {ResourceKit.Join(current.AssociatedHostnames)}", nameof(allowRemovals));
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 
@@ -838,14 +838,14 @@ public sealed partial class AccessClient
 
     private static (JsonObject Body, List<string> Hosts, string Sha) CertificateBody(string name, string pem, IEnumerable<string>? hostnames)
     {
-        P1.Required(name, nameof(name), 256);
-        var text = P1.Required(pem, nameof(pem)).Trim();
+        ResourceKit.Required(name, nameof(name), 256);
+        var text = ResourceKit.Required(pem, nameof(pem)).Trim();
         if (text.Contains("PRIVATE KEY", StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("Only the public CA certificate is uploaded; the input contains a private key.", nameof(pem));
         if (!text.StartsWith("-----BEGIN CERTIFICATE-----", StringComparison.Ordinal)) throw new ArgumentException("A PEM certificate (-----BEGIN CERTIFICATE-----).", nameof(pem));
-        var hosts = (hostnames ?? []).Select(h => P1.Hostname(h, nameof(hostnames))).Distinct().ToList();
+        var hosts = (hostnames ?? []).Select(h => ResourceKit.Hostname(h, nameof(hostnames))).Distinct().ToList();
         var sha = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
-        return (new JsonObject { ["name"] = name, ["certificate"] = text, ["associated_hostnames"] = P1.Arr(hosts) }, hosts, sha);
+        return (new JsonObject { ["name"] = name, ["certificate"] = text, ["associated_hostnames"] = ResourceKit.Arr(hosts) }, hosts, sha);
     }
 
     // ------------------------------------------------------------------ organization, users, sessions
@@ -875,7 +875,7 @@ public sealed partial class AccessClient
         var current = await GetOrganizationAsync(accountId, ct).ConfigureAwait(false);
         var (body, notes) = OrganizationBody(current, change);
         foreach (var (flag, text) in notes)
-            P2.Allow(flag switch { "allowDisconnect" => allowDisconnect, "allowBlock" => allowBlock, _ => allowLoosen }, text, flag);
+            ResourceKit.Allow(flag switch { "allowDisconnect" => allowDisconnect, "allowBlock" => allowBlock, _ => allowLoosen }, text, flag);
         if (body.Count == 0) return (current, false);
         return (await Api.PatchAsync<AccessOrganization>(path, body, ct).ConfigureAwait(false), true);
     }
@@ -890,7 +890,7 @@ public sealed partial class AccessClient
         Str("name", c.Name, current.Name);
         if (c.AuthDomain is { } domain)
         {
-            var host = P1.Hostname(domain, nameof(c));
+            var host = ResourceKit.Hostname(domain, nameof(c));
             if (!string.Equals(host, current.AuthDomain, StringComparison.OrdinalIgnoreCase))
             {
                 body["auth_domain"] = host;
@@ -898,10 +898,10 @@ public sealed partial class AccessClient
             }
         }
         Str("session_duration", c.SessionDuration, current.SessionDuration);
-        if (body.ContainsKey("session_duration") && ZT.Longer(current.SessionDuration, c.SessionDuration))
+        if (body.ContainsKey("session_duration") && ResourceKit.Longer(current.SessionDuration, c.SessionDuration))
             notes.Add(("allowLoosen", $"longer Access sessions ({current.SessionDuration ?? "default"} → {c.SessionDuration})"));
         Str("warp_auth_session_duration", c.WarpAuthSessionDuration, current.WarpAuthSessionDuration);
-        if (body.ContainsKey("warp_auth_session_duration") && ZT.Longer(current.WarpAuthSessionDuration, c.WarpAuthSessionDuration))
+        if (body.ContainsKey("warp_auth_session_duration") && ResourceKit.Longer(current.WarpAuthSessionDuration, c.WarpAuthSessionDuration))
             notes.Add(("allowLoosen", $"longer WARP authentication sessions ({current.WarpAuthSessionDuration ?? "default"} → {c.WarpAuthSessionDuration})"));
         Bool("auto_redirect_to_identity", c.AutoRedirectToIdentity, current.AutoRedirectToIdentity);
         Bool("is_ui_read_only", c.IsUiReadOnly, current.IsUiReadOnly);
@@ -921,7 +921,7 @@ public sealed partial class AccessClient
             notes.Add(mfa.GetValue<bool>()
                 ? ("allowBlock", "requiring MFA for all applications locks out users without a second factor")
                 : ("allowLoosen", "turning off MFA for all applications loosens every application"));
-        if (c.LoginDesign is { } design && !P1.Covers(P1.Node(current.LoginDesign), design)) body["login_design"] = design.DeepClone();
+        if (c.LoginDesign is { } design && !ResourceKit.Covers(ResourceKit.Node(current.LoginDesign), design)) body["login_design"] = design.DeepClone();
         return (body, notes);
     }
 
@@ -931,11 +931,11 @@ public sealed partial class AccessClient
 
     /// <summary>Active Access sessions of a user (applications and expiry; Cloudflare returns no session token).</summary>
     public async Task<List<AccessActiveSession>> ListActiveSessionsAsync(string userId, string? accountId = null, CancellationToken ct = default) =>
-        await ZT.GetListAsync<AccessActiveSession>(Api, AccountPath(accountId, "access", "users", P1.Required(userId, nameof(userId)), "active_sessions"), ct).ConfigureAwait(false);
+        await ResourceKit.GetSecretFreeListAsync<AccessActiveSession>(Api, AccountPath(accountId, "access", "users", ResourceKit.Required(userId, nameof(userId)), "active_sessions"), ct).ConfigureAwait(false);
 
     /// <summary>Plan of a session revocation; the e-mail address is not part of the preview.</summary>
     public CloudflareChangePreview PreviewRevokeUserSessions(string email, bool includeDevices = false, string? accountId = null) =>
-        new("POST", AccountPath(accountId, "access", "organizations", "revoke_user"), new JsonObject { ["email"] = P2.Mask(P1.Required(email, nameof(email))), ["devices"] = includeDevices },
+        new("POST", AccountPath(accountId, "access", "organizations", "revoke_user"), new JsonObject { ["email"] = ResourceKit.Mask(ResourceKit.Required(email, nameof(email))), ["devices"] = includeDevices },
             $"Revoke all Access sessions of one user{(includeDevices ? " and their device sessions" : "")}.");
 
     /// <summary>Logs one user out of every application (POST, not retried). Needs <paramref name="allowDisconnect"/>.</summary>
@@ -943,9 +943,9 @@ public sealed partial class AccessClient
     {
         var path = AccountPath(accountId, "access", "organizations", "revoke_user");
         EnsureWritable(HttpMethod.Post, path);
-        var address = P1.Required(email, nameof(email)).Trim();
+        var address = ResourceKit.Required(email, nameof(email)).Trim();
         if (!address.Contains('@')) throw new ArgumentException("An e-mail address.", nameof(email));
-        P2.Allow(allowDisconnect, "revoking the sessions of a user logs them out of every application", nameof(allowDisconnect));
+        ResourceKit.Allow(allowDisconnect, "revoking the sessions of a user logs them out of every application", nameof(allowDisconnect));
         await Api.SendAsync<JsonElement>(HttpMethod.Post, path, new JsonObject { ["email"] = address, ["devices"] = includeDevices }, ct).ConfigureAwait(false);
     }
 
@@ -961,18 +961,18 @@ public sealed partial class AccessClient
 
     private static JsonObject PolicyBody(AccessPolicyInput p, bool allowLoosen, bool allowBlock, AccessPolicy? current)
     {
-        P1.Required(p.Name, nameof(p), 350);
+        ResourceKit.Required(p.Name, nameof(p), 350);
         if (AccessPolicyRisk.Rank(p.Decision) < 0) throw new ArgumentException("Decision must be allow, deny, non_identity or bypass.", nameof(p));
         if (p.Include is not { Count: > 0 }) throw new ArgumentException("At least one include rule (see AccessRules).", nameof(p));
         if (current is null)
         {
             if (AccessPolicyRisk.AdmitsEveryone(p.Decision, p.Include, p.Require ?? []))
-                P2.Allow(allowLoosen, $"policy \"{p.Name}\" admits everyone ({p.Decision})", nameof(allowLoosen));
+                ResourceKit.Allow(allowLoosen, $"policy \"{p.Name}\" admits everyone ({p.Decision})", nameof(allowLoosen));
         }
         else if (AccessPolicyRisk.Loosening(AccessPolicyRisk.Of(current), AccessPolicyRisk.Of(p)) is { } why)
-            P2.Allow(allowLoosen, $"the change loosens policy \"{current.Name}\": {why}", nameof(allowLoosen));
+            ResourceKit.Allow(allowLoosen, $"the change loosens policy \"{current.Name}\": {why}", nameof(allowLoosen));
         if (AccessPolicyRisk.DeniesEveryone(p.Decision, p.Include) && (current is null || !AccessPolicyRisk.DeniesEveryone(current.Decision, current.Include)))
-            P2.Allow(allowBlock, $"policy \"{p.Name}\" denies everyone", nameof(allowBlock));
+            ResourceKit.Allow(allowBlock, $"policy \"{p.Name}\" denies everyone", nameof(allowBlock));
 
         // exclude/require are always sent (also empty), so that a change that removes them is detected and written.
         var body = new JsonObject { ["name"] = p.Name, ["decision"] = p.Decision, ["include"] = Rules(p.Include), ["exclude"] = Rules(p.Exclude ?? []), ["require"] = Rules(p.Require ?? []) };
@@ -983,15 +983,15 @@ public sealed partial class AccessClient
 
     private static JsonObject GroupBody(AccessGroupInput g, bool allowLoosen, AccessGroup? current)
     {
-        P1.Required(g.Name, nameof(g), 350);
+        ResourceKit.Required(g.Name, nameof(g), 350);
         if (g.Include is not { Count: > 0 }) throw new ArgumentException("At least one include rule (see AccessRules).", nameof(g));
         var everyone = AccessPolicyRisk.AdmitsEveryone("allow", g.Include, g.Require ?? []);
         if (everyone && (current is null || !AccessPolicyRisk.AdmitsEveryone("allow", current.Include, current.Require)))
-            P2.Allow(allowLoosen, $"group \"{g.Name}\" includes everyone", nameof(allowLoosen));
+            ResourceKit.Allow(allowLoosen, $"group \"{g.Name}\" includes everyone", nameof(allowLoosen));
         if (current is not null && AccessPolicyRisk.Loosening(new("allow", current.Include, current.Exclude, current.Require), new("allow", g.Include, g.Exclude ?? [], g.Require ?? [])) is { } why)
-            P2.Allow(allowLoosen, $"the change loosens group \"{current.Name}\": {why}", nameof(allowLoosen));
+            ResourceKit.Allow(allowLoosen, $"the change loosens group \"{current.Name}\": {why}", nameof(allowLoosen));
         return new JsonObject { ["name"] = g.Name, ["include"] = Rules(g.Include), ["exclude"] = Rules(g.Exclude ?? []), ["require"] = Rules(g.Require ?? []) };
     }
 
-    private static JsonArray Rules(IEnumerable<JsonElement> rules) => new(rules.Select(r => P1.Node(r)).ToArray());
+    private static JsonArray Rules(IEnumerable<JsonElement> rules) => new(rules.Select(r => ResourceKit.Node(r)).ToArray());
 }

@@ -98,7 +98,7 @@ public sealed class RateLimitingClient(ICloudflareApiConnection api) : RulesetPh
         return ruleset?.Rules.Select(r => new RateLimitRule
         {
             Id = r.Id, Ref = r.Ref, Action = r.Action, Expression = r.Expression, Description = r.Description, Enabled = r.Enabled,
-            Settings = r.Ratelimit is { ValueKind: JsonValueKind.Object } rl ? P1.As<RateLimitSettings>(rl) : null,
+            Settings = r.Ratelimit is { ValueKind: JsonValueKind.Object } rl ? ResourceKit.As<RateLimitSettings>(rl) : null,
         }).ToList() ?? [];
     }
 
@@ -142,7 +142,7 @@ public sealed class RateLimitingClient(ICloudflareApiConnection api) : RulesetPh
     private static (RulesetRule Rule, string Summary) Build(RateLimitRuleInput r, bool allowBroadMatch)
     {
         var reference = CheckRef(r.Ref);
-        P1.Required(r.Expression, nameof(r), 4096);
+        ResourceKit.Required(r.Expression, nameof(r), 4096);
         if (!Actions.Contains(r.Action ?? "")) throw new ArgumentException("Action must be block, managed_challenge, js_challenge, challenge or log.", nameof(r));
         if (!Periods.Contains(r.Period)) throw new ArgumentException($"Period {r.Period} s is not a supported value.", nameof(r));
         if (r.MitigationTimeout != 0 && !Periods.Contains(r.MitigationTimeout)) throw new ArgumentException($"Mitigation timeout {r.MitigationTimeout} s is not a supported value.", nameof(r));
@@ -154,7 +154,7 @@ public sealed class RateLimitingClient(ICloudflareApiConnection api) : RulesetPh
         if (!characteristics.Contains("cf.colo.id")) characteristics.Insert(0, "cf.colo.id");
         var rl = new JsonObject
         {
-            ["characteristics"] = P1.Arr(characteristics),
+            ["characteristics"] = ResourceKit.Arr(characteristics),
             ["period"] = r.Period,
             ["requests_per_period"] = r.RequestsPerPeriod,
             ["mitigation_timeout"] = r.MitigationTimeout,

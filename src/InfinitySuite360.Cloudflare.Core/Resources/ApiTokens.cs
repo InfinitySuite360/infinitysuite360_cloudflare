@@ -50,7 +50,7 @@ public sealed class ApiTokenSecret : IDisposable
         _value = null;
     }
 
-    public override string ToString() => $"ApiTokenSecret({(HasValue ? P1.Redacted : "taken")})";
+    public override string ToString() => $"ApiTokenSecret({(HasValue ? ResourceKit.Redacted : "taken")})";
 }
 
 internal sealed class ApiTokenSecretConverter : JsonConverter<ApiTokenSecret>
@@ -58,7 +58,7 @@ internal sealed class ApiTokenSecretConverter : JsonConverter<ApiTokenSecret>
     public override ApiTokenSecret Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
         throw new NotSupportedException("API token secrets are not deserialized.");
 
-    public override void Write(Utf8JsonWriter writer, ApiTokenSecret value, JsonSerializerOptions options) => writer.WriteStringValue(P1.Redacted);
+    public override void Write(Utf8JsonWriter writer, ApiTokenSecret value, JsonSerializerOptions options) => writer.WriteStringValue(ResourceKit.Redacted);
 }
 
 /// <summary>A permission group of a token policy, for example "Zone Read" or "DNS Write".</summary>
@@ -113,15 +113,15 @@ public sealed class IssuedApiToken
     /// <summary>The value; <see cref="ApiTokenSecret.TakeValue"/> hands it over once.</summary>
     public ApiTokenSecret Secret { get; }
 
-    public override string ToString() => $"IssuedApiToken({Token.Id}, \"{Token.Name}\", secret {P1.Redacted})";
+    public override string ToString() => $"IssuedApiToken({Token.Id}, \"{Token.Name}\", secret {ResourceKit.Redacted})";
 }
 
 /// <summary>Resource keys of token policies.</summary>
 public static class ApiTokenResources
 {
-    public static string Zone(string zoneId) => "com.cloudflare.api.account.zone." + P1.Required(zoneId, nameof(zoneId), 64);
-    public static string Account(string accountId) => "com.cloudflare.api.account." + P1.Required(accountId, nameof(accountId), 64);
-    public static string User(string userId) => "com.cloudflare.api.user." + P1.Required(userId, nameof(userId), 64);
+    public static string Zone(string zoneId) => "com.cloudflare.api.account.zone." + ResourceKit.Required(zoneId, nameof(zoneId), 64);
+    public static string Account(string accountId) => "com.cloudflare.api.account." + ResourceKit.Required(accountId, nameof(accountId), 64);
+    public static string User(string userId) => "com.cloudflare.api.user." + ResourceKit.Required(userId, nameof(userId), 64);
     /// <summary>Every zone of the account (broad; needs <c>allowBroadResources</c>).</summary>
     public static JsonObject AllZonesOf(string accountId) => new() { [Account(accountId)] = new JsonObject { ["com.cloudflare.api.account.zone.*"] = "*" } };
 }
@@ -170,10 +170,10 @@ public sealed class ApiTokensClient(ICloudflareApiConnection api) : CloudflareRe
     private static readonly string[] Secret = ["value"];
 
     public Task<IReadOnlyList<ApiToken>> ListAsync(ApiTokenOwner owner = ApiTokenOwner.User, string? accountId = null, CancellationToken ct = default) =>
-        P1.ListStrippedAsync<ApiToken>(Api, Base(owner, accountId), 50, ct, Secret);
+        ResourceKit.ListStrippedAsync<ApiToken>(Api, Base(owner, accountId), 50, ct, Secret);
 
     public Task<ApiToken> GetAsync(string tokenId, ApiTokenOwner owner = ApiTokenOwner.User, string? accountId = null, CancellationToken ct = default) =>
-        P1.SendStrippedAsync<ApiToken>(Api, HttpMethod.Get, Base(owner, accountId, tokenId), null, ct, Secret);
+        ResourceKit.SendStrippedAsync<ApiToken>(Api, HttpMethod.Get, Base(owner, accountId, tokenId), null, ct, Secret);
 
     /// <summary>Verifies the token this client uses (id, status, expiry).</summary>
     public Task<TokenVerification> VerifyAsync(ApiTokenOwner owner = ApiTokenOwner.User, string? accountId = null, CancellationToken ct = default) =>
@@ -209,7 +209,7 @@ public sealed class ApiTokensClient(ICloudflareApiConnection api) : CloudflareRe
             throw new CloudflareApiException(HttpStatusCode.OK, "POST", CloudflarePath.Normalize(Base(owner, accountId)),
                 [new CloudflareError { Message = "The answer carries no token value; the token may exist without a known value. List the tokens and revoke it." }]);
         var secret = new ApiTokenSecret(v.GetString()!);
-        return new IssuedApiToken(P1.As<ApiToken>(P1.Strip(result, Secret)), secret);
+        return new IssuedApiToken(ResourceKit.As<ApiToken>(ResourceKit.Strip(result, Secret)), secret);
     }
 
     public CloudflareChangePreview PreviewUpdate(string tokenId, ApiTokenInput token, bool allowBroadResources = false, bool allowNoExpiry = false, ApiTokenOwner owner = ApiTokenOwner.User, string? accountId = null)
@@ -229,7 +229,7 @@ public sealed class ApiTokensClient(ICloudflareApiConnection api) : CloudflareRe
         var path = Base(owner, accountId, tokenId);
         EnsureWritable(HttpMethod.Put, path);
         await RefuseSelfAsync(tokenId, allowSelf, "changing", owner, accountId, ct).ConfigureAwait(false);
-        return await P1.SendStrippedAsync<ApiToken>(Api, HttpMethod.Put, path, body, ct, Secret).ConfigureAwait(false);
+        return await ResourceKit.SendStrippedAsync<ApiToken>(Api, HttpMethod.Put, path, body, ct, Secret).ConfigureAwait(false);
     }
 
     /// <summary>Plan of a status change (reads the token to keep its policies).</summary>
@@ -250,7 +250,7 @@ public sealed class ApiTokensClient(ICloudflareApiConnection api) : CloudflareRe
         EnsureWritable(HttpMethod.Put, path);
         if (status == "disabled") await RefuseSelfAsync(tokenId, allowSelf, "disabling", owner, accountId, ct).ConfigureAwait(false);
         var current = await GetAsync(tokenId, owner, accountId, ct).ConfigureAwait(false);
-        return await P1.SendStrippedAsync<ApiToken>(Api, HttpMethod.Put, path, StatusBody(current, status), ct, Secret).ConfigureAwait(false);
+        return await ResourceKit.SendStrippedAsync<ApiToken>(Api, HttpMethod.Put, path, StatusBody(current, status), ct, Secret).ConfigureAwait(false);
     }
 
     public CloudflareChangePreview PreviewRoll(string tokenId, ApiTokenOwner owner = ApiTokenOwner.User, string? accountId = null) =>
@@ -288,7 +288,7 @@ public sealed class ApiTokensClient(ICloudflareApiConnection api) : CloudflareRe
 
     private async Task RefuseSelfAsync(string tokenId, bool allowSelf, string what, ApiTokenOwner owner, string? accountId, CancellationToken ct)
     {
-        P1.Required(tokenId, nameof(tokenId), 64);
+        ResourceKit.Required(tokenId, nameof(tokenId), 64);
         if (allowSelf) return;
         var self = await VerifyAsync(owner, accountId, ct).ConfigureAwait(false);
         if (string.Equals(self.Id, tokenId, StringComparison.OrdinalIgnoreCase))
@@ -311,18 +311,18 @@ public sealed class ApiTokensClient(ICloudflareApiConnection api) : CloudflareRe
             {
                 ["effect"] = p.Effect,
                 ["permission_groups"] = new JsonArray(p.PermissionGroups.Select(g => (JsonNode?)new JsonObject { ["id"] = g.Id }).ToArray()),
-                ["resources"] = P1.Node(p.Resources) ?? new JsonObject(),
+                ["resources"] = ResourceKit.Node(p.Resources) ?? new JsonObject(),
             }).ToArray()),
         };
         if (current.ExpiresOn is { } e) body["expires_on"] = e.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", System.Globalization.CultureInfo.InvariantCulture);
         if (current.NotBefore is { } nb) body["not_before"] = nb.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", System.Globalization.CultureInfo.InvariantCulture);
-        if (P1.Node(current.Condition) is { } c) body["condition"] = c;
+        if (ResourceKit.Node(current.Condition) is { } c) body["condition"] = c;
         return body;
     }
 
     private static (JsonObject Body, string Summary) TokenBody(ApiTokenInput t, bool allowBroadResources, bool allowNoExpiry, bool includeStatus)
     {
-        P1.Required(t.Name, nameof(t), 120);
+        ResourceKit.Required(t.Name, nameof(t), 120);
         if (t.Policies is null || t.Policies.Count == 0) throw new ArgumentException("At least one policy is required.", nameof(t));
         if (t.ExpiresOn is null && !allowNoExpiry)
             throw new ArgumentException("Give the token an expiry (ExpiresOn); a token that never expires needs allowNoExpiry: true.", nameof(t));
@@ -342,7 +342,7 @@ public sealed class ApiTokensClient(ICloudflareApiConnection api) : CloudflareRe
             policies.Add(new JsonObject
             {
                 ["effect"] = p.Effect,
-                ["permission_groups"] = new JsonArray(p.PermissionGroupIds.Distinct().Select(id => (JsonNode?)new JsonObject { ["id"] = P1.Required(id, nameof(t), 64) }).ToArray()),
+                ["permission_groups"] = new JsonArray(p.PermissionGroupIds.Distinct().Select(id => (JsonNode?)new JsonObject { ["id"] = ResourceKit.Required(id, nameof(t), 64) }).ToArray()),
                 ["resources"] = p.Resources.DeepClone(),
             });
         }
@@ -355,8 +355,8 @@ public sealed class ApiTokensClient(ICloudflareApiConnection api) : CloudflareRe
         if (t.AllowedIps is { Count: > 0 } || t.DeniedIps is { Count: > 0 })
         {
             var ip = new JsonObject();
-            if (t.AllowedIps is { Count: > 0 } a) ip["in"] = P1.Arr(a.Select(Cidr));
-            if (t.DeniedIps is { Count: > 0 } d) ip["not_in"] = P1.Arr(d.Select(Cidr));
+            if (t.AllowedIps is { Count: > 0 } a) ip["in"] = ResourceKit.Arr(a.Select(Cidr));
+            if (t.DeniedIps is { Count: > 0 } d) ip["not_in"] = ResourceKit.Arr(d.Select(Cidr));
             body["condition"] = new JsonObject { ["request_ip"] = ip };
         }
         if (includeStatus && t.Status is not null) body["status"] = CheckStatus(t.Status);

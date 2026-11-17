@@ -143,7 +143,7 @@ public sealed class LoadBalancerInput
 /// </summary>
 public sealed class LoadBalancingClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
-    private static readonly Regex PoolNamePattern = P2.Rx(@"^[A-Za-z0-9_-]{1,100}$");
+    private static readonly Regex PoolNamePattern = ResourceKit.Rx(@"^[A-Za-z0-9_-]{1,100}$");
     private static readonly HashSet<string> MonitorTypes = ["http", "https", "tcp", "udp_icmp", "icmp_ping", "smtp"];
     private static readonly HashSet<string> Steering = ["off", "geo", "random", "dynamic_latency", "proximity", "least_outstanding_requests", "least_connections"];
     private static readonly HashSet<string> Affinity = ["none", "cookie", "ip_cookie", "header"];
@@ -170,7 +170,7 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
 
     /// <summary>Replaces a monitor (PUT, idempotent).</summary>
     public async Task<LbMonitor> UpdateMonitorAsync(string monitorId, LbMonitorInput monitor, bool allowInsecureTls = false, string? accountId = null, CancellationToken ct = default) =>
-        ToMonitor(await Api.PutAsync<JsonElement>(AccountPath(accountId, "load_balancers", "monitors", P1.Required(monitorId, nameof(monitorId))), MonitorBody(monitor, allowInsecureTls, redact: false), ct).ConfigureAwait(false));
+        ToMonitor(await Api.PutAsync<JsonElement>(AccountPath(accountId, "load_balancers", "monitors", ResourceKit.Required(monitorId, nameof(monitorId))), MonitorBody(monitor, allowInsecureTls, redact: false), ct).ConfigureAwait(false));
 
     public CloudflareChangePreview PreviewRemoveMonitor(string monitorId, string? accountId = null) =>
         new("DELETE", AccountPath(accountId, "load_balancers", "monitors", monitorId), null, $"Delete health monitor {monitorId} (refused while a pool uses it).");
@@ -178,7 +178,7 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
     /// <summary>Deletes a monitor that no pool uses (one read of its references after the guard check). False when it did not exist.</summary>
     public async Task<bool> RemoveMonitorAsync(string monitorId, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "load_balancers", "monitors", P1.Required(monitorId, nameof(monitorId)));
+        var path = AccountPath(accountId, "load_balancers", "monitors", ResourceKit.Required(monitorId, nameof(monitorId)));
         EnsureWritable(HttpMethod.Delete, path);
         var uses = await ReferencesAsync(AccountPath(accountId, "load_balancers", "monitors", monitorId, "references"), ct).ConfigureAwait(false);
         if (uses is null) return false;
@@ -220,7 +220,7 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
     /// <summary>Enables or disables a pool (PATCH, idempotent; only written on change). Disabling the last healthy pool of a load balancer needs <paramref name="allowLastHealthyPool"/>.</summary>
     public async Task<(LbPool Pool, bool Changed)> SetPoolEnabledAsync(string poolId, bool enabled, bool allowLastHealthyPool = false, string? zoneId = null, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "load_balancers", "pools", P1.Required(poolId, nameof(poolId)));
+        var path = AccountPath(accountId, "load_balancers", "pools", ResourceKit.Required(poolId, nameof(poolId)));
         EnsureWritable(HttpMethod.Patch, path);
         var pool = await GetPoolAsync(poolId, accountId, ct).ConfigureAwait(false);
         if (pool.Enabled == enabled) return (pool, false);
@@ -262,7 +262,7 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
     /// <summary>Deletes a pool that no load balancer uses (one read of its references after the guard check). False when it did not exist.</summary>
     public async Task<bool> RemovePoolAsync(string poolId, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "load_balancers", "pools", P1.Required(poolId, nameof(poolId)));
+        var path = AccountPath(accountId, "load_balancers", "pools", ResourceKit.Required(poolId, nameof(poolId)));
         EnsureWritable(HttpMethod.Delete, path);
         var uses = await ReferencesAsync(AccountPath(accountId, "load_balancers", "pools", poolId, "references"), ct).ConfigureAwait(false);
         if (uses is null) return false;
@@ -304,11 +304,11 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
     /// <summary>Enables or disables a load balancer (PATCH; only written on change). Disabling an enabled one needs <paramref name="allowDisableActive"/>.</summary>
     public async Task<(LoadBalancer LoadBalancer, bool Changed)> SetLoadBalancerEnabledAsync(string loadBalancerId, bool enabled, bool allowDisableActive = false, string? zoneId = null, CancellationToken ct = default)
     {
-        var path = ZonePath(zoneId, "load_balancers", P1.Required(loadBalancerId, nameof(loadBalancerId)));
+        var path = ZonePath(zoneId, "load_balancers", ResourceKit.Required(loadBalancerId, nameof(loadBalancerId)));
         EnsureWritable(HttpMethod.Patch, path);
         var current = await GetLoadBalancerAsync(loadBalancerId, zoneId, ct).ConfigureAwait(false);
         if (current.Enabled == enabled) return (current, false);
-        if (!enabled) P2.Allow(allowDisableActive, $"load balancer {current.Name} is enabled and serving traffic", nameof(allowDisableActive));
+        if (!enabled) ResourceKit.Allow(allowDisableActive, $"load balancer {current.Name} is enabled and serving traffic", nameof(allowDisableActive));
         return (await Api.PatchAsync<LoadBalancer>(path, new JsonObject { ["enabled"] = enabled }, ct).ConfigureAwait(false), true);
     }
 
@@ -318,12 +318,12 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
     /// <summary>Deletes a load balancer. An enabled one needs <paramref name="allowDeleteActive"/> (disable it first to see the effect). False when it did not exist.</summary>
     public async Task<bool> RemoveLoadBalancerAsync(string loadBalancerId, bool allowDeleteActive = false, string? zoneId = null, CancellationToken ct = default)
     {
-        var path = ZonePath(zoneId, "load_balancers", P1.Required(loadBalancerId, nameof(loadBalancerId)));
+        var path = ZonePath(zoneId, "load_balancers", ResourceKit.Required(loadBalancerId, nameof(loadBalancerId)));
         EnsureWritable(HttpMethod.Delete, path);
         LoadBalancer current;
         try { current = await GetLoadBalancerAsync(loadBalancerId, zoneId, ct).ConfigureAwait(false); }
         catch (CloudflareApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound) { return false; }
-        if (current.Enabled) P2.Allow(allowDeleteActive, $"load balancer {current.Name} is enabled and serving traffic", nameof(allowDeleteActive));
+        if (current.Enabled) ResourceKit.Allow(allowDeleteActive, $"load balancer {current.Name} is enabled and serving traffic", nameof(allowDeleteActive));
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 
@@ -333,12 +333,12 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
     // `change` gets a copy of the origin (null when it does not exist yet) and returns the new origin, or null for "no change".
     private async Task<(LbPool Pool, bool Changed)> ChangeOriginsAsync(string poolId, string originName, Func<JsonObject?, JsonObject?> change, bool allowLast, string? zoneId, string? accountId, CancellationToken ct, bool mustExist, bool remove = false)
     {
-        var path = AccountPath(accountId, "load_balancers", "pools", P1.Required(poolId, nameof(poolId)));
+        var path = AccountPath(accountId, "load_balancers", "pools", ResourceKit.Required(poolId, nameof(poolId)));
         EnsureWritable(HttpMethod.Patch, path);
         var raw = await Api.GetAsync<JsonElement>(path, ct).ConfigureAwait(false);
-        var pool = P1.As<LbPool>(raw) ?? throw new InvalidOperationException($"Pool {poolId} was not returned.");
+        var pool = ResourceKit.As<LbPool>(raw) ?? throw new InvalidOperationException($"Pool {poolId} was not returned.");
         var current = new List<JsonObject>();
-        if (P2.TryGet(raw, "origins", out var arr) && arr.ValueKind == JsonValueKind.Array)
+        if (ResourceKit.TryGet(raw, "origins", out var arr) && arr.ValueKind == JsonValueKind.Array)
             foreach (var e in arr.EnumerateArray())
                 current.Add(JsonNode.Parse(e.GetRawText()) as JsonObject ?? throw new InvalidOperationException($"Pool {poolId} has an origin that is not an object."));
         var existing = current.FirstOrDefault(o => OriginName(o) == originName);
@@ -430,7 +430,7 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
         JsonElement health;
         try { health = await GetPoolHealthAsync(pool.Id, accountId, ct).ConfigureAwait(false); }
         catch (CloudflareApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound) { return false; }
-        if (!P2.TryGet(health, "pop_health", out var pops) || pops.ValueKind != JsonValueKind.Object) return false;
+        if (!ResourceKit.TryGet(health, "pop_health", out var pops) || pops.ValueKind != JsonValueKind.Object) return false;
         foreach (var p in pops.EnumerateObject())
         {
             if (p.Value.ValueKind != JsonValueKind.Object || !p.Value.TryGetProperty("healthy", out var ok) || ok.ValueKind is not (JsonValueKind.True or JsonValueKind.False)) continue;
@@ -456,7 +456,7 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
         try
         {
             var result = await Api.GetAsync<List<JsonElement>>(path, ct).ConfigureAwait(false) ?? [];
-            return result.Select(r => (P2.Str(r, "resource_type") ?? "", P2.Str(r, "resource_id") ?? "", P2.Str(r, "resource_name") ?? P2.Str(r, "resource_id") ?? "")).ToList();
+            return result.Select(r => (ResourceKit.Str(r, "resource_type") ?? "", ResourceKit.Str(r, "resource_id") ?? "", ResourceKit.Str(r, "resource_name") ?? ResourceKit.Str(r, "resource_id") ?? "")).ToList();
         }
         catch (CloudflareApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound) { return null; }
     }
@@ -467,8 +467,8 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
     {
         var node = JsonNode.Parse(e.GetRawText())!.AsObject();
         if (node["header"] is JsonObject headers)
-            foreach (var name in headers.Select(p => p.Key).ToList()) headers[name] = new JsonArray(P1.Redacted);
-        return P1.As<LbMonitor>(JsonSerializer.SerializeToElement(node, CloudflareJson.Options));
+            foreach (var name in headers.Select(p => p.Key).ToList()) headers[name] = new JsonArray(ResourceKit.Redacted);
+        return ResourceKit.As<LbMonitor>(JsonSerializer.SerializeToElement(node, CloudflareJson.Options));
     }
 
     private static JsonObject MonitorBody(LbMonitorInput m, bool allowInsecureTls, bool redact)
@@ -478,7 +478,7 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
         if (m.Timeout < 1 || m.Timeout > 60 || m.Timeout >= m.Interval) throw new ArgumentOutOfRangeException(nameof(m), "Timeout 1 to 60 seconds and below the interval.");
         if (m.Retries is < 0 or > 5) throw new ArgumentOutOfRangeException(nameof(m), "Retries 0 to 5.");
         if (m.Port is < 1 or > 65535) throw new ArgumentOutOfRangeException(nameof(m), "Port 1 to 65535.");
-        if (m.AllowInsecure) P2.Allow(allowInsecureTls, "a monitor that skips the certificate check cannot see an origin with a broken or foreign certificate", nameof(allowInsecureTls));
+        if (m.AllowInsecure) ResourceKit.Allow(allowInsecureTls, "a monitor that skips the certificate check cannot see an origin with a broken or foreign certificate", nameof(allowInsecureTls));
         var body = new JsonObject { ["type"] = m.Type, ["interval"] = m.Interval, ["timeout"] = m.Timeout, ["retries"] = m.Retries };
         if (m.Description is not null) body["description"] = m.Description;
         if (m.Type is "http" or "https")
@@ -498,7 +498,7 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
             {
                 if (string.IsNullOrWhiteSpace(name) || name.Any(c => c is ' ' or ':' or '\r' or '\n')) throw new ArgumentException("Invalid header name.", nameof(m));
                 if (value.Any(c => c is '\r' or '\n')) throw new ArgumentException($"The value of header {name} has a line break.", nameof(m));
-                headers[name] = new JsonArray(redact ? P1.Redacted : value);
+                headers[name] = new JsonArray(redact ? ResourceKit.Redacted : value);
             }
             body["header"] = headers;
         }
@@ -507,8 +507,8 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
 
     private static void CheckOrigin(LbOriginInput o)
     {
-        P2.Match(o.Name, "origin name", PoolNamePattern, "letters, digits, '-' and '_'");
-        if (!System.Net.IPAddress.TryParse(o.Address, out _)) P1.Hostname(o.Address, "origin address");
+        ResourceKit.Match(o.Name, "origin name", PoolNamePattern, "letters, digits, '-' and '_'");
+        if (!System.Net.IPAddress.TryParse(o.Address, out _)) ResourceKit.Hostname(o.Address, "origin address");
         if (o.Weight is < 0 or > 1) throw new ArgumentOutOfRangeException(nameof(o), "Weight 0 to 1.");
         if (o.Port is < 1 or > 65535) throw new ArgumentOutOfRangeException(nameof(o), "Port 1 to 65535.");
     }
@@ -523,7 +523,7 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
 
     private static JsonObject PoolBody(LbPoolInput p)
     {
-        P2.Match(p.Name, nameof(p), PoolNamePattern, "letters, digits, '-' and '_'");
+        ResourceKit.Match(p.Name, nameof(p), PoolNamePattern, "letters, digits, '-' and '_'");
         if (p.Origins is null || p.Origins.Count is < 1 or > 100) throw new ArgumentException("Between 1 and 100 origins.", nameof(p));
         foreach (var o in p.Origins) CheckOrigin(o);
         if (p.Origins.Select(o => o.Name).Distinct().Count() != p.Origins.Count) throw new ArgumentException("Origin names must be unique.", nameof(p));
@@ -539,13 +539,13 @@ public sealed class LoadBalancingClient(ICloudflareApiConnection api) : Cloudfla
 
     private static JsonObject LoadBalancerBody(LoadBalancerInput l)
     {
-        var name = P1.Hostname(l.Name, nameof(l));
+        var name = ResourceKit.Hostname(l.Name, nameof(l));
         if (l.DefaultPools is null || l.DefaultPools.Count == 0 || l.DefaultPools.Any(string.IsNullOrWhiteSpace)) throw new ArgumentException("At least one default pool.", nameof(l));
         if (!Steering.Contains(l.SteeringPolicy)) throw new ArgumentException($"Steering policy: {string.Join(", ", Steering)}.", nameof(l));
         if (!Affinity.Contains(l.SessionAffinity)) throw new ArgumentException($"Session affinity: {string.Join(", ", Affinity)}.", nameof(l));
         var body = new JsonObject
         {
-            ["name"] = name, ["default_pools"] = P1.Arr(l.DefaultPools), ["fallback_pool"] = P1.Required(l.FallbackPool, nameof(l)),
+            ["name"] = name, ["default_pools"] = ResourceKit.Arr(l.DefaultPools), ["fallback_pool"] = ResourceKit.Required(l.FallbackPool, nameof(l)),
             ["enabled"] = l.Enabled, ["proxied"] = l.Proxied, ["steering_policy"] = l.SteeringPolicy, ["session_affinity"] = l.SessionAffinity,
         };
         if (l.Description is not null) body["description"] = l.Description;

@@ -54,7 +54,7 @@ public sealed class SpectrumAppInput
 public sealed class SpectrumClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
     private static readonly HashSet<int> SensitivePorts = [21, 22, 23, 25, 135, 139, 445, 1433, 1521, 2375, 3306, 3389, 5432, 5900, 6379, 9200, 11211, 27017];
-    private static readonly Regex ProtocolPattern = P2.Rx(@"^(tcp|udp)/([0-9]{1,5})(-([0-9]{1,5}))?$");
+    private static readonly Regex ProtocolPattern = ResourceKit.Rx(@"^(tcp|udp)/([0-9]{1,5})(-([0-9]{1,5}))?$");
     private static readonly HashSet<string> ProxyProtocols = ["off", "v1", "v2", "simple"];
     private static readonly HashSet<string> TlsModes = ["off", "flexible", "full", "strict"];
     private static readonly HashSet<string> TrafficTypes = ["direct", "http", "https"];
@@ -74,7 +74,7 @@ public sealed class SpectrumClient(ICloudflareApiConnection api) : CloudflareRes
         var body = Body(app, allowSensitivePort);
         var path = ZonePath(zoneId, "spectrum", "apps");
         EnsureWritable(HttpMethod.Post, path);
-        bool Same(SpectrumApp a) => a.Protocol == app.Protocol && a.Dns is { } d && string.Equals(P2.Str(d, "name"), body["dns"]!["name"]!.GetValue<string>(), StringComparison.OrdinalIgnoreCase);
+        bool Same(SpectrumApp a) => a.Protocol == app.Protocol && a.Dns is { } d && string.Equals(ResourceKit.Str(d, "name"), body["dns"]!["name"]!.GetValue<string>(), StringComparison.OrdinalIgnoreCase);
         var existing = (await ListAppsAsync(zoneId, ct).ConfigureAwait(false)).FirstOrDefault(Same);
         if (existing is not null) return (existing, false);
         try { return (await Api.PostAsync<SpectrumApp>(path, body, ct).ConfigureAwait(false), true); }
@@ -87,7 +87,7 @@ public sealed class SpectrumClient(ICloudflareApiConnection api) : CloudflareRes
 
     /// <summary>Replaces an application (PUT, idempotent).</summary>
     public Task<SpectrumApp> UpdateAppAsync(string appId, SpectrumAppInput app, bool allowSensitivePort = false, string? zoneId = null, CancellationToken ct = default) =>
-        Api.PutAsync<SpectrumApp>(ZonePath(zoneId, "spectrum", "apps", P1.Required(appId, nameof(appId))), Body(app, allowSensitivePort), ct);
+        Api.PutAsync<SpectrumApp>(ZonePath(zoneId, "spectrum", "apps", ResourceKit.Required(appId, nameof(appId))), Body(app, allowSensitivePort), ct);
 
     public CloudflareChangePreview PreviewRemoveApp(string appId, string? zoneId = null) =>
         new("DELETE", ZonePath(zoneId, "spectrum", "apps", appId), null, $"Delete Spectrum application {appId}. WARNING: clients can no longer connect through it.");
@@ -95,15 +95,15 @@ public sealed class SpectrumClient(ICloudflareApiConnection api) : CloudflareRes
     /// <summary>Deletes an application. Refused unless <paramref name="allowDelete"/> is true. False when it did not exist.</summary>
     public Task<bool> RemoveAppAsync(string appId, bool allowDelete = false, string? zoneId = null, CancellationToken ct = default)
     {
-        P2.Allow(allowDelete, "deleting the application cuts every client that connects through it", nameof(allowDelete));
-        return DeleteIfExistsAsync(ZonePath(zoneId, "spectrum", "apps", P1.Required(appId, nameof(appId))), null, ct);
+        ResourceKit.Allow(allowDelete, "deleting the application cuts every client that connects through it", nameof(allowDelete));
+        return DeleteIfExistsAsync(ZonePath(zoneId, "spectrum", "apps", ResourceKit.Required(appId, nameof(appId))), null, ct);
     }
 
     // M-3 (0.7.1): an origin port that is a management, file-sharing or database port exposes that service through Spectrum, too.
     private static void CheckOriginPorts(IEnumerable<int> ports, bool allowSensitivePort)
     {
         var sensitive = ports.Where(SensitivePorts.Contains).Distinct().ToList();
-        if (sensitive.Count > 0) P2.Allow(allowSensitivePort, $"origin port {string.Join(", ", sensitive)} is a management, file-sharing or database port", nameof(allowSensitivePort));
+        if (sensitive.Count > 0) ResourceKit.Allow(allowSensitivePort, $"origin port {string.Join(", ", sensitive)} is a management, file-sharing or database port", nameof(allowSensitivePort));
     }
 
     private static JsonObject Body(SpectrumAppInput a, bool allowSensitivePort)
@@ -114,7 +114,7 @@ public sealed class SpectrumClient(ICloudflareApiConnection api) : CloudflareRes
         var last = m.Groups[4].Success ? int.Parse(m.Groups[4].Value, System.Globalization.CultureInfo.InvariantCulture) : first;
         if (first is < 1 or > 65535 || last is < 1 or > 65535 || last < first) throw new ArgumentException("Ports are 1 to 65535, the range ascending.", nameof(a));
         var sensitive = SensitivePorts.Where(p => p >= first && p <= last).ToList();
-        if (sensitive.Count > 0) P2.Allow(allowSensitivePort, $"port {string.Join(", ", sensitive)} is a management, file-sharing or database port that attackers scan for", nameof(allowSensitivePort));
+        if (sensitive.Count > 0) ResourceKit.Allow(allowSensitivePort, $"port {string.Join(", ", sensitive)} is a management, file-sharing or database port that attackers scan for", nameof(allowSensitivePort));
         if ((a.OriginDirect is { Count: > 0 }) == (a.OriginDnsName is not null)) throw new ArgumentException("Pass exactly one of OriginDirect and OriginDnsName.", nameof(a));
         if (!ProxyProtocols.Contains(a.ProxyProtocol)) throw new ArgumentException("Proxy protocol: off, v1, v2 or simple.", nameof(a));
         if (!TlsModes.Contains(a.Tls)) throw new ArgumentException("TLS: off, flexible, full or strict.", nameof(a));
@@ -122,7 +122,7 @@ public sealed class SpectrumClient(ICloudflareApiConnection api) : CloudflareRes
         var body = new JsonObject
         {
             ["protocol"] = a.Protocol,
-            ["dns"] = new JsonObject { ["type"] = "CNAME", ["name"] = P1.Hostname(a.Hostname, nameof(a)) },
+            ["dns"] = new JsonObject { ["type"] = "CNAME", ["name"] = ResourceKit.Hostname(a.Hostname, nameof(a)) },
             ["ip_firewall"] = a.IpFirewall, ["proxy_protocol"] = a.ProxyProtocol, ["tls"] = a.Tls, ["traffic_type"] = a.TrafficType,
         };
         if (a.OriginDirect is { Count: > 0 } direct)
@@ -134,11 +134,11 @@ public sealed class SpectrumClient(ICloudflareApiConnection api) : CloudflareRes
                 originPorts.Add(u.Port);
             }
             CheckOriginPorts(originPorts, allowSensitivePort);
-            body["origin_direct"] = P1.Arr(direct);
+            body["origin_direct"] = ResourceKit.Arr(direct);
         }
         else
         {
-            body["origin_dns"] = new JsonObject { ["name"] = P1.Hostname(a.OriginDnsName, nameof(a)) };
+            body["origin_dns"] = new JsonObject { ["name"] = ResourceKit.Hostname(a.OriginDnsName, nameof(a)) };
             var port = a.OriginPort ?? throw new ArgumentException("OriginPort is required with OriginDnsName.", nameof(a));
             if (port is < 1 or > 65535) throw new ArgumentOutOfRangeException(nameof(a), "OriginPort 1 to 65535.");
             CheckOriginPorts([port], allowSensitivePort);

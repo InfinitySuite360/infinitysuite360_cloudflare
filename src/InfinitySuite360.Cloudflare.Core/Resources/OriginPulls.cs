@@ -85,11 +85,11 @@ public sealed class OriginPullKeyPair : IDisposable
     internal JsonObject ToRedactedBody() => new()
     {
         ["certificate"] = $"[{CertificatePem.Length} characters, sha256 {Sha256}]",
-        ["private_key"] = P1.Redacted,
+        ["private_key"] = ResourceKit.Redacted,
     };
 
     public override string ToString() =>
-        string.Create(CultureInfo.InvariantCulture, $"OriginPullKeyPair({Subject}, expires {NotAfter:yyyy-MM-dd}, sha256 {Sha256}, key {P1.Redacted})");
+        string.Create(CultureInfo.InvariantCulture, $"OriginPullKeyPair({Subject}, expires {NotAfter:yyyy-MM-dd}, sha256 {Sha256}, key {ResourceKit.Redacted})");
 }
 
 /// <summary>Zone-level Authenticated Origin Pulls setting.</summary>
@@ -162,10 +162,10 @@ public sealed class OriginPullsClient(ICloudflareApiConnection api) : Cloudflare
     }
 
     public Task<IReadOnlyList<OriginPullCertificate>> ListZoneCertificatesAsync(string? zoneId = null, CancellationToken ct = default) =>
-        P1.ListStrippedAsync<OriginPullCertificate>(Api, ZonePath(zoneId, "origin_tls_client_auth"), 50, ct, Secret);
+        ResourceKit.ListStrippedAsync<OriginPullCertificate>(Api, ZonePath(zoneId, "origin_tls_client_auth"), 50, ct, Secret);
 
     public Task<OriginPullCertificate> GetZoneCertificateAsync(string certificateId, string? zoneId = null, CancellationToken ct = default) =>
-        P1.SendStrippedAsync<OriginPullCertificate>(Api, HttpMethod.Get, ZonePath(zoneId, "origin_tls_client_auth", certificateId), null, ct, Secret);
+        ResourceKit.SendStrippedAsync<OriginPullCertificate>(Api, HttpMethod.Get, ZonePath(zoneId, "origin_tls_client_auth", certificateId), null, ct, Secret);
 
     /// <summary>Plan of a zone-level certificate upload: the certificate appears as length and SHA-256, the key as [redacted].</summary>
     public CloudflareChangePreview PreviewUploadZoneCertificate(OriginPullKeyPair keyPair, string? zoneId = null) =>
@@ -174,7 +174,7 @@ public sealed class OriginPullsClient(ICloudflareApiConnection api) : Cloudflare
 
     /// <summary>Uploads a zone-level certificate (POST, not retried). It is used once zone-level AOP is enabled; keep only one active.</summary>
     public Task<OriginPullCertificate> UploadZoneCertificateAsync(OriginPullKeyPair keyPair, string? zoneId = null, CancellationToken ct = default) =>
-        P1.SendStrippedAsync<OriginPullCertificate>(Api, HttpMethod.Post, ZonePath(zoneId, "origin_tls_client_auth"), keyPair.ToBody(), ct, Secret);
+        ResourceKit.SendStrippedAsync<OriginPullCertificate>(Api, HttpMethod.Post, ZonePath(zoneId, "origin_tls_client_auth"), keyPair.ToBody(), ct, Secret);
 
     public CloudflareChangePreview PreviewDeleteZoneCertificate(string certificateId, string? zoneId = null) =>
         new("DELETE", ZonePath(zoneId, "origin_tls_client_auth", certificateId), null,
@@ -190,10 +190,10 @@ public sealed class OriginPullsClient(ICloudflareApiConnection api) : Cloudflare
     // ---- per hostname ----
 
     public Task<IReadOnlyList<OriginPullCertificate>> ListHostnameCertificatesAsync(string? zoneId = null, CancellationToken ct = default) =>
-        P1.ListStrippedAsync<OriginPullCertificate>(Api, ZonePath(zoneId, "origin_tls_client_auth", "hostnames", "certificates"), 50, ct, Secret);
+        ResourceKit.ListStrippedAsync<OriginPullCertificate>(Api, ZonePath(zoneId, "origin_tls_client_auth", "hostnames", "certificates"), 50, ct, Secret);
 
     public Task<OriginPullCertificate> GetHostnameCertificateAsync(string certificateId, string? zoneId = null, CancellationToken ct = default) =>
-        P1.SendStrippedAsync<OriginPullCertificate>(Api, HttpMethod.Get, ZonePath(zoneId, "origin_tls_client_auth", "hostnames", "certificates", certificateId), null, ct, Secret);
+        ResourceKit.SendStrippedAsync<OriginPullCertificate>(Api, HttpMethod.Get, ZonePath(zoneId, "origin_tls_client_auth", "hostnames", "certificates", certificateId), null, ct, Secret);
 
     public CloudflareChangePreview PreviewUploadHostnameCertificate(OriginPullKeyPair keyPair, string? zoneId = null) =>
         new("POST", ZonePath(zoneId, "origin_tls_client_auth", "hostnames", "certificates"), keyPair.ToRedactedBody(),
@@ -201,7 +201,7 @@ public sealed class OriginPullsClient(ICloudflareApiConnection api) : Cloudflare
 
     /// <summary>Uploads a per-hostname certificate (POST, not retried). Associate it with <see cref="SetHostnamesAsync"/>.</summary>
     public Task<OriginPullCertificate> UploadHostnameCertificateAsync(OriginPullKeyPair keyPair, string? zoneId = null, CancellationToken ct = default) =>
-        P1.SendStrippedAsync<OriginPullCertificate>(Api, HttpMethod.Post, ZonePath(zoneId, "origin_tls_client_auth", "hostnames", "certificates"), keyPair.ToBody(), ct, Secret);
+        ResourceKit.SendStrippedAsync<OriginPullCertificate>(Api, HttpMethod.Post, ZonePath(zoneId, "origin_tls_client_auth", "hostnames", "certificates"), keyPair.ToBody(), ct, Secret);
 
     public CloudflareChangePreview PreviewDeleteHostnameCertificate(string certificateId, string? zoneId = null) =>
         new("DELETE", ZonePath(zoneId, "origin_tls_client_auth", "hostnames", "certificates", certificateId), null,
@@ -216,29 +216,29 @@ public sealed class OriginPullsClient(ICloudflareApiConnection api) : Cloudflare
 
     /// <summary>Hostname associations of the zone (optionally only with this status).</summary>
     public Task<IReadOnlyList<OriginPullHostname>> ListHostnamesAsync(string? status = null, string? zoneId = null, CancellationToken ct = default) =>
-        P1.ListStrippedAsync<OriginPullHostname>(Api, CloudflarePath.WithQuery(ZonePath(zoneId, "origin_tls_client_auth", "hostnames"), ("status", status)), 50, ct, Secret);
+        ResourceKit.ListStrippedAsync<OriginPullHostname>(Api, CloudflarePath.WithQuery(ZonePath(zoneId, "origin_tls_client_auth", "hostnames"), ("status", status)), 50, ct, Secret);
 
     public Task<OriginPullHostname> GetHostnameAsync(string hostname, string? zoneId = null, CancellationToken ct = default) =>
-        P1.SendStrippedAsync<OriginPullHostname>(Api, HttpMethod.Get, ZonePath(zoneId, "origin_tls_client_auth", "hostnames", P1.Hostname(hostname, nameof(hostname))), null, ct, Secret);
+        ResourceKit.SendStrippedAsync<OriginPullHostname>(Api, HttpMethod.Get, ZonePath(zoneId, "origin_tls_client_auth", "hostnames", ResourceKit.Hostname(hostname, nameof(hostname))), null, ct, Secret);
 
     public CloudflareChangePreview PreviewSetHostnames(IEnumerable<OriginPullHostnameConfig> configs, string? zoneId = null)
     {
         var (body, disabled) = HostnamesBody(configs);
         return new("PUT", ZonePath(zoneId, "origin_tls_client_auth", "hostnames"), body,
             $"Set the origin pull certificate of {body["config"]!.AsArray().Count} hostname(s)." +
-            (disabled.Count > 0 ? $" WARNING: {P1.Join(disabled)} stop presenting a client certificate; an origin that requires it rejects them." : ""));
+            (disabled.Count > 0 ? $" WARNING: {ResourceKit.Join(disabled)} stop presenting a client certificate; an origin that requires it rejects them." : ""));
     }
 
     /// <summary>Associates hostnames with certificates and enables them (PUT). Disabling or invalidating (Enabled false/null) needs <paramref name="allowDisable"/>.</summary>
     public Task<IReadOnlyList<OriginPullHostname>> SetHostnamesAsync(IEnumerable<OriginPullHostnameConfig> configs, bool allowDisable = false, string? zoneId = null, CancellationToken ct = default)
     {
         var (body, disabled) = HostnamesBody(configs);
-        if (disabled.Count > 0 && !allowDisable) throw Refused($"disabling origin pulls for {P1.Join(disabled)}");
+        if (disabled.Count > 0 && !allowDisable) throw Refused($"disabling origin pulls for {ResourceKit.Join(disabled)}");
         return SendList(ZonePath(zoneId, "origin_tls_client_auth", "hostnames"), body, ct);
     }
 
     private async Task<IReadOnlyList<OriginPullHostname>> SendList(string path, JsonObject body, CancellationToken ct) =>
-        await P1.SendStrippedAsync<List<OriginPullHostname>>(Api, HttpMethod.Put, path, body, ct, Secret).ConfigureAwait(false) ?? [];
+        await ResourceKit.SendStrippedAsync<List<OriginPullHostname>>(Api, HttpMethod.Put, path, body, ct, Secret).ConfigureAwait(false) ?? [];
 
     private static (JsonObject Body, List<string> Disabled) HostnamesBody(IEnumerable<OriginPullHostnameConfig> configs)
     {
@@ -246,8 +246,8 @@ public sealed class OriginPullsClient(ICloudflareApiConnection api) : Cloudflare
         var disabled = new List<string>();
         foreach (var c in configs)
         {
-            var host = P1.Hostname(c.Hostname, nameof(configs));
-            var o = new JsonObject { ["hostname"] = host, ["cert_id"] = P1.Required(c.CertId, nameof(configs), 64), ["enabled"] = c.Enabled };
+            var host = ResourceKit.Hostname(c.Hostname, nameof(configs));
+            var o = new JsonObject { ["hostname"] = host, ["cert_id"] = ResourceKit.Required(c.CertId, nameof(configs), 64), ["enabled"] = c.Enabled };
             if (c.Enabled != true) disabled.Add(host);
             arr.Add(o);
         }

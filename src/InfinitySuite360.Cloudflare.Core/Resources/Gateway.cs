@@ -215,12 +215,12 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     /// <summary>Rules, optionally only of one filter ("dns", "http", "l4", …), ordered by precedence.</summary>
     public async Task<List<GatewayRule>> ListRulesAsync(string? filter = null, string? accountId = null, CancellationToken ct = default)
     {
-        var rules = await ZT.GetListAsync<GatewayRule>(Api, AccountPath(accountId, "gateway", "rules"), ct).ConfigureAwait(false);
+        var rules = await ResourceKit.GetSecretFreeListAsync<GatewayRule>(Api, AccountPath(accountId, "gateway", "rules"), ct).ConfigureAwait(false);
         return rules.Where(r => filter is null || r.Filters.Contains(filter)).OrderBy(r => r.Precedence ?? int.MaxValue).ToList();
     }
 
     public Task<GatewayRule> GetRuleAsync(string ruleId, string? accountId = null, CancellationToken ct = default) =>
-        ZT.SendAsync<GatewayRule>(Api, HttpMethod.Get, AccountPath(accountId, "gateway", "rules", ruleId), null, ct);
+        ResourceKit.SendSecretFreeAsync<GatewayRule>(Api, HttpMethod.Get, AccountPath(accountId, "gateway", "rules", ruleId), null, ct);
 
     public CloudflareChangePreview PreviewEnsureRule(GatewayRuleInput rule, bool allowBroadMatch = false, string? accountId = null) =>
         new("POST", AccountPath(accountId, "gateway", "rules"), RuleBody(rule, allowBroadMatch), Describe("Create", rule));
@@ -240,12 +240,12 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
         var existing = all.FirstOrDefault(r => r.Name == rule.Name);
         if (existing is not null) return (existing, false);
         if (PermissiveRisk(rule.Action, rule.Enabled, rule.Filters[0], rule.Traffic, rule.Identity, rule.DevicePosture, rule.Precedence, all, null) is { } why)
-            P2.Allow(allowLoosen, $"rule \"{rule.Name}\" {why}", nameof(allowLoosen));
-        try { return (await ZT.SendAsync<GatewayRule>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), true); }
+            ResourceKit.Allow(allowLoosen, $"rule \"{rule.Name}\" {why}", nameof(allowLoosen));
+        try { return (await ResourceKit.SendSecretFreeAsync<GatewayRule>(Api, HttpMethod.Post, path, body, ct).ConfigureAwait(false), true); }
         catch (CloudflareConflictException)
         {
             var again = (await ListRulesAsync(null, accountId, ct).ConfigureAwait(false)).FirstOrDefault(r => r.Name == rule.Name);
-            return again is null ? throw ZT.Conflict("POST", path, $"Rule \"{rule.Name}\" is reported as existing but was not found.") : (again, false);
+            return again is null ? throw ResourceKit.Conflict("POST", path, $"Rule \"{rule.Name}\" is reported as existing but was not found.") : (again, false);
         }
     }
 
@@ -268,26 +268,26 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     public async Task<(GatewayRule Rule, bool Changed)> ChangeRuleAsync(string ruleId, GatewayRuleInput rule, bool allowLoosen = false, bool allowBlock = false, bool allowBroadMatch = false,
         string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "gateway", "rules", P1.Required(ruleId, nameof(ruleId)));
+        var path = AccountPath(accountId, "gateway", "rules", ResourceKit.Required(ruleId, nameof(ruleId)));
         EnsureWritable(HttpMethod.Put, path);
         var body = RuleBody(rule, allowBroadMatch);
-        var raw = await ZT.ResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
-        var current = P1.As<GatewayRule>(raw);
+        var raw = await ResourceKit.SecretFreeResultAsync(Api, HttpMethod.Get, path, null, ct).ConfigureAwait(false);
+        var current = ResourceKit.As<GatewayRule>(raw);
         if (current.ReadOnly == true) throw new InvalidOperationException($"Refused: rule \"{current.Name}\" is read-only (managed by another account).");
         var (loosen, block) = Compare(current, rule);
-        if (loosen is not null) P2.Allow(allowLoosen, $"the change loosens rule \"{current.Name}\": {loosen}", nameof(allowLoosen));
-        if (block is not null) P2.Allow(allowBlock, $"the change tightens rule \"{current.Name}\": {block}", nameof(allowBlock));
-        if (P1.Covers(P1.Node(raw), body)) return (current, false);
+        if (loosen is not null) ResourceKit.Allow(allowLoosen, $"the change loosens rule \"{current.Name}\": {loosen}", nameof(allowLoosen));
+        if (block is not null) ResourceKit.Allow(allowBlock, $"the change tightens rule \"{current.Name}\": {block}", nameof(allowBlock));
+        if (ResourceKit.Covers(ResourceKit.Node(raw), body)) return (current, false);
         var widens = !(current.Enabled && Permissive.Contains(current.Action)) || Selector(current) != Selector(rule)
                      || (rule.Precedence is { } np && current.Precedence is { } cp && np < cp) || !current.Filters.SequenceEqual(rule.Filters);
         if (widens && rule.Enabled && Permissive.Contains(rule.Action))
         {
             var all = await ListRulesAsync(null, accountId, ct).ConfigureAwait(false);
             if (PermissiveRisk(rule.Action, rule.Enabled, rule.Filters[0], rule.Traffic, rule.Identity, rule.DevicePosture, rule.Precedence ?? current.Precedence, all, current.Id) is { } why)
-                P2.Allow(allowLoosen, $"rule \"{current.Name}\" {why}", nameof(allowLoosen));
+                ResourceKit.Allow(allowLoosen, $"rule \"{current.Name}\" {why}", nameof(allowLoosen));
         }
-        var merged = ZT.Merge(raw, body, ReadOnlyRuleMembers);
-        return (await ZT.SendAsync<GatewayRule>(Api, HttpMethod.Put, path, merged, ct).ConfigureAwait(false), true);
+        var merged = ResourceKit.Merge(raw, body, ReadOnlyRuleMembers);
+        return (await ResourceKit.SendSecretFreeAsync<GatewayRule>(Api, HttpMethod.Put, path, merged, ct).ConfigureAwait(false), true);
     }
 
     public CloudflareChangePreview PreviewSetRuleEnabled(string ruleId, bool enabled, string? accountId = null) =>
@@ -302,15 +302,15 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     /// </summary>
     public async Task<(GatewayRule Rule, bool Changed)> SetRuleEnabledAsync(string ruleId, bool enabled, bool allowLoosen = false, bool allowBlock = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "gateway", "rules", P1.Required(ruleId, nameof(ruleId)));
+        var path = AccountPath(accountId, "gateway", "rules", ResourceKit.Required(ruleId, nameof(ruleId)));
         EnsureWritable(HttpMethod.Patch, path);
         var current = await GetRuleAsync(ruleId, accountId, ct).ConfigureAwait(false);
         if (current.Enabled == enabled) return (current, false);
         if (current.ReadOnly == true) throw new InvalidOperationException($"Refused: rule \"{current.Name}\" is read-only (managed by another account).");
-        if (!enabled && Protective.Contains(current.Action)) P2.Allow(allowLoosen, $"disabling {current.Action} rule \"{current.Name}\" loosens Gateway", nameof(allowLoosen));
-        if (enabled && Permissive.Contains(current.Action)) P2.Allow(allowLoosen, $"enabling {current.Action} rule \"{current.Name}\" lets matching traffic past the protective rules", nameof(allowLoosen));
-        if (enabled && current.Action == "block") P2.Allow(allowBlock, $"enabling block rule \"{current.Name}\" tightens Gateway", nameof(allowBlock));
-        return (await ZT.SendAsync<GatewayRule>(Api, HttpMethod.Patch, path, new JsonObject { ["enabled"] = enabled }, ct).ConfigureAwait(false), true);
+        if (!enabled && Protective.Contains(current.Action)) ResourceKit.Allow(allowLoosen, $"disabling {current.Action} rule \"{current.Name}\" loosens Gateway", nameof(allowLoosen));
+        if (enabled && Permissive.Contains(current.Action)) ResourceKit.Allow(allowLoosen, $"enabling {current.Action} rule \"{current.Name}\" lets matching traffic past the protective rules", nameof(allowLoosen));
+        if (enabled && current.Action == "block") ResourceKit.Allow(allowBlock, $"enabling block rule \"{current.Name}\" tightens Gateway", nameof(allowBlock));
+        return (await ResourceKit.SendSecretFreeAsync<GatewayRule>(Api, HttpMethod.Patch, path, new JsonObject { ["enabled"] = enabled }, ct).ConfigureAwait(false), true);
     }
 
     public CloudflareChangePreview PreviewRemoveRule(string ruleId, string? accountId = null) =>
@@ -319,12 +319,12 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     /// <summary>Deletes a rule after a fresh read; an enabled protective rule needs <paramref name="allowLoosen"/>. False when it did not exist.</summary>
     public async Task<bool> RemoveRuleAsync(string ruleId, bool allowLoosen = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "gateway", "rules", P1.Required(ruleId, nameof(ruleId)));
+        var path = AccountPath(accountId, "gateway", "rules", ResourceKit.Required(ruleId, nameof(ruleId)));
         EnsureWritable(HttpMethod.Delete, path);
-        var current = await ZT.GetOrNullAsync<GatewayRule>(Api, path, ct).ConfigureAwait(false);
+        var current = await ResourceKit.GetSecretFreeOrNullAsync<GatewayRule>(Api, path, ct).ConfigureAwait(false);
         if (current is null) return false;
         if (current.ReadOnly == true) throw new InvalidOperationException($"Refused: rule \"{current.Name}\" is read-only (managed by another account).");
-        if (current.Enabled && Protective.Contains(current.Action)) P2.Allow(allowLoosen, $"deleting enabled {current.Action} rule \"{current.Name}\" loosens Gateway", nameof(allowLoosen));
+        if (current.Enabled && Protective.Contains(current.Action)) ResourceKit.Allow(allowLoosen, $"deleting enabled {current.Action} rule \"{current.Name}\" loosens Gateway", nameof(allowLoosen));
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 
@@ -351,7 +351,7 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
         return (loosen, block);
     }
 
-    private static bool SameSettings(JsonElement? current, JsonObject next) => P1.Covers(P1.Node(current) ?? new JsonObject(), next);
+    private static bool SameSettings(JsonElement? current, JsonObject next) => ResourceKit.Covers(ResourceKit.Node(current) ?? new JsonObject(), next);
 
     private static string Selector(GatewayRule r) => $"{Norm(r.Traffic)}\n{Norm(r.Identity)}\n{Norm(r.DevicePosture)}";
 
@@ -359,8 +359,8 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
 
     private static string Norm(string? s) => (s ?? "").Trim();
 
-    /// <summary>True when the selectors are empty or tautologies (<see cref="ZT.MatchesAll"/>): the rule applies to all traffic of its filter.</summary>
-    private static bool IsBroad(string? traffic, string? identity, string? posture) => ZT.MatchesAll(traffic) && ZT.MatchesAll(identity) && ZT.MatchesAll(posture);
+    /// <summary>True when the selectors are empty or tautologies (<see cref="ResourceKit.MatchesAll"/>): the rule applies to all traffic of its filter.</summary>
+    private static bool IsBroad(string? traffic, string? identity, string? posture) => ResourceKit.MatchesAll(traffic) && ResourceKit.MatchesAll(identity) && ResourceKit.MatchesAll(posture);
 
     /// <summary>
     /// Why an enabled permissive rule is risky, or null: it matches all traffic of its filter, or its precedence puts it before an enabled protective rule of the
@@ -391,15 +391,15 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
 
     private static JsonObject RuleBody(GatewayRuleInput r, bool allowBroadMatch)
     {
-        P1.Required(r.Name, nameof(r), 255);
+        ResourceKit.Required(r.Name, nameof(r), 255);
         if (!Actions.Contains(r.Action)) throw new ArgumentException($"Unknown action \"{r.Action}\".", nameof(r));
         if (r.Filters is not { Count: 1 } || !Filters.Contains(r.Filters[0])) throw new ArgumentException("Exactly one filter: dns, http, l4, egress or dns_resolver.", nameof(r));
         var broad = IsBroad(r.Traffic, r.Identity, r.DevicePosture);
         if (broad && r.Enabled && Protective.Contains(r.Action))
-            P2.Allow(allowBroadMatch, $"rule \"{r.Name}\" would {r.Action} all {r.Filters[0]} traffic (no traffic, identity or device posture selector)", nameof(allowBroadMatch));
+            ResourceKit.Allow(allowBroadMatch, $"rule \"{r.Name}\" would {r.Action} all {r.Filters[0]} traffic (no traffic, identity or device posture selector)", nameof(allowBroadMatch));
         var body = new JsonObject
         {
-            ["name"] = r.Name, ["action"] = r.Action, ["enabled"] = r.Enabled, ["filters"] = P1.Arr(r.Filters),
+            ["name"] = r.Name, ["action"] = r.Action, ["enabled"] = r.Enabled, ["filters"] = ResourceKit.Arr(r.Filters),
             ["traffic"] = r.Traffic ?? "", ["identity"] = r.Identity ?? "", ["device_posture"] = r.DevicePosture ?? "",
         };
         if (r.Precedence is { } p) body["precedence"] = p;
@@ -417,7 +417,7 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
         Api.GetAsync<GatewayList>(AccountPath(accountId, "gateway", "lists", listId), ct);
 
     public Task<IReadOnlyList<GatewayListItem>> ListItemsAsync(string listId, string? accountId = null, CancellationToken ct = default) =>
-        Api.ListAllToListAsync<GatewayListItem>(AccountPath(accountId, "gateway", "lists", P1.Required(listId, nameof(listId)), "items"), 50, ct);
+        Api.ListAllToListAsync<GatewayListItem>(AccountPath(accountId, "gateway", "lists", ResourceKit.Required(listId, nameof(listId)), "items"), 50, ct);
 
     public CloudflareChangePreview PreviewEnsureList(string name, string type, IEnumerable<string>? values = null, string? description = null, string? accountId = null)
     {
@@ -449,7 +449,7 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     /// </summary>
     public async Task<GatewayList> AddListItemsAsync(string listId, IEnumerable<string> values, string? accountId = null, bool allowInUse = false, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "gateway", "lists", P1.Required(listId, nameof(listId)));
+        var path = AccountPath(accountId, "gateway", "lists", ResourceKit.Required(listId, nameof(listId)));
         EnsureWritable(HttpMethod.Patch, path);
         var list = await GetListAsync(listId, accountId, ct).ConfigureAwait(false);
         var items = Items(list.Type, values);
@@ -465,18 +465,18 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     /// </summary>
     public async Task<GatewayList> RemoveListItemsAsync(string listId, IEnumerable<string> values, bool allowInUse = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "gateway", "lists", P1.Required(listId, nameof(listId)));
+        var path = AccountPath(accountId, "gateway", "lists", ResourceKit.Required(listId, nameof(listId)));
         EnsureWritable(HttpMethod.Patch, path);
-        var remove = values.Select(v => P1.Required(v, nameof(values)).Trim()).Distinct().ToList();
+        var remove = values.Select(v => ResourceKit.Required(v, nameof(values)).Trim()).Distinct().ToList();
         if (remove.Count == 0) throw new ArgumentException("At least one value.", nameof(values));
         await RefuseInUseAsync(listId, allowInUse, "removing entries from", accountId, ct).ConfigureAwait(false);
-        return await Api.PatchAsync<GatewayList>(path, new JsonObject { ["remove"] = P1.Arr(remove) }, ct).ConfigureAwait(false);
+        return await Api.PatchAsync<GatewayList>(path, new JsonObject { ["remove"] = ResourceKit.Arr(remove) }, ct).ConfigureAwait(false);
     }
 
     /// <summary>Deletes a list. A list used by a rule needs <paramref name="allowInUse"/> (fresh read of the rules, fail-closed). False when it did not exist.</summary>
     public async Task<bool> RemoveListAsync(string listId, bool allowInUse = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "gateway", "lists", P1.Required(listId, nameof(listId)));
+        var path = AccountPath(accountId, "gateway", "lists", ResourceKit.Required(listId, nameof(listId)));
         EnsureWritable(HttpMethod.Delete, path);
         await RefuseInUseAsync(listId, allowInUse, "deleting", accountId, ct).ConfigureAwait(false);
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
@@ -495,7 +495,7 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
 
     private static JsonObject ListBody(string name, string type, IEnumerable<string>? values, string? description)
     {
-        P1.Required(name, nameof(name), 255);
+        ResourceKit.Required(name, nameof(name), 255);
         var body = new JsonObject { ["name"] = name, ["type"] = CheckType(type), ["items"] = Items(type, values ?? []) };
         if (description is not null) body["description"] = description;
         return body;
@@ -512,8 +512,8 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
         {
             switch (type)
             {
-                case "IP": ZT.Cidr(v, nameof(values)); break;
-                case "DOMAIN": P1.Hostname(v, nameof(values), allowWildcard: true); break;
+                case "IP": ResourceKit.Cidr(v, nameof(values)); break;
+                case "DOMAIN": ResourceKit.Hostname(v, nameof(values), allowWildcard: true); break;
                 case "EMAIL" when !v.Contains('@'): throw new ArgumentException($"\"{v}\" is not an e-mail address.", nameof(values));
                 case "URL" when v.Contains("://", StringComparison.Ordinal): throw new ArgumentException($"\"{v}\": URL entries without scheme.", nameof(values));
             }
@@ -551,16 +551,16 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     /// <summary>Deletes a DNS location; resolvers using it lose filtering, so this always needs <paramref name="allowDelete"/>. False when it did not exist.</summary>
     public Task<bool> RemoveLocationAsync(string locationId, bool allowDelete = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "gateway", "locations", P1.Required(locationId, nameof(locationId)));
+        var path = AccountPath(accountId, "gateway", "locations", ResourceKit.Required(locationId, nameof(locationId)));
         EnsureWritable(HttpMethod.Delete, path);
-        P2.Allow(allowDelete, "deleting a DNS location ends the filtering of every resolver pointed at it", nameof(allowDelete));
+        ResourceKit.Allow(allowDelete, "deleting a DNS location ends the filtering of every resolver pointed at it", nameof(allowDelete));
         return DeleteIfExistsAsync(path, null, ct);
     }
 
     private static JsonObject LocationBody(string name, IEnumerable<string>? networks, bool ecs)
     {
-        P1.Required(name, nameof(name), 255);
-        var nets = (networks ?? []).Select(n => ZT.Cidr(n, nameof(networks)).Cidr).Distinct().ToList();
+        ResourceKit.Required(name, nameof(name), 255);
+        var nets = (networks ?? []).Select(n => ResourceKit.Cidr(n, nameof(networks)).Cidr).Distinct().ToList();
         if (nets.Count > 1500) throw new ArgumentException("At most 1500 source networks per location.", nameof(networks));
         return new JsonObject
         {
@@ -572,7 +572,7 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     // ------------------------------------------------------------------ configuration
 
     public Task<GatewayConfiguration> GetConfigurationAsync(string? accountId = null, CancellationToken ct = default) =>
-        ZT.SendAsync<GatewayConfiguration>(Api, HttpMethod.Get, AccountPath(accountId, "gateway", "configuration"), null, ct);
+        ResourceKit.SendSecretFreeAsync<GatewayConfiguration>(Api, HttpMethod.Get, AccountPath(accountId, "gateway", "configuration"), null, ct);
 
     /// <summary>Plan of a configuration change (reads the configuration; sends no write).</summary>
     public async Task<CloudflareChangePreview> PreviewUpdateConfigurationAsync(GatewaySettingsChange change, string? accountId = null, CancellationToken ct = default)
@@ -597,9 +597,9 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
         var current = await GetConfigurationAsync(accountId, ct).ConfigureAwait(false);
         var (body, notes) = ConfigurationBody(current, change);
         foreach (var (flag, text) in notes)
-            P2.Allow(flag switch { "allowTlsDecrypt" => allowTlsDecrypt, "allowBlock" => allowBlock, _ => allowLoosen }, text, flag);
+            ResourceKit.Allow(flag switch { "allowTlsDecrypt" => allowTlsDecrypt, "allowBlock" => allowBlock, _ => allowLoosen }, text, flag);
         if (body["settings"]!.AsObject().Count == 0) return (current, false);
-        return (await ZT.SendAsync<GatewayConfiguration>(Api, HttpMethod.Patch, path, body, ct).ConfigureAwait(false), true);
+        return (await ResourceKit.SendSecretFreeAsync<GatewayConfiguration>(Api, HttpMethod.Patch, path, body, ct).ConfigureAwait(false), true);
     }
 
     private static (JsonObject Body, List<(string Flag, string Text)> Notes) ConfigurationBody(GatewayConfiguration current, GatewaySettingsChange c)
@@ -630,7 +630,7 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
         if (c.CertificateId is { } certId)
         {
             var was = now["certificate"]?["id"]?.GetValue<string>();
-            if (!string.Equals(was, P1.Required(certId, nameof(c)), StringComparison.Ordinal))
+            if (!string.Equals(was, ResourceKit.Required(certId, nameof(c)), StringComparison.Ordinal))
             {
                 settings["certificate"] = new JsonObject { ["id"] = certId };
                 notes.Add(("allowTlsDecrypt", "another inspection certificate must be trusted by every device first"));
@@ -655,19 +655,19 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
         EnsureWritable(HttpMethod.Put, path);
         var current = await GetLoggingAsync(accountId, ct).ConfigureAwait(false);
         var body = new JsonObject { ["redact_pii"] = redactPii ?? current.RedactPii ?? false };
-        var types = P1.Node(current.SettingsByRuleType) as JsonObject ?? new JsonObject();
-        if (redactPii == false && current.RedactPii == true) P2.Allow(allowPii, "turning PII redaction off writes personal data into the Gateway logs", nameof(allowPii));
+        var types = ResourceKit.Node(current.SettingsByRuleType) as JsonObject ?? new JsonObject();
+        if (redactPii == false && current.RedactPii == true) ResourceKit.Allow(allowPii, "turning PII redaction off writes personal data into the Gateway logs", nameof(allowPii));
         foreach (var (type, (all, blocks)) in byRuleType ?? new Dictionary<string, (bool, bool)>())
         {
             if (type is not ("dns" or "http" or "l4")) throw new ArgumentException("Rule types: dns, http, l4.", nameof(byRuleType));
             var was = types[type] as JsonObject;
             var wasAll = was?["log_all"]?.GetValue<bool>() ?? false;
             var wasBlocks = was?["log_blocks"]?.GetValue<bool>() ?? false;
-            if ((wasAll && !all) || (wasBlocks && !blocks)) P2.Allow(allowLoosen, $"less {type} logging", nameof(allowLoosen));
+            if ((wasAll && !all) || (wasBlocks && !blocks)) ResourceKit.Allow(allowLoosen, $"less {type} logging", nameof(allowLoosen));
             types[type] = new JsonObject { ["log_all"] = all, ["log_blocks"] = blocks };
         }
         body["settings_by_rule_type"] = types;
-        if (P1.Covers(P1.Node(ToElement(current)), body)) return (current, false);
+        if (ResourceKit.Covers(ResourceKit.Node(ToElement(current)), body)) return (current, false);
         return (await Api.PutAsync<GatewayLogging>(path, body, ct).ConfigureAwait(false), true);
     }
 
@@ -681,9 +681,9 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     {
         var path = AccountPath(accountId, "gateway", "proxy_endpoints");
         EnsureWritable(HttpMethod.Post, path);
-        var ranges = ips.Select(i => ZT.Cidr(i, nameof(ips)).Cidr).Distinct().ToList();
+        var ranges = ips.Select(i => ResourceKit.Cidr(i, nameof(ips)).Cidr).Distinct().ToList();
         if (ranges.Count is 0 or > 2000) throw new ArgumentException("1 to 2000 source ranges.", nameof(ips));
-        var body = new JsonObject { ["name"] = P1.Required(name, nameof(name), 255), ["kind"] = "ip", ["ips"] = P1.Arr(ranges) };
+        var body = new JsonObject { ["name"] = ResourceKit.Required(name, nameof(name), 255), ["kind"] = "ip", ["ips"] = ResourceKit.Arr(ranges) };
         var existing = (await ListProxyEndpointsAsync(accountId, ct).ConfigureAwait(false)).FirstOrDefault(e => e.Name == name);
         if (existing is not null) return (existing, false);
         return (await Api.PostAsync<GatewayProxyEndpoint>(path, body, ct).ConfigureAwait(false), true);
@@ -692,19 +692,19 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     /// <summary>Deletes a proxy endpoint; browsers configured with it lose their proxy, so this always needs <paramref name="allowDelete"/>.</summary>
     public Task<bool> RemoveProxyEndpointAsync(string endpointId, bool allowDelete = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "gateway", "proxy_endpoints", P1.Required(endpointId, nameof(endpointId)));
+        var path = AccountPath(accountId, "gateway", "proxy_endpoints", ResourceKit.Required(endpointId, nameof(endpointId)));
         EnsureWritable(HttpMethod.Delete, path);
-        P2.Allow(allowDelete, "deleting a proxy endpoint ends filtering for every browser that uses it", nameof(allowDelete));
+        ResourceKit.Allow(allowDelete, "deleting a proxy endpoint ends filtering for every browser that uses it", nameof(allowDelete));
         return DeleteIfExistsAsync(path, null, ct);
     }
 
     // ------------------------------------------------------------------ certificates
 
     public async Task<List<GatewayCertificate>> ListCertificatesAsync(string? accountId = null, CancellationToken ct = default) =>
-        await ZT.GetListAsync<GatewayCertificate>(Api, AccountPath(accountId, "gateway", "certificates"), ct).ConfigureAwait(false);
+        await ResourceKit.GetSecretFreeListAsync<GatewayCertificate>(Api, AccountPath(accountId, "gateway", "certificates"), ct).ConfigureAwait(false);
 
     public Task<GatewayCertificate> GetCertificateAsync(string certificateId, string? accountId = null, CancellationToken ct = default) =>
-        ZT.SendAsync<GatewayCertificate>(Api, HttpMethod.Get, AccountPath(accountId, "gateway", "certificates", certificateId), null, ct);
+        ResourceKit.SendSecretFreeAsync<GatewayCertificate>(Api, HttpMethod.Get, AccountPath(accountId, "gateway", "certificates", certificateId), null, ct);
 
     public CloudflareChangePreview PreviewCreateCertificate(int validityDays = 1826, string? accountId = null) =>
         new("POST", AccountPath(accountId, "gateway", "certificates"), new JsonObject { ["validity_period_days"] = CheckDays(validityDays) },
@@ -714,32 +714,32 @@ public sealed class ZeroTrustGatewayClient(ICloudflareApiConnection api) : Cloud
     public Task<GatewayCertificate> CreateCertificateAsync(int validityDays = 1826, string? accountId = null, CancellationToken ct = default)
     {
         var preview = PreviewCreateCertificate(validityDays, accountId);
-        return ZT.SendAsync<GatewayCertificate>(Api, HttpMethod.Post, preview.Path, preview.Body, ct);
+        return ResourceKit.SendSecretFreeAsync<GatewayCertificate>(Api, HttpMethod.Post, preview.Path, preview.Body, ct);
     }
 
     /// <summary>Deploys a certificate to the edge (POST). Using it for inspection is a separate configuration change (<see cref="GatewaySettingsChange.CertificateId"/>).</summary>
     public Task<GatewayCertificate> ActivateCertificateAsync(string certificateId, string? accountId = null, CancellationToken ct = default) =>
-        ZT.SendAsync<GatewayCertificate>(Api, HttpMethod.Post, AccountPath(accountId, "gateway", "certificates", P1.Required(certificateId, nameof(certificateId)), "activate"), null, ct);
+        ResourceKit.SendSecretFreeAsync<GatewayCertificate>(Api, HttpMethod.Post, AccountPath(accountId, "gateway", "certificates", ResourceKit.Required(certificateId, nameof(certificateId)), "activate"), null, ct);
 
     /// <summary>Takes a certificate off the edge after a fresh read; one in use for inspection needs <paramref name="allowDisable"/> (devices then see certificate errors).</summary>
     public async Task<GatewayCertificate> DeactivateCertificateAsync(string certificateId, bool allowDisable = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "gateway", "certificates", P1.Required(certificateId, nameof(certificateId)), "deactivate");
+        var path = AccountPath(accountId, "gateway", "certificates", ResourceKit.Required(certificateId, nameof(certificateId)), "deactivate");
         EnsureWritable(HttpMethod.Post, path);
         var current = await GetCertificateAsync(certificateId, accountId, ct).ConfigureAwait(false);
-        if (current.InUse == true) P2.Allow(allowDisable, $"certificate {certificateId} is used for TLS inspection", nameof(allowDisable));
-        return await ZT.SendAsync<GatewayCertificate>(Api, HttpMethod.Post, path, null, ct).ConfigureAwait(false);
+        if (current.InUse == true) ResourceKit.Allow(allowDisable, $"certificate {certificateId} is used for TLS inspection", nameof(allowDisable));
+        return await ResourceKit.SendSecretFreeAsync<GatewayCertificate>(Api, HttpMethod.Post, path, null, ct).ConfigureAwait(false);
     }
 
     /// <summary>Deletes a certificate after a fresh read; one in use or deployed (<c>available</c>) needs <paramref name="allowDisable"/>. False when it did not exist.</summary>
     public async Task<bool> RemoveCertificateAsync(string certificateId, bool allowDisable = false, string? accountId = null, CancellationToken ct = default)
     {
-        var path = AccountPath(accountId, "gateway", "certificates", P1.Required(certificateId, nameof(certificateId)));
+        var path = AccountPath(accountId, "gateway", "certificates", ResourceKit.Required(certificateId, nameof(certificateId)));
         EnsureWritable(HttpMethod.Delete, path);
-        var current = await ZT.GetOrNullAsync<GatewayCertificate>(Api, path, ct).ConfigureAwait(false);
+        var current = await ResourceKit.GetSecretFreeOrNullAsync<GatewayCertificate>(Api, path, ct).ConfigureAwait(false);
         if (current is null) return false;
         if (current.InUse == true || current.BindingStatus == "available")
-            P2.Allow(allowDisable, $"certificate {certificateId} is deployed{(current.InUse == true ? " and used for TLS inspection" : "")}", nameof(allowDisable));
+            ResourceKit.Allow(allowDisable, $"certificate {certificateId} is deployed{(current.InUse == true ? " and used for TLS inspection" : "")}", nameof(allowDisable));
         return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
     }
 

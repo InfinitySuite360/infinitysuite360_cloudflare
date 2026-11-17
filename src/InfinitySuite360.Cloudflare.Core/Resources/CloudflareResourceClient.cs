@@ -66,4 +66,31 @@ public abstract class CloudflareResourceClient(ICloudflareApiConnection api)
     }
 
     protected static JsonElement ToElement(object value) => JsonSerializer.SerializeToElement(value, value.GetType(), CloudflareJson.Options);
+
+    /// <summary>
+    /// The preview base (0.9.0): describes a write without sending it. The path is shown without query; a body is passed through
+    /// <see cref="ResourceKit.Redact"/>, so a member that looks like a secret never appears in a preview.
+    /// </summary>
+    protected static CloudflareChangePreview Preview(HttpMethod method, string path, object? body, string summary) =>
+        new(method.Method, CloudflarePath.Normalize(path), body is null ? null : ResourceKit.Redact(ResourceKit.ToNode(body)), summary);
+
+    /// <summary>
+    /// A guarded write (0.9.0) whose answer becomes a model only after every secret-looking member was removed: write guard first, then the
+    /// <c>allow…</c> switch (<paramref name="allowed"/> with <paramref name="what"/> and <paramref name="flag"/> for the message), then the call.
+    /// The connection never repeats a POST after a server error.
+    /// </summary>
+    protected async Task<T> GuardedWriteAsync<T>(HttpMethod method, string path, object? body, CancellationToken ct, bool allowed = true, string what = "this change", string flag = "allow")
+    {
+        EnsureWritable(method, path);
+        ResourceKit.Allow(allowed, what, flag);
+        return await ResourceKit.SendSecretFreeAsync<T>(Api, method, path, body, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>A guarded DELETE (0.9.0; write guard, then the switch): true when deleted, false when Cloudflare answered 404.</summary>
+    protected async Task<bool> GuardedDeleteAsync(string path, bool allowed, string what, string flag, CancellationToken ct)
+    {
+        EnsureWritable(HttpMethod.Delete, path);
+        ResourceKit.Allow(allowed, what, flag);
+        return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
+    }
 }
