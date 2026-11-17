@@ -102,6 +102,12 @@ public sealed class PageShieldQuery
 }
 
 /// <summary>Input for creating or replacing a content security rule.</summary>
+/// <remarks>
+/// <see cref="Action"/>: <c>"log"</c> (default, report only: <c>Content-Security-Policy-Report-Only</c>), <c>"add_reporting_directives"</c> (adds
+/// report directives to the site's own CSP) or <c>"allow"</c>. Warning: <c>"allow"</c> <b>enforces</b> the CSP in <see cref="Value"/>; every script or
+/// connection that is not listed is blocked in the visitors' browsers, so a missing source breaks the site. Run the same value with <c>"log"</c> first.
+/// Content security rules need Page Shield "Advanced" (Cloudflare tariff page, 17.11.2026); otherwise <see cref="CloudflareNotEntitledException"/>.
+/// </remarks>
 public sealed class PageShieldPolicyInput
 {
     public string Action { get; init; } = "log";
@@ -125,10 +131,15 @@ public sealed class PageShieldClient(ICloudflareApiConnection api) : CloudflareR
     public Task<PageShieldSettings> GetSettingsAsync(string? zoneId = null, CancellationToken ct = default) =>
         Api.GetAsync<PageShieldSettings>(ZonePath(zoneId, "page_shield"), ct);
 
-    /// <summary>Plan of the settings change (no request).</summary>
+    /// <summary>Plan of the settings change (no request). Only given values are sent; at least one is required.</summary>
+    /// <param name="enabled">Page Shield on or off. Off stops the script/connection/cookie monitor (a loosening: let the application ask for a second approval).</param>
+    /// <param name="useCloudflareReportingEndpoint">CSP reports go to Cloudflare's reporting endpoint (needed for the monitor) instead of a path on the zone.</param>
+    /// <param name="useConnectionUrlPath">Connections are reported with their full URL path instead of host only (more detail, may contain personal data in paths).</param>
     public CloudflareChangePreview PreviewSetSettings(bool? enabled = null, bool? useCloudflareReportingEndpoint = null, bool? useConnectionUrlPath = null, string? zoneId = null) =>
-        new("PUT", ZonePath(zoneId, "page_shield"), SettingsBody(enabled, useCloudflareReportingEndpoint, useConnectionUrlPath), "Change the Page Shield settings of the zone.");
+        new("PUT", ZonePath(zoneId, "page_shield"), SettingsBody(enabled, useCloudflareReportingEndpoint, useConnectionUrlPath),
+            "Change the Page Shield settings of the zone" + (enabled == false ? " (switch Page Shield OFF: scripts are no longer monitored)." : "."));
 
+    /// <inheritdoc cref="PreviewSetSettings"/>
     public Task<PageShieldSettings> SetSettingsAsync(bool? enabled = null, bool? useCloudflareReportingEndpoint = null, bool? useConnectionUrlPath = null, string? zoneId = null, CancellationToken ct = default) =>
         Api.PutAsync<PageShieldSettings>(ZonePath(zoneId, "page_shield"), SettingsBody(enabled, useCloudflareReportingEndpoint, useConnectionUrlPath), ct);
 
@@ -138,6 +149,7 @@ public sealed class PageShieldClient(ICloudflareApiConnection api) : CloudflareR
         if (enabled is { } e) body["enabled"] = e;
         if (reporting is { } r) body["use_cloudflare_reporting_endpoint"] = r;
         if (urlPath is { } u) body["use_connection_url_path"] = u;
+        if (body.Count == 0) throw new ArgumentException("Nothing to change: give at least one setting.");
         return body;
     }
 
@@ -180,30 +192,62 @@ public sealed class PageShieldClient(ICloudflareApiConnection api) : CloudflareR
     public Task<PageShieldPolicy> GetPolicyAsync(string policyId, string? zoneId = null, CancellationToken ct = default) =>
         Api.GetAsync<PageShieldPolicy>(ZonePath(zoneId, "page_shield", "policies", policyId), ct);
 
-    public CloudflareChangePreview PreviewCreatePolicy(PageShieldPolicyInput policy, string? zoneId = null) =>
-        new("POST", ZonePath(zoneId, "page_shield", "policies"), PolicyBody(policy), $"Create the content security rule \"{policy.Description}\" (action {policy.Action}).");
+    /// <summary>Plan of a new content security rule (no request). Action <c>"allow"</c> enforces the CSP and needs <paramref name="allowEnforce"/>.</summary>
+    /// <param name="allowEnforce">Warning: <c>true</c> permits action <c>"allow"</c>, which blocks every script/connection missing from the CSP in visitors' browsers.</param>
+    public CloudflareChangePreview PreviewCreatePolicy(PageShieldPolicyInput policy, string? zoneId = null, bool allowEnforce = false) =>
+        new("POST", ZonePath(zoneId, "page_shield", "policies"), PolicyBody(policy, allowEnforce),
+            $"Create the content security rule \"{policy.Description}\" (action {policy.Action}).{EnforceWarning(policy)}");
 
-    public Task<PageShieldPolicy> CreatePolicyAsync(PageShieldPolicyInput policy, string? zoneId = null, CancellationToken ct = default) =>
-        Api.PostAsync<PageShieldPolicy>(ZonePath(zoneId, "page_shield", "policies"), PolicyBody(policy), ct);
+    /// <summary>Creates a content security rule (POST, not retried; see <see cref="EnsurePolicyAsync"/> for an idempotent variant).</summary>
+    public Task<PageShieldPolicy> CreatePolicyAsync(PageShieldPolicyInput policy, string? zoneId = null, bool allowEnforce = false, CancellationToken ct = default) =>
+        Api.PostAsync<PageShieldPolicy>(ZonePath(zoneId, "page_shield", "policies"), PolicyBody(policy, allowEnforce), ct);
 
-    public CloudflareChangePreview PreviewUpdatePolicy(string policyId, PageShieldPolicyInput policy, string? zoneId = null) =>
-        new("PUT", ZonePath(zoneId, "page_shield", "policies", policyId), PolicyBody(policy), $"Replace the content security rule {policyId}.");
+    public CloudflareChangePreview PreviewUpdatePolicy(string policyId, PageShieldPolicyInput policy, string? zoneId = null, bool allowEnforce = false) =>
+        new("PUT", ZonePath(zoneId, "page_shield", "policies", policyId), PolicyBody(policy, allowEnforce), $"Replace the content security rule {policyId}.{EnforceWarning(policy)}");
 
-    public Task<PageShieldPolicy> UpdatePolicyAsync(string policyId, PageShieldPolicyInput policy, string? zoneId = null, CancellationToken ct = default) =>
-        Api.PutAsync<PageShieldPolicy>(ZonePath(zoneId, "page_shield", "policies", policyId), PolicyBody(policy), ct);
+    /// <summary>Replaces a content security rule (PUT, idempotent).</summary>
+    public Task<PageShieldPolicy> UpdatePolicyAsync(string policyId, PageShieldPolicyInput policy, string? zoneId = null, bool allowEnforce = false, CancellationToken ct = default) =>
+        Api.PutAsync<PageShieldPolicy>(ZonePath(zoneId, "page_shield", "policies", policyId), PolicyBody(policy, allowEnforce), ct);
+
+    /// <summary>
+    /// Idempotent create-or-update by <see cref="PageShieldPolicyInput.Description"/> (the description serves as the name): unchanged → nothing is written
+    /// (<c>Changed = false</c>), different → PUT, missing → POST. Checks the write guard before reading.
+    /// </summary>
+    public async Task<(PageShieldPolicy Policy, bool Changed)> EnsurePolicyAsync(PageShieldPolicyInput policy, string? zoneId = null, bool allowEnforce = false, CancellationToken ct = default)
+    {
+        var body = PolicyBody(policy, allowEnforce);
+        EnsureWritable(HttpMethod.Post, ZonePath(zoneId, "page_shield", "policies"));
+        var existing = (await ListPoliciesAsync(zoneId, ct).ConfigureAwait(false)).Where(p => p.Description == policy.Description).ToList();
+        if (existing.Count > 1)
+            throw new InvalidOperationException($"{existing.Count} content security rules share the description \"{policy.Description}\"; resolve the duplicates first.");
+        if (existing.Count == 0)
+            return (await Api.PostAsync<PageShieldPolicy>(ZonePath(zoneId, "page_shield", "policies"), body, ct).ConfigureAwait(false), true);
+        var e = existing[0];
+        if (e.Action == policy.Action && e.Enabled == policy.Enabled && e.Expression == policy.Expression && e.Value == policy.Value) return (e, false);
+        return (await Api.PutAsync<PageShieldPolicy>(ZonePath(zoneId, "page_shield", "policies", e.Id), body, ct).ConfigureAwait(false), true);
+    }
 
     public CloudflareChangePreview PreviewDeletePolicy(string policyId, string? zoneId = null) =>
-        new("DELETE", ZonePath(zoneId, "page_shield", "policies", policyId), null, $"Delete the content security rule {policyId}.");
+        new("DELETE", ZonePath(zoneId, "page_shield", "policies", policyId), null, $"Delete the content security rule {policyId} (a loosening when it enforced a CSP).");
 
-    public Task DeletePolicyAsync(string policyId, string? zoneId = null, CancellationToken ct = default) =>
-        Api.DeleteAsync(ZonePath(zoneId, "page_shield", "policies", policyId), ct);
+    /// <summary>Deletes a content security rule. True when deleted, false when it did not exist (idempotent).</summary>
+    public Task<bool> DeletePolicyAsync(string policyId, string? zoneId = null, CancellationToken ct = default) =>
+        DeleteIfExistsAsync(ZonePath(zoneId, "page_shield", "policies", policyId), null, ct);
 
-    private static Dictionary<string, object> PolicyBody(PageShieldPolicyInput p)
+    private static Dictionary<string, object> PolicyBody(PageShieldPolicyInput p, bool allowEnforce)
     {
         if (p.Action is not ("allow" or "log" or "add_reporting_directives"))
             throw new ArgumentException("Action must be \"allow\", \"log\" or \"add_reporting_directives\".", nameof(p));
+        if (p.Action == "allow" && !allowEnforce)
+            throw new ArgumentException("Action \"allow\" enforces the CSP and blocks unlisted scripts in visitors' browsers. Test with \"log\" first; pass allowEnforce: true deliberately.", nameof(p));
+        if (string.IsNullOrWhiteSpace(p.Description)) throw new ArgumentException("Description is required (it names the rule).", nameof(p));
+        if (string.IsNullOrWhiteSpace(p.Expression)) throw new ArgumentException("Expression is required, for example (http.host eq \"app.example.com\").", nameof(p));
+        if (string.IsNullOrWhiteSpace(p.Value)) throw new ArgumentException("Value (the CSP) is required.", nameof(p));
         return new() { ["action"] = p.Action, ["description"] = p.Description, ["enabled"] = p.Enabled, ["expression"] = p.Expression, ["value"] = p.Value };
     }
+
+    private static string EnforceWarning(PageShieldPolicyInput p) =>
+        p.Action == "allow" ? " WARNING: allow enforces the CSP; unlisted scripts are blocked in visitors' browsers." : "";
 }
 
 /// <summary>

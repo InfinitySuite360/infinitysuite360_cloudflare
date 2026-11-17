@@ -115,7 +115,7 @@ var events = await cloudflare.Analytics.GetSecurityEventsAsync(DateTimeOffset.Ut
 | Custom lists (IP lists, bulk status) | `Lists` |
 | IP access rules (zone and account) | `IpAccess` |
 
-Page Shield and API Shield (0.4.0; whether a feature is available depends on the plan and is decided by Cloudflare, an unavailable one throws `CloudflareApiException`):
+Page Shield and API Shield (0.4.0; whether a feature is available depends on the plan and is decided by Cloudflare, an unavailable one throws `CloudflareNotEntitledException`, a subclass of `CloudflareApiException`):
 
 ```csharp
 var scripts = await cloudflare.PageShield.ListScriptsAsync(new PageShieldQuery { Status = "active,infrequent", ExcludeCdnCgi = true, PrioritizeMalicious = true });
@@ -124,14 +124,47 @@ var cookies = await cloudflare.PageShield.ListCookiesAsync();
 
 // A change is first described, shown to the user and only then sent (and only with AllowWrites = true).
 var plan = cloudflare.PageShield.PreviewCreatePolicy(new PageShieldPolicyInput { Action = "log", Description = "CSP report only", Expression = "(http.host eq \"app.example.com\")", Value = "script-src 'self'" });
-Console.WriteLine($"{plan.Method} {plan.Path}
-{plan.BodyJson}");
+Console.WriteLine($"{plan.Method} {plan.Path}\n{plan.BodyJson}");
 
 var discovered = await cloudflare.ApiShield.ListDiscoveredOperationsAsync(new ApiOperationQuery { State = "review" });
 var operations = await cloudflare.ApiShield.ListOperationsAsync(new ApiOperationQuery { Host = "api.example.com" });
 var validation = await cloudflare.ApiShield.GetSchemaValidationSettingsAsync();
 var jwtRules = await cloudflare.ApiShield.ListTokenValidationRulesAsync();
 ```
+
+Shield writes (0.5.0). Each write method has a `Preview…` sister, needs `AllowWrites` and is checked locally first:
+
+```csharp
+// Idempotent: only operations that are not saved yet are added, in one call.
+var ops = await writer.ApiShield.EnsureOperationsAsync([new("GET", "api.example.com", "/v1/users/{var1}"), new("POST", "api.example.com", "/v1/orders")]);
+
+// Schema: stored with validation OFF, the preview shows size and SHA-256 instead of the text.
+var (schema, created) = await writer.ApiShield.EnsureSchemaAsync(new ApiShieldSchemaInput { Name = "api v1", Source = openApiJson },
+    new ApiShieldSchemaUploadOptions { AllowedHosts = ["api.example.com"] });
+await writer.ApiShield.SetDefaultActionAsync(ApiShieldActions.Log);           // "log" needs Enterprise; "block" only with allowBlock: true
+
+// JWT validation (Enterprise + API Shield add-on): keys never appear in previews, models, ToString or errors.
+var keys = JwtKeySet.Parse(jwksJson);                                          // private key members are refused
+var config = await writer.ApiShield.CreateTokenValidationConfigAsync(new TokenValidationConfigInput
+    { Title = "gateway", Description = "", TokenSources = ["http.request.headers[\"authorization\"][0]"], Keys = keys });
+
+// mTLS: removing a hostname is refused unless allowRemovals: true (an mTLS rule would then lock out every client).
+var change = await writer.ApiShield.PreviewReplaceHostnameAssociationsAsync(["api.example.com", "admin.example.com"]);
+
+try { await writer.PageShield.EnsurePolicyAsync(cspReportOnly); }
+catch (CloudflareNotEntitledException ex) { /* plan lacks the feature (rules need Page Shield "Advanced"); show ex.Errors */ }
+```
+
+| Write | Default | Explicit opt-in | Risk |
+|---|---|---|---|
+| Schema / token validation action | `log` or `none` | `allowBlock: true` for `block` | legitimate clients rejected |
+| Page Shield content security rule | `log` (report only) | `allowEnforce: true` for `allow` | unlisted scripts blocked in browsers |
+| mTLS hostname associations | additions only | `allowRemovals: true` | every client blocked by an mTLS rule |
+| Uploaded schema | validation off | `ValidationEnabled = true` / `SetSchemaValidationEnabledAsync` | – |
+
+Errors: `CloudflareNotEntitledException` (plan or add-on missing), `CloudflareConflictException` (409, "already exists"; the `Ensure…` methods handle it),
+`CloudflareWriteNotAllowedException` (blocked locally, nothing sent), otherwise `CloudflareApiException` (for example a missing token permission).
+Token permissions: "Zone: API Gateway: Edit" (operations, schemas, JWT, labels), "Zone: Page Shield: Edit", "Zone: SSL and Certificates: Edit" (mTLS).
 
 Edge status and lists (0.3.0):
 
