@@ -1,5 +1,66 @@
 # Changelog
 
+## 0.8.0 – unreleased
+
+Zero Trust: Access, Gateway, Tunnels and WARP devices as typed, guarded clients, DLP and risk scoring read-only. Same rules as 0.5.0–0.7.0: every write checks
+`AllowWrites`/`WriteFilter` first (methods that read before writing check it **before** the read; POST calls that only read, such as Access policy tests, fall under the
+guard as well), has a `Preview…` sister that sends nothing, validates input locally, writes only on change, and risky options need an explicit `allow…` switch; POST is
+never repeated after a server error. New: **lock-out protection** for Zero Trust – checks that depend on the current state read it right before the write and refuse when
+it cannot be read (fail-closed). Endpoints from `cloudflare/api-schemas@650bd71`; limits from developers.cloudflare.com/cloudflare-one/account-limits/ and
+…/tunnel/reference/tunnel-tokens/ (retrieved 17.11.2026, sources in the XML documentation).
+
+* New `CloudflareOneTimeSecret` (like `ApiTokenSecret`: `TakeValue` once, `ToString`/JSON `[redacted]`) for Access service token client secrets and tunnel run tokens.
+* `Access` (extended, now `partial`): `EnsureApplicationAsync` (needs a policy unless `allowNoPolicy`), `RemoveApplicationAsync` (`allowUnprotect`), `RevokeApplicationTokensAsync`
+  (`allowDisconnect`); application policies `AddApplicationPolicyAsync`, `ChangeApplicationPolicyAsync`, `RemoveApplicationPolicyAsync`; reusable policies `GetPolicyAsync`,
+  `EnsurePolicyAsync`, `ChangePolicyAsync`, `RemovePolicyAsync`. **Lock-out protection:** the last policy of an application, or the last one that admits anyone, is not removed
+  without `allowRemoveLast` (reusable policies: all applications are read, fail-closed). **Loosening** (bypass, allow/non_identity for everyone, more permissive decision,
+  removed require/exclude rules, narrower deny, removing a deny policy) needs `allowLoosen`; deny for everyone needs `allowBlock`. Policy tests `StartPolicyTestAsync`
+  (guarded POST), `GetPolicyTestAsync`, `ListPolicyTestUsersAsync`. Groups `EnsureGroupAsync`, `ChangeGroupAsync`, `RemoveGroupAsync` (`allowInUse` when policies,
+  applications or groups refer to it). Service tokens `IssueServiceTokenAsync` (secret only in `IssuedServiceToken.ClientSecret`, "forever" needs `allowNoExpiry`),
+  `RotateServiceTokenSecretAsync` (grace period or `allowDisconnect`), `RemoveServiceTokenAsync` (used or referenced tokens need `allowDisconnect`). Identity providers
+  `EnsureIdentityProviderAsync` (secrets redacted in the preview, stripped from the model), `RemoveIdentityProviderAsync` (last one: `allowRemoveLast`). mTLS root
+  certificates `ListCertificatesAsync`, `EnsureCertificateAsync` (public PEM only, private keys refused, preview with size and SHA-256), `SetCertificateHostnamesAsync`
+  and `RemoveCertificateAsync` (`allowRemovals`), `GetCertificateSettingsAsync`. Organization `GetOrganizationAsync`, `UpdateOrganizationAsync` (PATCH of changed fields;
+  team domain `allowDisconnect`, deny unmatched requests / MFA for all apps on `allowBlock`, off `allowLoosen`). Users `ListUsersAsync`, `ListActiveSessionsAsync`,
+  `RevokeUserSessionsAsync` (`allowDisconnect`, e-mail not in the preview). `AccessRules.ValidCertificate()`.
+* New `Gateway` (`ZeroTrustGatewayClient`): rules (`ListRulesAsync`, `EnsureRuleAsync`, `ChangeRuleAsync`, `SetRuleEnabledAsync`, `RemoveRuleAsync`; no default action, a protective
+  rule without selector needs `allowBroadMatch`, block → allow and disabling/deleting/re-matching a protective rule `allowLoosen`, allow → block and enabling a block rule
+  `allowBlock`, read-only rules refused), lists (`EnsureListAsync`, `AddListItemsAsync`, `RemoveListItemsAsync`, `RemoveListAsync`; entries checked per type, at most 5000;
+  lists used by an enabled rule need `allowInUse`), DNS locations (`EnsureLocationAsync`, `RemoveLocationAsync` with `allowDelete`), configuration (`UpdateConfigurationAsync`:
+  PATCH of the changed sections merged with a fresh read; inspection/antivirus/activity log off `allowLoosen`, TLS decryption on or another certificate `allowTlsDecrypt`,
+  fail-closed `allowBlock`), logging (`SetLoggingAsync`: PII redaction off `allowPii`, less logging `allowLoosen`), proxy endpoints, inspection certificates (create, activate,
+  deactivate/delete in use `allowDisable`), categories, application types, account.
+* `Tunnels` (extended, now `partial`): `EnsureAsync` (run token of a new tunnel only in `EnsuredTunnel.RunToken`), `GetRunTokenAsync`, `RotateRunTokenAsync` (tunnel secret
+  generated locally, `allowDisconnect`), `RemoveAsync` (connected tunnels and tunnels with routes need `allowDeleteActive`; tunnel, connectors and routes are read, fail-closed),
+  `DisconnectAsync`; ingress `PreviewSetIngressAsync`, `SetIngressAsync`, `UpsertIngressRuleAsync`, `RemoveIngressRuleAsync`, `PublishAsync` – removing or re-pointing a hostname
+  needs `allowDisconnect`, a forwarding catch-all `allowCatchAllService`, `originRequest` and `warp-routing` are kept, written only on change; private routes
+  (`ListRoutesAsync`, `EnsureRouteAsync` with `allowBroadRoute` below /8 or /16 and a conflict for a network of another tunnel, `MoveRouteAsync`, `RemoveRouteAsync`); virtual
+  networks (`EnsureVirtualNetworkAsync`, `SetDefaultVirtualNetworkAsync` with `allowDefaultChange`, `RemoveVirtualNetworkAsync` refuses the default network).
+* New `Devices` (`DevicesClient`): default and custom profiles (`UpdateDefaultProfileAsync` always `allowBroadProfile`; `EnsureProfileAsync`/`UpdateProfileAsync` with a match
+  for all devices `allowBroadProfile`; loosening – WARP can be switched off, mode switch, leaving, self-updates, no auto-reconnect – `allowLoosen`; `RemoveProfileAsync`
+  `allowDelete`), Split Tunnel (`SetSplitTunnelExcludeAsync`: new exclusions `allowLoosen`, removed ones `allowDisconnect`), fallback domains (read), posture rules (ensure, update
+  and delete; rules used by Access or Gateway need `allowInUse`), devices (read, `maxItems`), registrations revoke (`allowDisconnect`) and un-revoke (`allowLoosen`). Previews
+  of device operations carry counts only.
+* New `Dlp` (`DlpClient`, read-only): profiles without patterns and word lists, datasets without cells, payload log settings. New `RiskScoring` (`RiskScoringClient`,
+  read-only): behaviors and user summary.
+* **Secrets:** `client_secret`, `secret`, `token`, `tunnel_secret`, `credentials_file`, `private_key`, `password` and similar members are removed from every Zero Trust answer
+  before a model is built – also in the older `Access.List…/Get…` (applications, service tokens, identity providers) and `Tunnels.ListAsync/GetAsync/CreateAsync`
+  (behaviour change: these members are no longer in `AdditionalData`).
+* **Obsolete** (still working, removed in 1.0): `Access.CreateApplicationAsync`, `UpdateApplicationAsync`, `DeleteApplicationAsync`, `CreateApplicationPolicyAsync`,
+  `UpdateApplicationPolicyAsync`, `DeleteApplicationPolicyAsync`, `CreatePolicyAsync`, `DeletePolicyAsync`, `CreateGroupAsync`, `UpdateGroupAsync`, `DeleteGroupAsync`,
+  `CreateServiceTokenAsync`, `RotateServiceTokenAsync`, `DeleteServiceTokenAsync`, `CreateIdentityProviderAsync`, `UpdateIdentityProviderAsync`, `DeleteIdentityProviderAsync`,
+  the property `AccessServiceToken.ClientSecret`; `Tunnels.CreateAsync`, `DeleteAsync`, `CleanupConnectionsAsync`, `GetTokenAsync`, `PutConfigurationAsync`,
+  `PublishHostnameAsync`. With `TreatWarningsAsErrors` callers have to switch to the guarded replacements or suppress CS0618.
+* **Breaking (source, rare):** `ICloudflareClient` has the new members `Gateway`, `Devices`, `Dlp`, `RiskScoring` (own implementations, in practice test doubles, must add them).
+  `AccessClient` and `TunnelsClient` are now `partial`; `AccessServiceToken` has the new properties `Enabled` and `LastSeenAt`. No other public signature changed.
+* Not included (reachable through `OpenApi`): Access SCIM, JIT logs, infrastructure targets, MCP portals, bookmarks, custom pages, tags, application settings; Gateway PAC files,
+  audit SSH, egress pairs, rule expiration reset, list upload; DEX, posture integrations, override codes, IP profiles, managed networks, deployment groups; DLP writes and dataset
+  uploads; email security; risk score reset.
+* Tests: 41 new (`ZeroTrustTests`, 251 in total) with the fake handler: success, errors, rate limit (429 retried), not entitled, conflict, previews send nothing, `AllowWrites = false` sends
+  nothing (66 write methods including POST reads), `WriteFilter` before the preparing read, every unconditional allow switch refuses without a request, conditional checks
+  send no write (last policy, loosening, organization defaults, groups/lists/posture rules in use, used service tokens, connected tunnels, ingress removals, Gateway rule
+  direction, inspection settings, PII, device profiles, Split Tunnel), fail-closed when the state cannot be read, secrets never in models, previews, `ToString` or errors.
+
 ## 0.7.0 – unreleased
 
 Priority 2: Workers, KV, D1, Queues, R2, cache, load balancing, Spectrum and Argo as typed clients, with the patterns of 0.5.0/0.6.0: every write checks

@@ -69,6 +69,14 @@ public interface ICloudflareClient
     LoadBalancingClient LoadBalancing { get; }
     /// <summary>Spectrum applications (TCP/UDP proxy).</summary>
     SpectrumClient Spectrum { get; }
+    /// <summary>Zero Trust Gateway: DNS/HTTP/network rules, lists, DNS locations, configuration, logging, proxy endpoints, inspection certificates.</summary>
+    ZeroTrustGatewayClient Gateway { get; }
+    /// <summary>WARP device profiles, Split Tunnel, posture rules, devices (read-only) and registration revocation.</summary>
+    DevicesClient Devices { get; }
+    /// <summary>Data Loss Prevention, read-only: profiles, datasets, payload log settings.</summary>
+    DlpClient Dlp { get; }
+    /// <summary>Zero Trust risk scoring, read-only: behaviors and user summary.</summary>
+    RiskScoringClient RiskScoring { get; }
 }
 
 public sealed class CloudflareClient : ICloudflareClient
@@ -110,6 +118,10 @@ public sealed class CloudflareClient : ICloudflareClient
         Argo = new(api);
         LoadBalancing = new(api);
         Spectrum = new(api);
+        Gateway = new(api);
+        Devices = new(api);
+        Dlp = new(api);
+        RiskScoring = new(api);
     }
 
     /// <summary>Creates a client without dependency injection (console tools, scripts, tests).</summary>
@@ -154,4 +166,8 @@ public sealed class CloudflareClient : ICloudflareClient
     public ArgoClient Argo { get; }
     public LoadBalancingClient LoadBalancing { get; }
     public SpectrumClient Spectrum { get; }
+    public ZeroTrustGatewayClient Gateway { get; }
+    public DevicesClient Devices { get; }
+    public DlpClient Dlp { get; }
+    public RiskScoringClient RiskScoring { get; }
 }

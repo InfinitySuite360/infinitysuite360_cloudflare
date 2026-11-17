@@ -71,25 +71,32 @@ public sealed class TunnelConnector : CloudflareModel
     public int ActiveConnections => Conns.Count(c => !c.IsPendingReconnect);
 }
 
-/// <summary>Cloudflare Tunnel (cloudflared) management.</summary>
-public sealed class TunnelsClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
+/// <summary>
+/// Cloudflare Tunnel (cloudflared) management. The guarded methods of 0.8.0 (ingress, routes, virtual networks, run token, removal with outage
+/// protection) are in <c>Tunnels.ZeroTrust.cs</c>; the older unguarded write methods here are obsolete. Since 0.8.0 secret members (<c>token</c>,
+/// <c>tunnel_secret</c>, <c>credentials_file</c>) are removed from every answer before a model is built.
+/// </summary>
+public sealed partial class TunnelsClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
     public const string CatchAllService = "http_status:404";
 
     public Task<IReadOnlyList<Tunnel>> ListAsync(string? name = null, bool includeDeleted = false, string? accountId = null, CancellationToken ct = default) =>
-        Api.ListAllToListAsync<Tunnel>(CloudflarePath.WithQuery(AccountPath(accountId, "cfd_tunnel"), ("name", name), ("is_deleted", includeDeleted ? null : "false")), 50, ct);
+        ZT.ListAllAsync<Tunnel>(Api, CloudflarePath.WithQuery(AccountPath(accountId, "cfd_tunnel"), ("name", name), ("is_deleted", includeDeleted ? null : "false")), 50, ct);
 
     public Task<Tunnel> GetAsync(string tunnelId, string? accountId = null, CancellationToken ct = default) =>
-        Api.GetAsync<Tunnel>(AccountPath(accountId, "cfd_tunnel", tunnelId), ct);
+        ZT.SendAsync<Tunnel>(Api, HttpMethod.Get, AccountPath(accountId, "cfd_tunnel", tunnelId), null, ct);
 
     /// <summary>Creates a remotely managed tunnel (config_src "cloudflare"): ingress is managed through the API.</summary>
+    [Obsolete("Drops the run token Cloudflare returns and has no preview. Use EnsureAsync (0.8.0). Removed in 1.0.")]
     public Task<Tunnel> CreateAsync(string name, string? accountId = null, CancellationToken ct = default) =>
-        Api.PostAsync<Tunnel>(AccountPath(accountId, "cfd_tunnel"), new { name, config_src = "cloudflare" }, ct);
+        ZT.SendAsync<Tunnel>(Api, HttpMethod.Post, AccountPath(accountId, "cfd_tunnel"), new { name, config_src = "cloudflare" }, ct);
 
+    [Obsolete("Deletes a tunnel with active connections and routes. Use RemoveAsync(tunnelId, allowDeleteActive) (0.8.0). Removed in 1.0.")]
     public Task DeleteAsync(string tunnelId, string? accountId = null, CancellationToken ct = default) =>
         Api.DeleteAsync(AccountPath(accountId, "cfd_tunnel", tunnelId), ct);
 
     /// <summary>Disconnects the tunnel's connections (for example before deleting it).</summary>
+    [Obsolete("Disconnects without a switch. Use DisconnectAsync(tunnelId, allowDisconnect) (0.8.0). Removed in 1.0.")]
     public Task CleanupConnectionsAsync(string tunnelId, string? accountId = null, CancellationToken ct = default) =>
         Api.DeleteAsync(AccountPath(accountId, "cfd_tunnel", tunnelId, "connections"), ct);
 
@@ -105,6 +112,7 @@ public sealed class TunnelsClient(ICloudflareApiConnection api) : CloudflareReso
         Api.GetAsync<TunnelConnector>(AccountPath(accountId, "cfd_tunnel", tunnelId, "connectors", connectorId), ct);
 
     /// <summary>Token for <c>cloudflared tunnel run --token …</c>. Treat it as a secret.</summary>
+    [Obsolete("Returns the token as a plain string. Use GetRunTokenAsync (0.8.0), which returns a CloudflareOneTimeSecret. Removed in 1.0.")]
     public Task<string> GetTokenAsync(string tunnelId, string? accountId = null, CancellationToken ct = default) =>
         Api.GetAsync<string>(AccountPath(accountId, "cfd_tunnel", tunnelId, "token"), ct);
 
@@ -112,6 +120,7 @@ public sealed class TunnelsClient(ICloudflareApiConnection api) : CloudflareReso
         Api.GetAsync<TunnelConfiguration>(AccountPath(accountId, "cfd_tunnel", tunnelId, "configurations"), ct);
 
     /// <summary>Sets the ingress rules. A final catch-all "http_status:404" is added when missing (cloudflared rejects configurations without one).</summary>
+    [Obsolete("Replaces the ingress without checking removed hostnames and drops originRequest/warp-routing. Use SetIngressAsync (0.8.0). Removed in 1.0.")]
     public Task<TunnelConfiguration> PutConfigurationAsync(string tunnelId, IEnumerable<TunnelIngressRule> ingress, string? accountId = null, CancellationToken ct = default)
     {
         var rules = ingress.ToList();
@@ -124,8 +133,11 @@ public sealed class TunnelsClient(ICloudflareApiConnection api) : CloudflareReso
     /// <summary>
     /// Publishes a public hostname: adds or replaces the ingress rule and creates a proxied CNAME to &lt;tunnel&gt;.cfargotunnel.com.
     /// </summary>
+    [Obsolete("Re-points an existing hostname and overwrites DNS without checks. Use PublishAsync (0.8.0). Removed in 1.0.")]
     public async Task PublishHostnameAsync(string tunnelId, string hostname, string service, DnsClient dns, string? zoneId = null, string? accountId = null, CancellationToken ct = default)
     {
+#pragma warning disable CS0618 // the obsolete method keeps its old behaviour until it is removed
+
         var current = await GetConfigurationAsync(tunnelId, accountId, ct).ConfigureAwait(false);
         var rules = current.Config?.Ingress
             .Where(r => r.Service != CatchAllService || r.Hostname is not null)
@@ -134,5 +146,6 @@ public sealed class TunnelsClient(ICloudflareApiConnection api) : CloudflareReso
         rules.Add(new TunnelIngressRule { Hostname = hostname, Service = service });
         await PutConfigurationAsync(tunnelId, rules, accountId, ct).ConfigureAwait(false);
         await dns.UpsertAsync(new DnsRecordInput { Type = "CNAME", Name = hostname, Content = $"{tunnelId}.cfargotunnel.com", Proxied = true }, zoneId, ct).ConfigureAwait(false);
+#pragma warning restore CS0618
     }
 }

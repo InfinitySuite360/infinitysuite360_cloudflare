@@ -100,8 +100,11 @@ var events = await cloudflare.Analytics.GetSecurityEventsAsync(DateTimeOffset.Ut
 | DNS records | `Dns` |
 | Rulesets / WAF / rate limiting | `Rulesets` |
 | Turnstile widgets and siteverify | `Turnstile`, `ITurnstileVerifier` |
-| Cloudflare Tunnel | `Tunnels` |
-| Zero Trust Access | `Access` |
+| Cloudflare Tunnel: tunnels, run token, ingress, private routes, virtual networks | `Tunnels` |
+| Zero Trust Access: applications, policies, policy tests, groups, service tokens, identity providers, mTLS certificates, organization, users | `Access` |
+| Zero Trust Gateway: DNS/HTTP/network rules, lists, DNS locations, configuration, logging, proxy endpoints, inspection certificates | `Gateway` |
+| WARP devices: profiles, Split Tunnel, posture rules, devices, registrations | `Devices` |
+| Data Loss Prevention (read-only), risk scoring (read-only) | `Dlp`, `RiskScoring` |
 | Email Routing | `EmailRouting` |
 | R2 buckets, custom domains, CORS, lifecycle | `R2` |
 | Workers scripts, routes, domains, cron triggers, versions, deployments, secret names | `Workers` |
@@ -320,6 +323,79 @@ Token permissions (check names in the dashboard): "Workers Scripts", "Workers KV
 
 Obsolete since 0.7.0 (removed in 1.0): `Workers.UploadModuleAsync`, `DeleteScriptAsync`, `CreateRouteAsync`, `DeleteRouteAsync`; `R2.CreateBucketAsync`, `DeleteBucketAsync`,
 `PutLifecycleAsync`, `PutCorsAsync`; `Zones.PurgeEverythingAsync`. They keep working but have no allow switches; the guarded replacements are named above.
+
+Zero Trust (0.8.0): Access, Gateway, Tunnels, WARP devices with the same rules, plus **lock-out protection**: every check that depends on the current state reads it
+fresh right before the write and refuses when it cannot be read (fail-closed).
+
+```csharp
+// Access: an application needs a policy; a policy that admits everyone, the removal of the last policy and every loosening need a switch.
+var (policy, _) = await writer.Access.EnsurePolicyAsync(new AccessPolicyInput { Name = "staff", Include = [AccessRules.EmailDomain("example.com")], Require = [AccessRules.Mfa()] });
+await writer.Access.EnsureApplicationAsync(new AccessApplicationInput { Name = "MT5", Domain = "mt5.example.com", Policies = [policy.Id] });
+await writer.Access.RemoveApplicationPolicyAsync(appId, policyId);                 // refused when it is the last policy (or the last that admits anyone)
+var test = await writer.Access.StartPolicyTestAsync([policy.Id]);                  // POST that only reads: the write guard applies
+
+// Service tokens: the client secret only in a CloudflareOneTimeSecret (ToString/JSON "[redacted]").
+using var issued = (await writer.Access.IssueServiceTokenAsync("mt5-bridge", "8760h")).ClientSecret;
+secretStore.Put("cf-access-client-secret", issued.TakeValue());
+await writer.Access.RotateServiceTokenSecretAsync(tokenId, previousSecretGrace: TimeSpan.FromHours(24));   // without grace: allowDisconnect
+
+// Gateway: no default action; block→allow, disabling or deleting a protective rule needs allowLoosen, allow→block allowBlock.
+await writer.Gateway.EnsureRuleAsync(new GatewayRuleInput { Name = "bad domains", Action = "block", Filters = ["dns"], Traffic = $"any(dns.domains[*] in ${listId})" });
+await writer.Gateway.UpdateConfigurationAsync(new GatewaySettingsChange { AntivirusUploadScan = true });  // PATCH of the changed section only
+
+// Tunnels: ingress changes that remove or re-point a hostname (maybe your own gateway) need allowDisconnect; originRequest and warp-routing are kept.
+await writer.Tunnels.UpsertIngressRuleAsync(tunnelId, new TunnelIngressRule { Hostname = "app.example.com", Service = "http://localhost:8080" });
+using var runToken = await writer.Tunnels.GetRunTokenAsync(tunnelId);             // CloudflareOneTimeSecret
+await writer.Tunnels.RemoveAsync(tunnelId);                                        // refused while connected or used by routes: allowDeleteActive
+
+// WARP: the default profile reaches every device (allowBroadProfile); loosening (switch off, leave, mode switch, new Split Tunnel exclusions) allowLoosen.
+await writer.Devices.UpdateDefaultProfileAsync(new DeviceProfileSettings { SwitchLocked = true }, allowBroadProfile: true);
+```
+
+| Write | Default | Explicit opt-in | Risk |
+|---|---|---|---|
+| Access application without policies | refused | `allowNoPolicy: true` | nobody gets in |
+| Delete an Access application | refused | `allowUnprotect: true` | hostname without login |
+| Policy or group that admits everyone (bypass, allow/non_identity for "everyone" without require) | refused | `allowLoosen: true` | public application |
+| Loosen a policy or group (more permissive decision, remove require/exclude rules, narrower deny), remove a deny policy | refused | `allowLoosen: true` | more people get in |
+| Deny for everyone, "deny unmatched requests" on, MFA for all applications on | refused | `allowBlock: true` | lock-out |
+| Remove the last policy of an application (or the last that admits anyone) | refused | `allowRemoveLast: true` | lock-out |
+| Remove the last identity provider | refused | `allowRemoveLast: true` | nobody can log in |
+| Group used by policies, applications or groups / posture rule used by Access or Gateway / Gateway list used by an enabled rule | refused | `allowInUse: true` | other rules change their effect |
+| Rotate a service token without grace, delete a used service token, revoke tokens of an application or a user, change the team domain | refused | `allowDisconnect: true` | machines or users cut off |
+| Service token that never expires | refused | `allowNoExpiry: true` | long-lived credential |
+| Remove hostnames from an mTLS certificate, delete a certificate with hostnames | refused | `allowRemovals: true` | mTLS ends there |
+| Gateway protective rule without selector | refused | `allowBroadMatch: true` | all traffic blocked or isolated |
+| Gateway block → allow, disable/delete/re-match a protective rule; inspection, antivirus or activity log off; less logging | refused | `allowLoosen: true` | traffic no longer filtered or logged |
+| Gateway allow → block, enable a block rule; antivirus fail-closed | refused | `allowBlock: true` | legitimate traffic blocked |
+| TLS decryption on, another inspection certificate | refused | `allowTlsDecrypt: true` | pinned applications break |
+| PII redaction off | refused | `allowPii: true` | personal data in logs |
+| Delete a DNS location, a proxy endpoint, a custom device profile | refused | `allowDelete: true` | clients no longer filtered |
+| Deactivate or delete an inspection certificate in use | refused | `allowDisable: true` | certificate errors on devices |
+| Ingress change that removes or re-points a hostname, remove an ingress rule, rotate the run token, disconnect connectors, move or delete a private route, delete a virtual network with routes, revoke device registrations, remove Split Tunnel exclusions | refused | `allowDisconnect: true` | hostname, network or device cut off |
+| Catch-all ingress that forwards instead of 404 | refused | `allowCatchAllService: true` | every hostname routed to the tunnel reaches the service |
+| Delete a connected tunnel or one with routes | refused | `allowDeleteActive: true` | outage |
+| Route shorter than /8 (IPv4) or /16 (IPv6) | refused | `allowBroadRoute: true` | most traffic into the tunnel |
+| Change the default virtual network | refused | `allowDefaultChange: true` | routing of every client changes |
+| Change the default device profile or a profile that matches every device | refused | `allowBroadProfile: true` | every device affected |
+| Loosen a device profile, add Split Tunnel exclusions, un-revoke registrations | refused | `allowLoosen: true` | traffic bypasses Gateway, revoked device back |
+
+Secrets: service token client secrets and tunnel run tokens only in `CloudflareOneTimeSecret`; `client_secret`, `secret`, `token`, `tunnel_secret`, `credentials_file`
+and similar members are removed from every Zero Trust answer before a model is built (also in the older `List…`/`Get…` methods of `Access` and `Tunnels`); identity
+provider configurations are redacted in previews; the tunnel secret for a token rotation is generated locally and never shown. Previews of device and user operations carry
+counts only, no e-mail addresses, device ids or hardware data; mTLS certificate previews show size and SHA-256. DLP models carry no patterns, word lists or dataset cells.
+Not included (reachable through `OpenApi`): Access SCIM, JIT and infrastructure targets, MCP portals, bookmarks, custom pages, tags; Gateway PAC files, audit SSH, egress
+pairs, rule expiration reset; DEX, device posture integrations, override codes, IP profiles, managed networks; DLP writes, dataset uploads, email security, risk score reset.
+Limits (developers.cloudflare.com/cloudflare-one/account-limits/, retrieved 17.11.2026): 500 Access applications, 50 service tokens, 50 identity providers, 50 mTLS root
+certificates, 500 reusable policies; 500 Gateway rules per type, 250 DNS locations, 100 lists with 1000 entries (Enterprise 5000), 10 active inspection certificates, 3 generated
+per day; 1000 tunnels, 25 replicas, 1 MB tunnel configuration, 1000 virtual networks. Reading a tunnel token needs a write permission ("Cloudflare Tunnel Write",
+developers.cloudflare.com/tunnel/reference/tunnel-tokens/). Token permissions: "Access: Apps and Policies", "Access: Organizations, Identity Providers, and Groups",
+"Access: Service Tokens", "Access: Mutual TLS Certificates", "Zero Trust", "Cloudflare Tunnel" (Account; Read for reading, Edit for writes).
+
+Obsolete since 0.8.0 (removed in 1.0): `Access.CreateApplicationAsync`, `UpdateApplicationAsync`, `DeleteApplicationAsync`, `CreateApplicationPolicyAsync`,
+`UpdateApplicationPolicyAsync`, `DeleteApplicationPolicyAsync`, `CreatePolicyAsync`, `DeletePolicyAsync`, `CreateGroupAsync`, `UpdateGroupAsync`, `DeleteGroupAsync`,
+`CreateServiceTokenAsync`, `RotateServiceTokenAsync`, `DeleteServiceTokenAsync`, `CreateIdentityProviderAsync`, `UpdateIdentityProviderAsync`, `DeleteIdentityProviderAsync`,
+`AccessServiceToken.ClientSecret`; `Tunnels.CreateAsync`, `DeleteAsync`, `CleanupConnectionsAsync`, `GetTokenAsync`, `PutConfigurationAsync`, `PublishHostnameAsync`.
 
 Edge status and lists (0.3.0):
 
