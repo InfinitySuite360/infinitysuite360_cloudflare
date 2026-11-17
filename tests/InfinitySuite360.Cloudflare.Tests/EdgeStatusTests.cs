@@ -1,3 +1,4 @@
+#pragma warning disable CS0618 // covers the old, unguarded identity provider methods of AccessClient until they are removed (1.0)
 using System.Net;
 using System.Text.Json;
 using InfinitySuite360.Cloudflare.Resources;
