@@ -85,7 +85,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteAdditionalData(AdditionalData);
         }
         /// <summary>
-        /// Composed type wrapper for classes <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember1"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember2"/>, <see cref="string"/>
+        /// Composed type wrapper for classes <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember1"/>, <see cref="string"/>, List&lt;global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember2&gt;
         /// </summary>
         [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
         public partial class MagicVisibilityMnm_apiResponseCommon_result : IComposedTypeWrapper, IParsable
@@ -98,13 +98,13 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
             public global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember1 MagicVisibilityMnmApiResponseCommonResultMember1 { get; set; }
 #endif
-            /// <summary>Composed type representation for type <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember2"/></summary>
+            /// <summary>Composed type representation for type List&lt;global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember2&gt;</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-            public global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember2? MagicVisibilityMnmApiResponseCommonResultMember2 { get; set; }
+            public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember2>? MagicVisibilityMnmApiResponseCommonResultMember2 { get; set; }
 #nullable restore
 #else
-            public global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember2 MagicVisibilityMnmApiResponseCommonResultMember2 { get; set; }
+            public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember2> MagicVisibilityMnmApiResponseCommonResultMember2 { get; set; }
 #endif
             /// <summary>Composed type representation for type <see cref="string"/></summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -127,9 +127,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 {
                     result.String = stringValue;
                 }
+                else if(parseNode.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember2>(global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember2.CreateFromDiscriminatorValue)?.AsList() is List<global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember2> magicVisibilityMnmApiResponseCommonResultMember2Value)
+                {
+                    result.MagicVisibilityMnmApiResponseCommonResultMember2 = magicVisibilityMnmApiResponseCommonResultMember2Value;
+                }
                 else {
                     result.MagicVisibilityMnmApiResponseCommonResultMember1 = new global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember1();
-                    result.MagicVisibilityMnmApiResponseCommonResultMember2 = new global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember2();
                 }
                 return result;
             }
@@ -139,9 +142,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             /// <returns>A IDictionary&lt;string, Action&lt;IParseNode&gt;&gt;</returns>
             public virtual IDictionary<string, Action<IParseNode>> GetFieldDeserializers()
             {
-                if(MagicVisibilityMnmApiResponseCommonResultMember1 != null || MagicVisibilityMnmApiResponseCommonResultMember2 != null)
+                if(MagicVisibilityMnmApiResponseCommonResultMember1 != null)
                 {
-                    return ParseNodeHelper.MergeDeserializersForIntersectionWrapper(MagicVisibilityMnmApiResponseCommonResultMember1, MagicVisibilityMnmApiResponseCommonResultMember2);
+                    return ParseNodeHelper.MergeDeserializersForIntersectionWrapper(MagicVisibilityMnmApiResponseCommonResultMember1);
                 }
                 return new Dictionary<string, Action<IParseNode>>();
             }
@@ -156,8 +159,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 {
                     writer.WriteStringValue(null, String);
                 }
+                else if(MagicVisibilityMnmApiResponseCommonResultMember2 != null)
+                {
+                    writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember2>(null, MagicVisibilityMnmApiResponseCommonResultMember2);
+                }
                 else {
-                    writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember1>(null, MagicVisibilityMnmApiResponseCommonResultMember1, MagicVisibilityMnmApiResponseCommonResultMember2);
+                    writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommon_resultMember1>(null, MagicVisibilityMnmApiResponseCommonResultMember1);
                 }
             }
         }

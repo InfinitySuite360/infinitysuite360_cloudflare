@@ -14,7 +14,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The enabled property</summary>
+        /// <summary>Omit to keep the current value.</summary>
         public bool? Enabled { get; set; }
         /// <summary>Events that the webhook will get triggered by</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -46,7 +46,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public Realtimekit_PatchWebhookRequest()
         {
             AdditionalData = new Dictionary<string, object>();
-            Enabled = true;
         }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value

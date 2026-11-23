@@ -35,7 +35,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hostnames.Settings.Item
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public WithSetting_ItemRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/zones/{zone_id}/hostnames/settings/{setting_id}", pathParameters)
+        public WithSetting_ItemRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/zones/{zone_id}/hostnames/settings/{setting_id}{?limit*,offset*,page*,per_page*}", pathParameters)
         {
         }
         /// <summary>
@@ -43,7 +43,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hostnames.Settings.Item
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public WithSetting_ItemRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/zones/{zone_id}/hostnames/settings/{setting_id}", rawUrl)
+        public WithSetting_ItemRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/zones/{zone_id}/hostnames/settings/{setting_id}{?limit*,offset*,page*,per_page*}", rawUrl)
         {
         }
         /// <summary>
@@ -55,11 +55,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hostnames.Settings.Item
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hostnames.Settings.Item.TlsCertificatesAndHostnames_per_hostname_settings_response_collection4XXError">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.TlsCertificatesAndHostnames_per_hostname_settings_response_collection?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.TlsCertificatesAndHostnames_per_hostname_settings_response_collection?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hostnames.Settings.Item.WithSetting_ItemRequestBuilder.WithSetting_ItemRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.TlsCertificatesAndHostnames_per_hostname_settings_response_collection> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.TlsCertificatesAndHostnames_per_hostname_settings_response_collection> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hostnames.Settings.Item.WithSetting_ItemRequestBuilder.WithSetting_ItemRequestBuilderGetQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             var requestInfo = ToGetRequestInformation(requestConfiguration);
@@ -76,11 +76,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hostnames.Settings.Item
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hostnames.Settings.Item.WithSetting_ItemRequestBuilder.WithSetting_ItemRequestBuilderGetQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hostnames.Settings.Item.WithSetting_ItemRequestBuilder.WithSetting_ItemRequestBuilderGetQueryParameters>> requestConfiguration = default)
         {
 #endif
             var requestInfo = new RequestInformation(Method.GET, UrlTemplate, PathParameters);
@@ -96,6 +96,25 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hostnames.Settings.Item
         public global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hostnames.Settings.Item.WithSetting_ItemRequestBuilder WithUrl(string rawUrl)
         {
             return new global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hostnames.Settings.Item.WithSetting_ItemRequestBuilder(rawUrl, RequestAdapter);
+        }
+        /// <summary>
+        /// List the requested TLS setting for the hostnames under this zone.
+        /// </summary>
+        [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
+        public partial class WithSetting_ItemRequestBuilderGetQueryParameters 
+        {
+            /// <summary>Alias for per_page. Defaults to 50 when neither per_page nor limit is provided. Takes precedence over per_page. Values above 1000 are capped at 1000.</summary>
+            [QueryParameter("limit")]
+            public int? Limit { get; set; }
+            /// <summary>Number of results to skip. Defaults to 0. Takes precedence over page, including when offset is 0.</summary>
+            [QueryParameter("offset")]
+            public int? Offset { get; set; }
+            /// <summary>Page number, starting at 1. Defaults to 1. Ignored when offset is provided.</summary>
+            [QueryParameter("page")]
+            public int? Page { get; set; }
+            /// <summary>Number of results per page. Defaults to 50 when neither per_page nor limit is provided. Ignored when limit is provided. Values above 1000 are capped at 1000.</summary>
+            [QueryParameter("per_page")]
+            public int? PerPage { get; set; }
         }
     }
 }

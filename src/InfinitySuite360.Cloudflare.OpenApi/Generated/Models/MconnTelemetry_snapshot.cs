@@ -267,6 +267,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Platform { get; set; }
 #endif
+        /// <summary>The qdiscs property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_qdisc>? Qdiscs { get; set; }
+#nullable restore
+#else
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_qdisc> Qdiscs { get; set; }
+#endif
         /// <summary>The routes property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -570,6 +578,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "mounts", n => { Mounts = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_mount>(global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_mount.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "netdevs", n => { Netdevs = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_netdev>(global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_netdev.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "platform", n => { Platform = n.GetStringValue(); } },
+                { "qdiscs", n => { Qdiscs = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_qdisc>(global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_qdisc.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "routes", n => { Routes = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_route>(global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_route.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "site_id", n => { SiteId = n.GetStringValue(); } },
                 { "snmp_icmp_in_addr_mask_reps", n => { SnmpIcmpInAddrMaskReps = n.GetDoubleValue(); } },
@@ -754,6 +763,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_mount>("mounts", Mounts);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_netdev>("netdevs", Netdevs);
             writer.WriteStringValue("platform", Platform);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_qdisc>("qdiscs", Qdiscs);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.MconnTelemetry_snapshot_route>("routes", Routes);
             writer.WriteStringValue("site_id", SiteId);
             writer.WriteDoubleValue("snmp_icmp_in_addr_mask_reps", SnmpIcmpInAddrMaskReps);

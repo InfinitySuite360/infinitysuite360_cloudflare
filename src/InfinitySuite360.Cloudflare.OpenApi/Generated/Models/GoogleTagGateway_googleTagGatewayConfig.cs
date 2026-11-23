@@ -25,7 +25,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Endpoint { get; set; }
 #endif
-        /// <summary>Hides the original client IP address from Google when enabled.</summary>
+        /// <summary>Deprecated. This value is stored but has no effect on traffic. Optional in requests: if omitted, the previously stored value is kept. Responses always include it.</summary>
+        [Obsolete("")]
         public bool? HideOriginalIp { get; set; }
         /// <summary>Specify the Google Tag Manager container or measurement ID (e.g. GTM-XXXXXXX or G-XXXXXXXXXX).</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER

@@ -16,6 +16,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>The code property</summary>
         public int? Code { get; set; }
+        /// <summary>The documentation_url property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? DocumentationUrl { get; set; }
+#nullable restore
+#else
+        public string DocumentationUrl { get; set; }
+#endif
         /// <summary>The message property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -23,6 +31,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #nullable restore
 #else
         public string Message { get; set; }
+#endif
+        /// <summary>The source property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Colos_source? Source { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Colos_source Source { get; set; }
 #endif
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Colos"/> and sets the default values.
@@ -50,7 +66,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "code", n => { Code = n.GetIntValue(); } },
+                { "documentation_url", n => { DocumentationUrl = n.GetStringValue(); } },
                 { "message", n => { Message = n.GetStringValue(); } },
+                { "source", n => { Source = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Colos_source>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Colos_source.CreateFromDiscriminatorValue); } },
             };
         }
         /// <summary>
@@ -61,7 +79,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteIntValue("code", Code);
+            writer.WriteStringValue("documentation_url", DocumentationUrl);
             writer.WriteStringValue("message", Message);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Colos_source>("source", Source);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

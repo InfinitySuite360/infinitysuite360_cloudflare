@@ -22,7 +22,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string AlertInterval { get; set; }
 #endif
-        /// <summary>Refers to which event will trigger a Notification dispatch. You can use the endpoint to get available alert types which then will give you a list of possible values.</summary>
+        /// <summary>Refers to which event will trigger a Notification dispatch. You can use the endpoint to get available alert types which then will give you a list of possible values. This enum lists every alert type, not the ones a given account can create, since some types depend on entitlements or account type. To get the alert types an account can create, call `GET /accounts/{account_id}/alerting/v3/available_alerts`.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.Aaa_alert_type? AlertType { get; set; }
         /// <summary>The created property</summary>
         public DateTimeOffset? Created { get; private set; }

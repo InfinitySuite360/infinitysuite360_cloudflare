@@ -8,9 +8,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
     public enum GraphGetResponse_result_graph_workflow_nodesMember8_type
     #pragma warning restore CS1591
     {
-        [EnumMember(Value = "block")]
+        [EnumMember(Value = "parallel")]
         #pragma warning disable CS1591
-        Block,
+        Parallel,
         #pragma warning restore CS1591
     }
 }

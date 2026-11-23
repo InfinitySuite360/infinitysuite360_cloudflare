@@ -16,14 +16,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>The date and time the item was created.</summary>
         public DateTimeOffset? Created { get; set; }
-        /// <summary>Bearer token</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public string? Key { get; set; }
-#nullable restore
-#else
-        public string Key { get; set; }
-#endif
         /// <summary>The date and time the item was last modified.</summary>
         public DateTimeOffset? Modified { get; set; }
         /// <summary>A short description of a TURN key, not shown to end users.</summary>
@@ -33,6 +25,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #nullable restore
 #else
         public string Name { get; set; }
+#endif
+        /// <summary>Bearer token</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? Secret { get; set; }
+#nullable restore
+#else
+        public string Secret { get; set; }
 #endif
         /// <summary>A Cloudflare-generated unique identifier for a item.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -68,9 +68,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "created", n => { Created = n.GetDateTimeOffsetValue(); } },
-                { "key", n => { Key = n.GetStringValue(); } },
                 { "modified", n => { Modified = n.GetDateTimeOffsetValue(); } },
                 { "name", n => { Name = n.GetStringValue(); } },
+                { "secret", n => { Secret = n.GetStringValue(); } },
                 { "uid", n => { Uid = n.GetStringValue(); } },
             };
         }
@@ -82,9 +82,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteDateTimeOffsetValue("created", Created);
-            writer.WriteStringValue("key", Key);
             writer.WriteDateTimeOffsetValue("modified", Modified);
             writer.WriteStringValue("name", Name);
+            writer.WriteStringValue("secret", Secret);
             writer.WriteStringValue("uid", Uid);
             writer.WriteAdditionalData(AdditionalData);
         }

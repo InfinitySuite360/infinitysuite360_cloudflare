@@ -31,6 +31,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string ClientId { get; set; }
 #endif
+        /// <summary>Per-feature authorization overrides. When a listed feature is selected, authorize with the override&apos;s client ID and URL instead of the defaults above.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_FeatureAuthOverride>? FeatureOverrides { get; set; }
+#nullable restore
+#else
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_FeatureAuthOverride> FeatureOverrides { get; set; }
+#endif
         /// <summary>Whether PKCE is required.</summary>
         public bool? RequiresPkce { get; set; }
         /// <summary>OAuth scopes to request.</summary>
@@ -76,6 +84,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             {
                 { "authorization_url", n => { AuthorizationUrl = n.GetStringValue(); } },
                 { "client_id", n => { ClientId = n.GetStringValue(); } },
+                { "feature_overrides", n => { FeatureOverrides = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_FeatureAuthOverride>(global::InfinitySuite360.Cloudflare.OpenApi.Models.One_FeatureAuthOverride.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "requires_pkce", n => { RequiresPkce = n.GetBoolValue(); } },
                 { "scopes", n => { Scopes = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "url_placeholders", n => { UrlPlaceholders = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
@@ -90,6 +99,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("authorization_url", AuthorizationUrl);
             writer.WriteStringValue("client_id", ClientId);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_FeatureAuthOverride>("feature_overrides", FeatureOverrides);
             writer.WriteBoolValue("requires_pkce", RequiresPkce);
             writer.WriteCollectionOfPrimitiveValues<string>("scopes", Scopes);
             writer.WriteCollectionOfPrimitiveValues<string>("url_placeholders", UrlPlaceholders);

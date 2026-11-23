@@ -34,7 +34,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.PayPerUse.EnabledDom
         {
         }
         /// <summary>
-        /// Returns publisher domains associated with the requesting Pay Per Use operator through an accepted price agreement. License expiration is the earlier non-null boundary from the price agreement and publisher zone lifecycles. A future expiration remains active and is exposed to the operator. After expiration, the license remains listed as expired for one calendar month before it is omitted; an active agreement for the same domain takes precedence. The requesting account must be an active Pay Per Use operator.
+        /// Returns publisher domains associated with the requesting Pay Per Use operator through an accepted price agreement. License expiration is the earlier non-null boundary from the price agreement and publisher zone lifecycles. A future expiration remains active and is exposed to the operator. After expiration, the license remains listed as expired for one calendar month before it is omitted; an active agreement for the same domain takes precedence. Report usage for these domains with url. Publisher offers are listed by the enabled publishers endpoint instead. The requesting account must be an active Pay Per Use operator.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.PayPerCrawl_EnabledDomainsResponse"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
@@ -63,7 +63,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.PayPerUse.EnabledDom
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.PayPerCrawl_EnabledDomainsResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.PayPerCrawl_EnabledDomainsResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Returns publisher domains associated with the requesting Pay Per Use operator through an accepted price agreement. License expiration is the earlier non-null boundary from the price agreement and publisher zone lifecycles. A future expiration remains active and is exposed to the operator. After expiration, the license remains listed as expired for one calendar month before it is omitted; an active agreement for the same domain takes precedence. The requesting account must be an active Pay Per Use operator.
+        /// Returns publisher domains associated with the requesting Pay Per Use operator through an accepted price agreement. License expiration is the earlier non-null boundary from the price agreement and publisher zone lifecycles. A future expiration remains active and is exposed to the operator. After expiration, the license remains listed as expired for one calendar month before it is omitted; an active agreement for the same domain takes precedence. Report usage for these domains with url. Publisher offers are listed by the enabled publishers endpoint instead. The requesting account must be an active Pay Per Use operator.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
@@ -91,7 +91,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.PayPerUse.EnabledDom
             return new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.PayPerUse.EnabledDomains.EnabledDomainsRequestBuilder(rawUrl, RequestAdapter);
         }
         /// <summary>
-        /// Returns publisher domains associated with the requesting Pay Per Use operator through an accepted price agreement. License expiration is the earlier non-null boundary from the price agreement and publisher zone lifecycles. A future expiration remains active and is exposed to the operator. After expiration, the license remains listed as expired for one calendar month before it is omitted; an active agreement for the same domain takes precedence. The requesting account must be an active Pay Per Use operator.
+        /// Returns publisher domains associated with the requesting Pay Per Use operator through an accepted price agreement. License expiration is the earlier non-null boundary from the price agreement and publisher zone lifecycles. A future expiration remains active and is exposed to the operator. After expiration, the license remains listed as expired for one calendar month before it is omitted; an active agreement for the same domain takes precedence. Report usage for these domains with url. Publisher offers are listed by the enabled publishers endpoint instead. The requesting account must be an active Pay Per Use operator.
         /// </summary>
         [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
         public partial class EnabledDomainsRequestBuilderGetQueryParameters 

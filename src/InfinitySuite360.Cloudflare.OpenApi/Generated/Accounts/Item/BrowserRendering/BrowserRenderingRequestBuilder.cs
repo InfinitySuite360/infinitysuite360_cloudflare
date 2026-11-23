@@ -11,6 +11,7 @@ using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Pdf;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Recording;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Scrape;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Screenshot;
+using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Script;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Snapshot;
 using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions;
@@ -80,6 +81,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Screenshot.ScreenshotRequestBuilder Screenshot
         {
             get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Screenshot.ScreenshotRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The script property</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Script.ScriptRequestBuilder Script
+        {
+            get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Script.ScriptRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>The snapshot property</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Snapshot.SnapshotRequestBuilder Snapshot

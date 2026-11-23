@@ -7,20 +7,21 @@ using System.IO;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
+    /// <summary>
+    /// Pagination details. Results come in a single page.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    #pragma warning disable CS1591
     public partial class AigBilling_GetInvoiceHistoryResult_pagination : IAdditionalDataHolder, IParsable
-    #pragma warning restore CS1591
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The has_more property</summary>
+        /// <summary>Whether more invoices match than returned.</summary>
         public bool? HasMore { get; set; }
-        /// <summary>The page property</summary>
+        /// <summary>Page number. Always 1.</summary>
         public double? Page { get; set; }
-        /// <summary>The per_page property</summary>
+        /// <summary>Page size.</summary>
         public double? PerPage { get; set; }
-        /// <summary>The total_count property</summary>
+        /// <summary>Number of matching invoices.</summary>
         public double? TotalCount { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoiceHistoryResult_pagination"/> and sets the default values.

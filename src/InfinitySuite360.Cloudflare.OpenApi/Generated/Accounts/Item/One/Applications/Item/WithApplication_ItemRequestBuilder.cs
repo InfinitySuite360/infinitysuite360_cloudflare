@@ -34,7 +34,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Ite
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public WithApplication_ItemRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/one/applications/{application_id}", pathParameters)
+        public WithApplication_ItemRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/one/applications/{application_id}{?environment*}", pathParameters)
         {
         }
         /// <summary>
@@ -42,7 +42,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Ite
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public WithApplication_ItemRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/one/applications/{application_id}", rawUrl)
+        public WithApplication_ItemRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/one/applications/{application_id}{?environment*}", rawUrl)
         {
         }
         /// <summary>
@@ -53,11 +53,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Ite
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_ApplicationDetailResponse?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_ApplicationDetailResponse?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Item.WithApplication_ItemRequestBuilder.WithApplication_ItemRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_ApplicationDetailResponse> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_ApplicationDetailResponse> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Item.WithApplication_ItemRequestBuilder.WithApplication_ItemRequestBuilderGetQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             var requestInfo = ToGetRequestInformation(requestConfiguration);
@@ -70,11 +70,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Ite
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Item.WithApplication_ItemRequestBuilder.WithApplication_ItemRequestBuilderGetQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Item.WithApplication_ItemRequestBuilder.WithApplication_ItemRequestBuilderGetQueryParameters>> requestConfiguration = default)
         {
 #endif
             var requestInfo = new RequestInformation(Method.GET, UrlTemplate, PathParameters);
@@ -90,6 +90,16 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Ite
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Item.WithApplication_ItemRequestBuilder WithUrl(string rawUrl)
         {
             return new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Item.WithApplication_ItemRequestBuilder(rawUrl, RequestAdapter);
+        }
+        /// <summary>
+        /// Returns full application details including auth methods, use cases, and permissions.
+        /// </summary>
+        [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
+        public partial class WithApplication_ItemRequestBuilderGetQueryParameters 
+        {
+            /// <summary>Environment to request (standard, fedramp). The result follows the account&apos;s FedRAMP entitlement: FedRAMP-enabled accounts always receive FedRAMP applications and other accounts receive standard applications. Any other non-empty value returns 400.</summary>
+            [QueryParameter("environment")]
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Item.GetEnvironmentQueryParameterType? Environment { get; set; }
         }
     }
 }

@@ -21,6 +21,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_filter_by FilterBy { get; set; }
 #endif
+        /// <summary>Optional time bucket to sum records over. `DAILY` returns one record per day. `PERIOD` returns one record for the whole time period. When set with `Metric` `cost`, cost is summed across pricing tiers into one record per billable metric per bucket. When omitted, records are not summed: `usage` returns daily records and `cost` returns one record per rated breakdown. Available only on `POST` account usage.</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_usage_query_Granularity? Granularity { get; set; }
         /// <summary>Grouping definitions used to split result rows. At most two unique keys may be supplied.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -65,6 +67,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "FilterBy", n => { FilterBy = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_filter_by>(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_filter_by.CreateFromDiscriminatorValue); } },
+                { "Granularity", n => { Granularity = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_usage_query_Granularity>(); } },
                 { "GroupBy", n => { GroupBy = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_group_by>(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_group_by.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "Metric", n => { Metric = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_usage_query_Metric>(); } },
                 { "TimePeriod", n => { TimePeriod = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_time_period>(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_time_period.CreateFromDiscriminatorValue); } },
@@ -78,6 +81,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_filter_by>("FilterBy", FilterBy);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_usage_query_Granularity>("Granularity", Granularity);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_group_by>("GroupBy", GroupBy);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_usage_query_Metric>("Metric", Metric);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_v2_time_period>("TimePeriod", TimePeriod);

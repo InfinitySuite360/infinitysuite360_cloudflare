@@ -40,10 +40,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>Rolling policy for file sinks (when &amp; why to close a file and open a new one).</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_r2_data_catalogTable_rolling_policy? RollingPolicy { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_SinkRollingPolicy? RollingPolicy { get; set; }
 #nullable restore
 #else
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_r2_data_catalogTable_rolling_policy RollingPolicy { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_SinkRollingPolicy RollingPolicy { get; set; }
 #endif
         /// <summary>Table name</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -82,7 +82,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "account_id", n => { AccountId = n.GetStringValue(); } },
                 { "bucket", n => { Bucket = n.GetStringValue(); } },
                 { "namespace", n => { Namespace = n.GetStringValue(); } },
-                { "rolling_policy", n => { RollingPolicy = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_r2_data_catalogTable_rolling_policy>(global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_r2_data_catalogTable_rolling_policy.CreateFromDiscriminatorValue); } },
+                { "rolling_policy", n => { RollingPolicy = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_SinkRollingPolicy>(global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_SinkRollingPolicy.CreateFromDiscriminatorValue); } },
                 { "table_name", n => { TableName = n.GetStringValue(); } },
                 { "token", n => { Token = n.GetStringValue(); } },
             };
@@ -97,7 +97,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteStringValue("account_id", AccountId);
             writer.WriteStringValue("bucket", Bucket);
             writer.WriteStringValue("namespace", Namespace);
-            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_r2_data_catalogTable_rolling_policy>("rolling_policy", RollingPolicy);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflarePipelines_SinkRollingPolicy>("rolling_policy", RollingPolicy);
             writer.WriteStringValue("table_name", TableName);
             writer.WriteStringValue("token", Token);
         }

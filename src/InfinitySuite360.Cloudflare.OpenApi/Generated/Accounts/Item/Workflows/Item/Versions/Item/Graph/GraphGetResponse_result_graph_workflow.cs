@@ -92,7 +92,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
             writer.WriteAdditionalData(AdditionalData);
         }
         /// <summary>
-        /// Composed type wrapper for classes <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember1"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember11"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember12"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember13"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember14"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember2"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember3"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember4"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember6"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember8"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember9"/>
+        /// Composed type wrapper for classes <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember1"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember11"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember12"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember13"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember14"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember15"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember16"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember2"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember3"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember4"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember6"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember8"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember9"/>
         /// </summary>
         [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
         public partial class GraphGetResponse_result_graph_workflow_nodes : IComposedTypeWrapper, IParsable
@@ -144,6 +144,22 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
 #nullable restore
 #else
             public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember14 GraphGetResponseResultGraphWorkflowNodesMember14 { get; set; }
+#endif
+            /// <summary>Composed type representation for type <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember15"/></summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember15? GraphGetResponseResultGraphWorkflowNodesMember15 { get; set; }
+#nullable restore
+#else
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember15 GraphGetResponseResultGraphWorkflowNodesMember15 { get; set; }
+#endif
+            /// <summary>Composed type representation for type <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember16"/></summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember16? GraphGetResponseResultGraphWorkflowNodesMember16 { get; set; }
+#nullable restore
+#else
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember16 GraphGetResponseResultGraphWorkflowNodesMember16 { get; set; }
 #endif
             /// <summary>Composed type representation for type <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember2"/></summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -251,6 +267,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
                 {
                     return GraphGetResponseResultGraphWorkflowNodesMember14.GetFieldDeserializers();
                 }
+                else if(GraphGetResponseResultGraphWorkflowNodesMember15 != null)
+                {
+                    return GraphGetResponseResultGraphWorkflowNodesMember15.GetFieldDeserializers();
+                }
+                else if(GraphGetResponseResultGraphWorkflowNodesMember16 != null)
+                {
+                    return GraphGetResponseResultGraphWorkflowNodesMember16.GetFieldDeserializers();
+                }
                 else if(GraphGetResponseResultGraphWorkflowNodesMember2 != null)
                 {
                     return GraphGetResponseResultGraphWorkflowNodesMember2.GetFieldDeserializers();
@@ -315,6 +339,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
                 else if(GraphGetResponseResultGraphWorkflowNodesMember14 != null)
                 {
                     writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember14>(null, GraphGetResponseResultGraphWorkflowNodesMember14);
+                }
+                else if(GraphGetResponseResultGraphWorkflowNodesMember15 != null)
+                {
+                    writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember15>(null, GraphGetResponseResultGraphWorkflowNodesMember15);
+                }
+                else if(GraphGetResponseResultGraphWorkflowNodesMember16 != null)
+                {
+                    writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember16>(null, GraphGetResponseResultGraphWorkflowNodesMember16);
                 }
                 else if(GraphGetResponseResultGraphWorkflowNodesMember2 != null)
                 {

@@ -88,11 +88,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Managed_headers
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Managed_headers4XXError">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Managed_headers.Managed_headersPatchResponse?> PatchAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_ManagedTransformsPatch body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Managed_headers.Managed_headersPatchResponse?> PatchAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_ManagedTransformsPatch body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Managed_headers.Managed_headersPatchResponse> PatchAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_ManagedTransformsPatch body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Managed_headers.Managed_headersPatchResponse> PatchAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_ManagedTransformsPatch body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
@@ -149,11 +149,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Managed_headers
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToPatchRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_ManagedTransformsPatch body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToPatchRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_ManagedTransformsPatch body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToPatchRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_ManagedTransformsPatch body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToPatchRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_ManagedTransformsPatch body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));

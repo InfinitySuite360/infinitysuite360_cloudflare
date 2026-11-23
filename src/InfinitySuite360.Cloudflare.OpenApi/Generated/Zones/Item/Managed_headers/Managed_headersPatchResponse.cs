@@ -10,7 +10,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Managed_headers
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     #pragma warning disable CS1591
-    public partial class Managed_headersPatchResponse : global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_Response, IParsable
+    public partial class Managed_headersPatchResponse : global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_Response, IParsable
     #pragma warning restore CS1591
     {
         /// <summary>

@@ -12,6 +12,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     public partial class R2_temp_access_creds_request : IAdditionalDataHolder, IParsable
     #pragma warning restore CS1591
     {
+        /// <summary>S3 actions allowed on the credentials; requests for any other action are denied. For example, `[&quot;GetObject&quot;, &quot;HeadObject&quot;]` allows reading objects without listing them. Exactly one of `permission` or `actions` must be provided. The parent token must have Object Read &amp; Write permission if any action writes, and Object Read otherwise.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.R2_temp_access_creds_request_actions?>? Actions { get; set; }
+#nullable restore
+#else
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.R2_temp_access_creds_request_actions?> Actions { get; set; }
+#endif
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>Name of the R2 bucket.</summary>
@@ -38,7 +46,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string ParentAccessKeyId { get; set; }
 #endif
-        /// <summary>Permissions allowed on the credentials.</summary>
+        /// <summary>Permissions allowed on the credentials. Exactly one of `permission` or `actions` must be provided.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.R2_temp_access_creds_request_permission? Permission { get; set; }
         /// <summary>Optional prefix paths to scope the credentials to.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -76,6 +84,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
+                { "actions", n => { Actions = n.GetCollectionOfEnumValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.R2_temp_access_creds_request_actions>()?.AsList(); } },
                 { "bucket", n => { Bucket = n.GetStringValue(); } },
                 { "objects", n => { Objects = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "parentAccessKeyId", n => { ParentAccessKeyId = n.GetStringValue(); } },
@@ -91,6 +100,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
+            writer.WriteCollectionOfEnumValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.R2_temp_access_creds_request_actions>("actions", Actions);
             writer.WriteStringValue("bucket", Bucket);
             writer.WriteCollectionOfPrimitiveValues<string>("objects", Objects);
             writer.WriteStringValue("parentAccessKeyId", ParentAccessKeyId);

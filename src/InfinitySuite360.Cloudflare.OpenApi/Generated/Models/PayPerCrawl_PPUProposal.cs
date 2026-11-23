@@ -16,8 +16,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>The created_at property</summary>
         public DateTimeOffset? CreatedAt { get; set; }
-        /// <summary>When the proposing publisher zone was classified for local-only, non-billable settlement. Null for billable zones.</summary>
-        public DateTimeOffset? NonBillableSince { get; private set; }
         /// <summary>Use this value to accept or reject this specific pending proposal.</summary>
         public long? PriceId { get; set; }
         /// <summary>The price_usd_microcents property</summary>
@@ -56,7 +54,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "created_at", n => { CreatedAt = n.GetDateTimeOffsetValue(); } },
-                { "non_billable_since", n => { NonBillableSince = n.GetDateTimeOffsetValue(); } },
                 { "price_id", n => { PriceId = n.GetLongValue(); } },
                 { "price_usd_microcents", n => { PriceUsdMicrocents = n.GetIntValue(); } },
                 { "zone_name", n => { ZoneName = n.GetStringValue(); } },

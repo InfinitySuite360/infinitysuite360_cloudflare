@@ -30,6 +30,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Creator { get; set; }
 #endif
+        /// <summary>Specifies whether to generate a preview rendition before the standard encoding ladder. `default` generates only the standard encoding ladder. `previewFirst` generates a preview rendition first.</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_encodingMode? EncodingMode { get; set; }
         /// <summary>The date and time after upload when videos will not be accepted.</summary>
         public DateTimeOffset? Expiry { get; set; }
         /// <summary>The maximum duration in seconds for a video upload. Can be set for a video that is not yet uploaded to limit its duration. Uploads that exceed the specified duration will fail during processing. A value of `-1` means the value is unknown.</summary>
@@ -62,6 +64,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public Stream_direct_upload_request()
         {
             AdditionalData = new Dictionary<string, object>();
+            EncodingMode = global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_encodingMode.Default;
             Expiry = DateTimeOffset.Parse("Now + 30 minutes");
             RequireSignedURLs = false;
             ThumbnailTimestampPct = 0;
@@ -86,6 +89,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             {
                 { "allowedOrigins", n => { AllowedOrigins = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "creator", n => { Creator = n.GetStringValue(); } },
+                { "encodingMode", n => { EncodingMode = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_encodingMode>(); } },
                 { "expiry", n => { Expiry = n.GetDateTimeOffsetValue(); } },
                 { "maxDurationSeconds", n => { MaxDurationSeconds = n.GetIntValue(); } },
                 { "meta", n => { Meta = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_media_metadata>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_media_metadata.CreateFromDiscriminatorValue); } },
@@ -104,6 +108,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteCollectionOfPrimitiveValues<string>("allowedOrigins", AllowedOrigins);
             writer.WriteStringValue("creator", Creator);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_encodingMode>("encodingMode", EncodingMode);
             writer.WriteDateTimeOffsetValue("expiry", Expiry);
             writer.WriteIntValue("maxDurationSeconds", MaxDurationSeconds);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_media_metadata>("meta", Meta);

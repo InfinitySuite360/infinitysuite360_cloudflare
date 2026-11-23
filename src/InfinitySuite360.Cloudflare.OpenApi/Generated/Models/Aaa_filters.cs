@@ -71,6 +71,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public List<string> AlertTriggerPreferencesValue { get; set; }
 #endif
+        /// <summary>Used for configuring magic_endpoint_healthcheck_alert. Takes one or more health check IDs, each a UUID. That alert type requires check_id together with alert_trigger_preferences set to slo, a numeric alert_trigger_preferences_value, and selectors set to failures.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<Guid?>? CheckId { get; set; }
+#nullable restore
+#else
+        public List<Guid?> CheckId { get; set; }
+#endif
         /// <summary>Used for configuring load_balancing_pool_enablement_alert</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -239,6 +247,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public List<string> Protocol { get; set; }
 #endif
+        /// <summary>Used for configuring stakeout_saved_query_daily_digest_alert and stakeout_saved_query_immediate_alert, which require it. Takes exactly one value, the saved query ID.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<string>? QueryId { get; set; }
+#nullable restore
+#else
+        public List<string> QueryId { get; set; }
+#endif
         /// <summary>Usage depends on specific alert type</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -318,6 +334,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #nullable restore
 #else
         public List<string> TokenId { get; set; }
+#endif
+        /// <summary>Used for configuring billing_budget_alert. Takes exactly one value, the budget threshold in US dollars, as a string greater than zero.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<string>? TotalSpendDollars { get; set; }
+#nullable restore
+#else
+        public List<string> TotalSpendDollars { get; set; }
 #endif
         /// <summary>Used for configuring traffic_anomalies_alert</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -399,6 +423,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "airport_code", n => { AirportCode = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "alert_trigger_preferences", n => { AlertTriggerPreferences = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "alert_trigger_preferences_value", n => { AlertTriggerPreferencesValue = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
+                { "check_id", n => { CheckId = n.GetCollectionOfPrimitiveValues<Guid?>()?.AsList(); } },
                 { "enabled", n => { Enabled = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "environment", n => { Environment = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "event", n => { Event = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
@@ -420,6 +445,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "product", n => { Product = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "project_id", n => { ProjectId = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "protocol", n => { Protocol = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
+                { "query_id", n => { QueryId = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "query_tag", n => { QueryTag = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "requests_per_second", n => { RequestsPerSecond = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "selectors", n => { Selectors = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
@@ -430,6 +456,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "target_ip", n => { TargetIp = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "target_zone_name", n => { TargetZoneName = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "token_id", n => { TokenId = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
+                { "total_spend_dollars", n => { TotalSpendDollars = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "traffic_exclusions", n => { TrafficExclusions = n.GetCollectionOfEnumValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Aaa_filters_traffic_exclusions>()?.AsList(); } },
                 { "tunnel_id", n => { TunnelId = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "tunnel_name", n => { TunnelName = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
@@ -452,6 +479,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteCollectionOfPrimitiveValues<string>("airport_code", AirportCode);
             writer.WriteCollectionOfPrimitiveValues<string>("alert_trigger_preferences", AlertTriggerPreferences);
             writer.WriteCollectionOfPrimitiveValues<string>("alert_trigger_preferences_value", AlertTriggerPreferencesValue);
+            writer.WriteCollectionOfPrimitiveValues<Guid?>("check_id", CheckId);
             writer.WriteCollectionOfPrimitiveValues<string>("enabled", Enabled);
             writer.WriteCollectionOfPrimitiveValues<string>("environment", Environment);
             writer.WriteCollectionOfPrimitiveValues<string>("event", Event);
@@ -473,6 +501,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteCollectionOfPrimitiveValues<string>("product", Product);
             writer.WriteCollectionOfPrimitiveValues<string>("project_id", ProjectId);
             writer.WriteCollectionOfPrimitiveValues<string>("protocol", Protocol);
+            writer.WriteCollectionOfPrimitiveValues<string>("query_id", QueryId);
             writer.WriteCollectionOfPrimitiveValues<string>("query_tag", QueryTag);
             writer.WriteCollectionOfPrimitiveValues<string>("requests_per_second", RequestsPerSecond);
             writer.WriteCollectionOfPrimitiveValues<string>("selectors", Selectors);
@@ -483,6 +512,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteCollectionOfPrimitiveValues<string>("target_ip", TargetIp);
             writer.WriteCollectionOfPrimitiveValues<string>("target_zone_name", TargetZoneName);
             writer.WriteCollectionOfPrimitiveValues<string>("token_id", TokenId);
+            writer.WriteCollectionOfPrimitiveValues<string>("total_spend_dollars", TotalSpendDollars);
             writer.WriteCollectionOfEnumValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Aaa_filters_traffic_exclusions>("traffic_exclusions", TrafficExclusions);
             writer.WriteCollectionOfPrimitiveValues<string>("tunnel_id", TunnelId);
             writer.WriteCollectionOfPrimitiveValues<string>("tunnel_name", TunnelName);

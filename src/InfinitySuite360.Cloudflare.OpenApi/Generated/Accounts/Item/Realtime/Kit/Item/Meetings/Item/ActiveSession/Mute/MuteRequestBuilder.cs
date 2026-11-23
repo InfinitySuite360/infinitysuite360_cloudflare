@@ -34,13 +34,16 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
         {
         }
         /// <summary>
-        /// Mutes one or more participants from an active session using user ID or custom participant ID.
+        /// Mutes the microphone of one or more participants of an active session using their participant IDs.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Mute.MutePostResponse"/></returns>
         /// <param name="body">The request body</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse">When receiving a 400 status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse">When receiving a 401 status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse">When receiving a 404 status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse">When receiving a 500 status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Mute.MutePostResponse?> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Mute.MutePostRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -54,12 +57,15 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
             var requestInfo = ToPostRequestInformation(body, requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse.CreateFromDiscriminatorValue },
+                { "400", global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse.CreateFromDiscriminatorValue },
+                { "401", global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse.CreateFromDiscriminatorValue },
+                { "404", global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse.CreateFromDiscriminatorValue },
+                { "500", global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Mute.MutePostResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Mute.MutePostResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Mutes one or more participants from an active session using user ID or custom participant ID.
+        /// Mutes the microphone of one or more participants of an active session using their participant IDs.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

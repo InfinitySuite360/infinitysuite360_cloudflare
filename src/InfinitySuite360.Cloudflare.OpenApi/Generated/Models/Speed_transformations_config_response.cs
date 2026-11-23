@@ -11,8 +11,16 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     /// Combined view of Transformations, Allowed Origins, and C2PA settings for a zone.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    public partial class Speed_transformations_config_response : global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_base, IParsable
+    public partial class Speed_transformations_config_response : global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_setting_metadata, IParsable
     {
+        /// <summary>Combined configuration value for Transformations. All fields are optional on PATCH;omitted fields are left unchanged.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_transformations_config_value? Value { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_transformations_config_value Value { get; set; }
+#endif
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value
         /// </summary>
@@ -31,6 +39,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>(base.GetFieldDeserializers())
             {
+                { "value", n => { Value = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_transformations_config_value>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_transformations_config_value.CreateFromDiscriminatorValue); } },
             };
         }
         /// <summary>
@@ -41,6 +50,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             base.Serialize(writer);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_transformations_config_value>("value", Value);
         }
     }
 }

@@ -17,10 +17,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>A list of regions from which to run health checks. Null means every Cloudflare data center.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Monitors>? CheckRegions { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Pools?>? CheckRegions { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Monitors> CheckRegions { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Pools?> CheckRegions { get; set; }
 #endif
         /// <summary>The created_on property</summary>
         public DateTimeOffset? CreatedOn { get; private set; }
@@ -39,10 +39,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>A list of health sources, ordered from highest to lowest priority, used to evaluate individual origin health and overall pool health. The load balancer uses the first source that has data and falls back to the next. Currently accepted values are null or the exact array [&quot;regional&quot;, &quot;global&quot;]; any other combination is rejected. Null (the default) behaves like [&quot;local&quot;, &quot;global&quot;]. [&quot;regional&quot;, &quot;global&quot;] makes each region steer on its own health, falling back to the global decision when a region has no fresh data. Setting regional requires at least one region in check_regions.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Monitors>? HealthSources { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Pools?>? HealthSources { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Monitors> HealthSources { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Pools?> HealthSources { get; set; }
 #endif
         /// <summary>The id property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -159,12 +159,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "check_regions", n => { CheckRegions = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Monitors>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Monitors.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "check_regions", n => { CheckRegions = n.GetCollectionOfEnumValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Pools>()?.AsList(); } },
                 { "created_on", n => { CreatedOn = n.GetDateTimeOffsetValue(); } },
                 { "description", n => { Description = n.GetStringValue(); } },
                 { "disabled_at", n => { DisabledAt = n.GetDateTimeOffsetValue(); } },
                 { "enabled", n => { Enabled = n.GetBoolValue(); } },
-                { "health_sources", n => { HealthSources = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Monitors>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Monitors.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "health_sources", n => { HealthSources = n.GetCollectionOfEnumValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Pools>()?.AsList(); } },
                 { "id", n => { Id = n.GetStringValue(); } },
                 { "latitude", n => { Latitude = n.GetDoubleValue(); } },
                 { "load_shedding", n => { LoadShedding = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.LoadBalancing_load_shedding>(global::InfinitySuite360.Cloudflare.OpenApi.Models.LoadBalancing_load_shedding.CreateFromDiscriminatorValue); } },
@@ -188,10 +188,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Monitors>("check_regions", CheckRegions);
+            writer.WriteCollectionOfEnumValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Pools>("check_regions", CheckRegions);
             writer.WriteStringValue("description", Description);
             writer.WriteBoolValue("enabled", Enabled);
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Monitors>("health_sources", HealthSources);
+            writer.WriteCollectionOfEnumValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Pools>("health_sources", HealthSources);
             writer.WriteStringValue("id", Id);
             writer.WriteDoubleValue("latitude", Latitude);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.LoadBalancing_load_shedding>("load_shedding", LoadShedding);

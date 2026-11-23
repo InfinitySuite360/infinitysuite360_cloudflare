@@ -15,6 +15,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
+        /// <summary>Vendor-specific integration configuration accepted during updates.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.One_UpdateIntegrationConfigRequest? Config { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.One_UpdateIntegrationConfigRequest Config { get; set; }
+#endif
         /// <summary>Partial credential fields to merge with existing.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -80,6 +88,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
+                { "config", n => { Config = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_UpdateIntegrationConfigRequest>(global::InfinitySuite360.Cloudflare.OpenApi.Models.One_UpdateIntegrationConfigRequest.CreateFromDiscriminatorValue); } },
                 { "credentials", n => { Credentials = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_PatchedUpdateIntegrationV2Request_credentials>(global::InfinitySuite360.Cloudflare.OpenApi.Models.One_PatchedUpdateIntegrationV2Request_credentials.CreateFromDiscriminatorValue); } },
                 { "dlp_profiles", n => { DlpProfiles = n.GetCollectionOfPrimitiveValues<Guid?>()?.AsList(); } },
                 { "name", n => { Name = n.GetStringValue(); } },
@@ -94,6 +103,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_UpdateIntegrationConfigRequest>("config", Config);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.One_PatchedUpdateIntegrationV2Request_credentials>("credentials", Credentials);
             writer.WriteCollectionOfPrimitiveValues<Guid?>("dlp_profiles", DlpProfiles);
             writer.WriteStringValue("name", Name);

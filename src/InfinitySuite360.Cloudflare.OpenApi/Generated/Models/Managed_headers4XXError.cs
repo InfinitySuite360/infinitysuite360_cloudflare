@@ -18,20 +18,20 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>A list of error messages.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_Message>? Errors { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_Message>? Errors { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_Message> Errors { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_Message> Errors { get; set; }
 #endif
         /// <summary>The primary error message.</summary>
         public override string Message { get => base.Message; }
         /// <summary>A list of warning messages.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_Message>? Messages { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_Message>? Messages { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_Message> Messages { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_Message> Messages { get; set; }
 #endif
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Managed_headers4XXError"/> and sets the default values.
@@ -58,8 +58,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "errors", n => { Errors = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_Message>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_Message.CreateFromDiscriminatorValue)?.AsList(); } },
-                { "messages", n => { Messages = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_Message>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_Message.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "errors", n => { Errors = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_Message>(global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_Message.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "messages", n => { Messages = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_Message>(global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_Message.CreateFromDiscriminatorValue)?.AsList(); } },
             };
         }
         /// <summary>
@@ -69,8 +69,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_Message>("errors", Errors);
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_Message>("messages", Messages);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_Message>("errors", Errors);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.ManagedTransforms_Message>("messages", Messages);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

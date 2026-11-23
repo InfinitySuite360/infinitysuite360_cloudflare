@@ -7,16 +7,17 @@ using System.IO;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
+    /// <summary>
+    /// Period the line item covers.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    #pragma warning disable CS1591
     public partial class AigBilling_GetInvoicePreviewResult_invoice_lines_period : IAdditionalDataHolder, IParsable
-    #pragma warning restore CS1591
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The end property</summary>
+        /// <summary>End of the period, as a Unix timestamp in seconds.</summary>
         public double? End { get; set; }
-        /// <summary>The start property</summary>
+        /// <summary>Start of the period, as a Unix timestamp in seconds.</summary>
         public double? Start { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoicePreviewResult_invoice_lines_period"/> and sets the default values.

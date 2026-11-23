@@ -8,9 +8,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
     public enum GraphGetResponse_result_graph_workflow_nodesMember7_type
     #pragma warning restore CS1591
     {
-        [EnumMember(Value = "try")]
+        [EnumMember(Value = "loop")]
         #pragma warning disable CS1591
-        Try,
+        Loop,
         #pragma warning restore CS1591
     }
 }

@@ -8,13 +8,29 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
     public enum EventsPostRequestBody_searchMember6_op
     #pragma warning restore CS1591
     {
-        [EnumMember(Value = "in")]
+        [EnumMember(Value = "equals")]
         #pragma warning disable CS1591
-        In,
+        Equals,
         #pragma warning restore CS1591
-        [EnumMember(Value = "notIn")]
+        [EnumMember(Value = "not")]
         #pragma warning disable CS1591
-        NotIn,
+        Not,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "gt")]
+        #pragma warning disable CS1591
+        Gt,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "gte")]
+        #pragma warning disable CS1591
+        Gte,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "lt")]
+        #pragma warning disable CS1591
+        Lt,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "lte")]
+        #pragma warning disable CS1591
+        Lte,
         #pragma warning restore CS1591
     }
 }

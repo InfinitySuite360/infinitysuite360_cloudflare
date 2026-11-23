@@ -40,13 +40,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Ipf
         {
         }
         /// <summary>
-        /// IPFS Universal Path Gateway Content List Details
+        /// Retrieves the IPFS Universal Path Gateway content list configuration for a Web3 hostname.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_content_list_details_response"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Ipfs_universal_path.Content_list.Web3_content_list_details_response4XXError">When receiving a 4XX status code</exception>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Ipfs_universal_path.Content_list.Web3_content_list_details_response5XXError">When receiving a 5XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommonFailure">When receiving a 4XX or 5XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_content_list_details_response?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -59,20 +58,18 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Ipf
             var requestInfo = ToGetRequestInformation(requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Ipfs_universal_path.Content_list.Web3_content_list_details_response4XXError.CreateFromDiscriminatorValue },
-                { "5XX", global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Ipfs_universal_path.Content_list.Web3_content_list_details_response5XXError.CreateFromDiscriminatorValue },
+                { "XXX", global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_content_list_details_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_content_list_details_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Update IPFS Universal Path Gateway Content List
+        /// Updates the IPFS Universal Path Gateway content list for a Web3 hostname.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_content_list_details_response"/></returns>
         /// <param name="body">The request body</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Ipfs_universal_path.Content_list.Web3_content_list_details_response4XXError">When receiving a 4XX status code</exception>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Ipfs_universal_path.Content_list.Web3_content_list_details_response5XXError">When receiving a 5XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommonFailure">When receiving a 4XX or 5XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_content_list_details_response?> PutAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_content_list_update_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -86,13 +83,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Ipf
             var requestInfo = ToPutRequestInformation(body, requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Ipfs_universal_path.Content_list.Web3_content_list_details_response4XXError.CreateFromDiscriminatorValue },
-                { "5XX", global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Ipfs_universal_path.Content_list.Web3_content_list_details_response5XXError.CreateFromDiscriminatorValue },
+                { "XXX", global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_content_list_details_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_content_list_details_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// IPFS Universal Path Gateway Content List Details
+        /// Retrieves the IPFS Universal Path Gateway content list configuration for a Web3 hostname.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
@@ -111,7 +107,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Ipf
             return requestInfo;
         }
         /// <summary>
-        /// Update IPFS Universal Path Gateway Content List
+        /// Updates the IPFS Universal Path Gateway content list for a Web3 hostname.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

@@ -61,7 +61,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_DeleteTopupConfigResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_DeleteTopupConfigResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Retrieve the current auto top-up threshold, amount, and any error state.
+        /// Deprecated: use `auto_topup` from GET /topup/eligibility. Retrieve the current auto top-up threshold, amount, and any error state.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupConfigResponse"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
@@ -69,6 +69,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 400 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 403 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 404 status code</exception>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupConfigResponse?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -142,10 +143,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
             return requestInfo;
         }
         /// <summary>
-        /// Retrieve the current auto top-up threshold, amount, and any error state.
+        /// Deprecated: use `auto_topup` from GET /topup/eligibility. Retrieve the current auto top-up threshold, amount, and any error state.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)

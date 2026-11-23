@@ -36,29 +36,29 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Registrar.DomainTran
         /// <summary>
         /// Performs real-time, authoritative eligibility checks directly against needed requirements.Use this endpoint to verify a domain is available beforeattempting a transfer via `POST /registrations/:domain_name/transfer-in`.**Note:** This endpoint uses POST to accept a list of domains in the requestbody. It is a read-only operation — it does not create, modify, or reserveany domains.### Behavior- Maximum 10 domains per request- Pricing is only returned for domains where `transferable: true`- Results are not cached; each request queries the registry &amp; other needed upstreams## Extension SupportAll `.uk` extensions (`.uk`, `.co.uk`, etc) do not support auth codes. As such,Cloudflare will ignore the `auth_code` section of this request for `.uk` domains.This means that a `.uk` domain depends on public data to obtain domain information,so it might be a few minutes outdated.### Workflow1. Call this endpoint with domains the user wants to transfer.2. For each domain where `transferable: true`, present pricing to the user.3. For each domain where `transferable: false`, present reasons to the user4. Proceed to `POST /registrations/:domain_name/transfer-in` only for the `transferable: true` domains.
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApi_domain_transfer_check_response"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Registrar_domain_transfer_check_response"/></returns>
         /// <param name="body">Request body for checking domain transfer eligibility.</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApi_apiResponseCommonFailure">When receiving a 400 status code</exception>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApi_apiResponseCommonFailure">When receiving a 503 status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Registrar_apiResponseCommonFailure">When receiving a 400 status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Registrar_apiResponseCommonFailure">When receiving a 503 status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApi_domain_transfer_check_response?> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApi_domain_transfer_check_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Registrar_domain_transfer_check_response?> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.Registrar_domain_transfer_check_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApi_domain_transfer_check_response> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApi_domain_transfer_check_request body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Registrar_domain_transfer_check_response> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.Registrar_domain_transfer_check_request body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = ToPostRequestInformation(body, requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "400", global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApi_apiResponseCommonFailure.CreateFromDiscriminatorValue },
-                { "503", global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApi_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "400", global::InfinitySuite360.Cloudflare.OpenApi.Models.Registrar_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "503", global::InfinitySuite360.Cloudflare.OpenApi.Models.Registrar_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
-            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApi_domain_transfer_check_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApi_domain_transfer_check_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.Registrar_domain_transfer_check_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.Registrar_domain_transfer_check_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Performs real-time, authoritative eligibility checks directly against needed requirements.Use this endpoint to verify a domain is available beforeattempting a transfer via `POST /registrations/:domain_name/transfer-in`.**Note:** This endpoint uses POST to accept a list of domains in the requestbody. It is a read-only operation — it does not create, modify, or reserveany domains.### Behavior- Maximum 10 domains per request- Pricing is only returned for domains where `transferable: true`- Results are not cached; each request queries the registry &amp; other needed upstreams## Extension SupportAll `.uk` extensions (`.uk`, `.co.uk`, etc) do not support auth codes. As such,Cloudflare will ignore the `auth_code` section of this request for `.uk` domains.This means that a `.uk` domain depends on public data to obtain domain information,so it might be a few minutes outdated.### Workflow1. Call this endpoint with domains the user wants to transfer.2. For each domain where `transferable: true`, present pricing to the user.3. For each domain where `transferable: false`, present reasons to the user4. Proceed to `POST /registrations/:domain_name/transfer-in` only for the `transferable: true` domains.
@@ -68,11 +68,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Registrar.DomainTran
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApi_domain_transfer_check_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.Registrar_domain_transfer_check_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApi_domain_transfer_check_request body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.Registrar_domain_transfer_check_request body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));

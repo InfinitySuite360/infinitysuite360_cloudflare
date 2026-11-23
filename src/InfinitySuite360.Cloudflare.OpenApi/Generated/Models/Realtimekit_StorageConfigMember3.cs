@@ -22,8 +22,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #endif
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The auth_method property</summary>
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember3_auth_method? AuthMethod { get; set; }
         /// <summary>The region property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -60,7 +58,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "access_key", n => { AccessKey = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
-                { "auth_method", n => { AuthMethod = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember3_auth_method>(); } },
                 { "region", n => { Region = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
                 { "type", n => { Type = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember3_type>(); } },
             };
@@ -73,7 +70,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteObjectValue<UntypedNode>("access_key", AccessKey);
-            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember3_auth_method>("auth_method", AuthMethod);
             writer.WriteObjectValue<UntypedNode>("region", Region);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember3_type>("type", Type);
             writer.WriteAdditionalData(AdditionalData);

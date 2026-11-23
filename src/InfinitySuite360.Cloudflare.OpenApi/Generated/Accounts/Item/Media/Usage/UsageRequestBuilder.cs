@@ -42,6 +42,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Media.Usage
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.UsageAnalytics_error_response">When receiving a 400 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.UsageAnalytics_error_response">When receiving a 401 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.UsageAnalytics_error_response">When receiving a 403 status code</exception>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.UsageAnalytics_stream_usage_response?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Media.Usage.UsageRequestBuilder.UsageRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -65,6 +66,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Media.Usage
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Media.Usage.UsageRequestBuilder.UsageRequestBuilderGetQueryParameters>>? requestConfiguration = default)
@@ -84,6 +86,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Media.Usage
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Media.Usage.UsageRequestBuilder"/></returns>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
+        [Obsolete("")]
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Media.Usage.UsageRequestBuilder WithUrl(string rawUrl)
         {
             return new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Media.Usage.UsageRequestBuilder(rawUrl, RequestAdapter);

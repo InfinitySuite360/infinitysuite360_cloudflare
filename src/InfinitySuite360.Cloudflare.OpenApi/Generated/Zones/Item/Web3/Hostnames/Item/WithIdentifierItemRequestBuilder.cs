@@ -40,40 +40,35 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item
         {
         }
         /// <summary>
-        /// Delete Web3 Hostname
+        /// Deletes a Web3 hostname and its configuration from the zone.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseSingleId"/></returns>
-        /// <param name="body">Binary request body</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Web3_apiResponseSingle4XXError">When receiving a 4XX status code</exception>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Web3_apiResponseSingle5XXError">When receiving a 5XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommonFailure">When receiving a 4XX or 5XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseSingleId?> DeleteAsync(Stream body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseSingleId?> DeleteAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseSingleId> DeleteAsync(Stream body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseSingleId> DeleteAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
-            if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
-            var requestInfo = ToDeleteRequestInformation(body, requestConfiguration);
+            var requestInfo = ToDeleteRequestInformation(requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Web3_apiResponseSingle4XXError.CreateFromDiscriminatorValue },
-                { "5XX", global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Web3_apiResponseSingle5XXError.CreateFromDiscriminatorValue },
+                { "XXX", global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseSingleId>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseSingleId.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Web3 Hostname Details
+        /// Retrieves details for a specific Web3 hostname, including its target gateway and DNSLink settings.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_single_response"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Web3_single_response4XXError">When receiving a 4XX status code</exception>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Web3_single_response5XXError">When receiving a 5XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommonFailure">When receiving a 4XX or 5XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_single_response?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -86,20 +81,18 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item
             var requestInfo = ToGetRequestInformation(requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Web3_single_response4XXError.CreateFromDiscriminatorValue },
-                { "5XX", global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Web3_single_response5XXError.CreateFromDiscriminatorValue },
+                { "XXX", global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_single_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_single_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Edit Web3 Hostname
+        /// Updates a Web3 hostname configuration.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_single_response"/></returns>
         /// <param name="body">The request body</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Web3_single_response4XXError">When receiving a 4XX status code</exception>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Web3_single_response5XXError">When receiving a 5XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommonFailure">When receiving a 4XX or 5XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_single_response?> PatchAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_modify_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -113,35 +106,31 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item
             var requestInfo = ToPatchRequestInformation(body, requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Web3_single_response4XXError.CreateFromDiscriminatorValue },
-                { "5XX", global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item.Web3_single_response5XXError.CreateFromDiscriminatorValue },
+                { "XXX", global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_single_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_single_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Delete Web3 Hostname
+        /// Deletes a Web3 hostname and its configuration from the zone.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
-        /// <param name="body">Binary request body</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToDeleteRequestInformation(Stream body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToDeleteRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToDeleteRequestInformation(Stream body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToDeleteRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
-            if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = new RequestInformation(Method.DELETE, UrlTemplate, PathParameters);
             requestInfo.Configure(requestConfiguration);
             requestInfo.Headers.TryAdd("Accept", "application/json");
-            requestInfo.SetStreamContent(body, "application/json");
             return requestInfo;
         }
         /// <summary>
-        /// Web3 Hostname Details
+        /// Retrieves details for a specific Web3 hostname, including its target gateway and DNSLink settings.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
@@ -160,7 +149,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Web3.Hostnames.Item
             return requestInfo;
         }
         /// <summary>
-        /// Edit Web3 Hostname
+        /// Updates a Web3 hostname configuration.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

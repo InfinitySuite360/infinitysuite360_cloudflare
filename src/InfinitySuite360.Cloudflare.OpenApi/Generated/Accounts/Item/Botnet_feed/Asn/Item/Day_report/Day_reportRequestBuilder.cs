@@ -39,7 +39,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Botnet_feed.Asn.Item
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Botnet_feed.Asn.Item.Day_report.Day_reportGetResponse"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BotnetFeedApi_apiResponseCommonFailure">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BotnetFeed_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Botnet_feed.Asn.Item.Day_report.Day_reportGetResponse?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Botnet_feed.Asn.Item.Day_report.Day_reportRequestBuilder.Day_reportRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -52,7 +52,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Botnet_feed.Asn.Item
             var requestInfo = ToGetRequestInformation(requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BotnetFeedApi_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BotnetFeed_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Botnet_feed.Asn.Item.Day_report.Day_reportGetResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Botnet_feed.Asn.Item.Day_report.Day_reportGetResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }

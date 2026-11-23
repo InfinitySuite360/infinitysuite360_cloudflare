@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
-    /// <summary>Whether telemetry is being dropped, and why. More values may be added; treat unknown values like normal.- normal: every event is kept.- limited: the account keeps only sample_rate of its events, usually because it passed its daily limit. A free account over its limit keeps none until resets_at; a paid one keeps about 10 events a second and is brought back in stages after 00:00 UTC.- restricted: events are dropped for another reason. Contact support.</summary>
+    /// <summary>Whether telemetry is being dropped, and why. More values may be added; treat unknown values like normal.- normal: every event is kept.- limited: the account passed its daily limit and keeps only sample_rate of its events. A free account keeps none until resets_at; a paid one keeps about 10 events a second and is brought back in stages after 00:00 UTC.- restricted: the account keeps only sample_rate of its events for another reason. Contact support.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public enum WorkersObservability_usage_limit_status
     {

@@ -37,13 +37,15 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Devices.Policy
 #endif
         /// <summary>Determines whether the WARP client can silently reauthenticate the user with device credentials (Microsoft Entra) instead of prompting for browser-based reauthentication.</summary>
         public bool? EnableDeviceCredentialAuthentication { get; set; }
+        /// <summary>Determines whether NetBIOS over TCP/IP (NetBT) is enabled on the WARP tunnel interface. (Windows only). NetBT is disabled by default for security reasons.</summary>
+        public bool? EnableNetbt { get; set; }
         /// <summary>List of routes excluded in the WARP client&apos;s tunnel. Both &apos;exclude&apos; and &apos;include&apos; cannot be set in the same request.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel>? Exclude { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_request>? Exclude { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel> Exclude { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_request> Exclude { get; set; }
 #endif
         /// <summary>Whether to add Microsoft IPs to Split Tunnel exclusions.</summary>
         public bool? ExcludeOfficeIps { get; set; }
@@ -58,14 +60,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Devices.Policy
         /// <summary>List of routes included in the WARP client&apos;s tunnel. Both &apos;exclude&apos; and &apos;include&apos; cannot be set in the same request.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include>? Include { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include_request>? Include { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include> Include { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include_request> Include { get; set; }
 #endif
-        /// <summary>The amount of time in minutes a user is allowed access to their LAN. A value of 0 will allow LAN access until the next WARP reconnection, such as a reboot or a laptop waking from sleep. Note that this field is omitted from the response if null or unset.</summary>
+        /// <summary>The amount of time in minutes a user is allowed access to their LAN. A value of 0 will allow LAN access until the next WARP reconnection, such as a reboot or a laptop waking from sleep. Set to null to unset.</summary>
         public double? LanAllowMinutes { get; set; }
-        /// <summary>The size of the subnet for the local access network. Note that this field is omitted from the response if null or unset.</summary>
+        /// <summary>The size of the subnet for the local access network. Set to null to unset.</summary>
         public double? LanAllowSubnetSize { get; set; }
         /// <summary>Determines if the operating system will register WARP&apos;s local interface IP with your on-premises DNS server.</summary>
         public bool? RegisterInterfaceIpWithDns { get; set; }
@@ -120,6 +122,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Devices.Policy
             CaptivePortal = 180;
             DisableAutoFallback = false;
             EnableDeviceCredentialAuthentication = false;
+            EnableNetbt = false;
             ExcludeOfficeIps = false;
             RegisterInterfaceIpWithDns = true;
             SccmVpnBoundarySupport = false;
@@ -152,10 +155,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Devices.Policy
                 { "disable_auto_fallback", n => { DisableAutoFallback = n.GetBoolValue(); } },
                 { "dns_search_suffixes", n => { DnsSearchSuffixes = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_dns_search_suffix>(global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_dns_search_suffix.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "enable_device_credential_authentication", n => { EnableDeviceCredentialAuthentication = n.GetBoolValue(); } },
-                { "exclude", n => { Exclude = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel>(global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "enable_netbt", n => { EnableNetbt = n.GetBoolValue(); } },
+                { "exclude", n => { Exclude = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_request>(global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_request.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "exclude_office_ips", n => { ExcludeOfficeIps = n.GetBoolValue(); } },
                 { "global_acceleration", n => { GlobalAcceleration = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_global_acceleration>(global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_global_acceleration.CreateFromDiscriminatorValue); } },
-                { "include", n => { Include = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include>(global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "include", n => { Include = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include_request>(global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include_request.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "lan_allow_minutes", n => { LanAllowMinutes = n.GetDoubleValue(); } },
                 { "lan_allow_subnet_size", n => { LanAllowSubnetSize = n.GetDoubleValue(); } },
                 { "register_interface_ip_with_dns", n => { RegisterInterfaceIpWithDns = n.GetBoolValue(); } },
@@ -183,10 +187,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Devices.Policy
             writer.WriteBoolValue("disable_auto_fallback", DisableAutoFallback);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_dns_search_suffix>("dns_search_suffixes", DnsSearchSuffixes);
             writer.WriteBoolValue("enable_device_credential_authentication", EnableDeviceCredentialAuthentication);
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel>("exclude", Exclude);
+            writer.WriteBoolValue("enable_netbt", EnableNetbt);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_request>("exclude", Exclude);
             writer.WriteBoolValue("exclude_office_ips", ExcludeOfficeIps);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_global_acceleration>("global_acceleration", GlobalAcceleration);
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include>("include", Include);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include_request>("include", Include);
             writer.WriteDoubleValue("lan_allow_minutes", LanAllowMinutes);
             writer.WriteDoubleValue("lan_allow_subnet_size", LanAllowSubnetSize);
             writer.WriteBoolValue("register_interface_ip_with_dns", RegisterInterfaceIpWithDns);

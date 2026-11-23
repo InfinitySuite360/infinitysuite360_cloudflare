@@ -8,7 +8,7 @@ using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
     /// <summary>
-    /// When enabled, Cloudflare provisions an AI Search instance for the zoneand exposes a /.well-known/ai-search endpoint that AI agents can query.Markdown responses also receive an agent: YAML capability block advertisingthe search endpoint.
+    /// When enabled, Cloudflare provisions an AI Search instance for the zoneand exposes a /.well-known/search endpoint that AI agents can query.Available on all plans.Markdown responses also receive an agent: YAML capability block advertisingthe search endpoint.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class Zones_search_for_agents : global::InfinitySuite360.Cloudflare.OpenApi.Models.Zones_base, IParsable

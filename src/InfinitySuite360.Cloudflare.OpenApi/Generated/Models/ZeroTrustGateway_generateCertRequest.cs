@@ -14,7 +14,15 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>Sets the certificate validity period in days (range: 1-10,950 days / ~30 years). Defaults to 1,825 days (5 years). **Important**: This field is only settable during the certificate creation.  Certificates becomes immutable after creation - use the `/activate` and `/deactivate` endpoints to manage certificate lifecycle.</summary>
+        /// <summary>Pin the generated certificate authority&apos;s key material to one of the account&apos;s selected Data Localization Suite regions. **Important**: This field is only settable during certificate creation. Certificates become immutable after creation - use the `/activate` and `/deactivate` endpoints to manage certificate lifecycle.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? Region { get; set; }
+#nullable restore
+#else
+        public string Region { get; set; }
+#endif
+        /// <summary>Sets the certificate validity period in days (range: 1-10,950 days / ~30 years). Defaults to 1,825 days (5 years). **Important**: This field is only settable during the certificate creation. Certificates becomes immutable after creation - use the `/activate` and `/deactivate` endpoints to manage certificate lifecycle.</summary>
         public int? ValidityPeriodDays { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_generateCertRequest"/> and sets the default values.
@@ -41,6 +49,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
+                { "region", n => { Region = n.GetStringValue(); } },
                 { "validity_period_days", n => { ValidityPeriodDays = n.GetIntValue(); } },
             };
         }
@@ -51,6 +60,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
+            writer.WriteStringValue("region", Region);
             writer.WriteIntValue("validity_period_days", ValidityPeriodDays);
             writer.WriteAdditionalData(AdditionalData);
         }

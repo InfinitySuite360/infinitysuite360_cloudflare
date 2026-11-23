@@ -82,18 +82,18 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.SecurityCenter.Security
         /// <summary>
         /// Updates the security.txt file configuration for a zone, which provides security researchers with vulnerability reporting information.
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_apiResponseCommon"/></returns>
-        /// <param name="body">The request body</param>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_ExternalApiResponseSingleNoTerraform"/></returns>
+        /// <param name="body">Configuration of the zone security.txt file</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_apiResponseCommon?> PutAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_securityTxt body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_ExternalApiResponseSingleNoTerraform?> PutAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_securityTxt body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_apiResponseCommon> PutAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_securityTxt body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_ExternalApiResponseSingleNoTerraform> PutAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_securityTxt body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
@@ -102,7 +102,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.SecurityCenter.Security
             {
                 { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
-            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_apiResponseCommon>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_apiResponseCommon.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_ExternalApiResponseSingleNoTerraform>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_ExternalApiResponseSingleNoTerraform.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Removes the security.txt file configuration for a zone. The /.well-known/security.txt endpoint will no longer be served.
@@ -146,7 +146,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.SecurityCenter.Security
         /// Updates the security.txt file configuration for a zone, which provides security researchers with vulnerability reporting information.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
-        /// <param name="body">The request body</param>
+        /// <param name="body">Configuration of the zone security.txt file</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable

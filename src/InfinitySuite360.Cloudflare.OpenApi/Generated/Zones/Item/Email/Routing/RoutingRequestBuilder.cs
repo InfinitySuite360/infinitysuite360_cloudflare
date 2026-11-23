@@ -5,7 +5,6 @@ using InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Email.Routing.Disable;
 using InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Email.Routing.Dns;
 using InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Email.Routing.Enable;
 using InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Email.Routing.Rules;
-using InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Email.Routing.Suppression;
 using InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Email.Routing.Unlock;
 using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions.Serialization;
@@ -42,11 +41,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Email.Routing
         public global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Email.Routing.Rules.RulesRequestBuilder Rules
         {
             get => new global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Email.Routing.Rules.RulesRequestBuilder(PathParameters, RequestAdapter);
-        }
-        /// <summary>The suppression property</summary>
-        public global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Email.Routing.Suppression.SuppressionRequestBuilder Suppression
-        {
-            get => new global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Email.Routing.Suppression.SuppressionRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>The unlock property</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Email.Routing.Unlock.UnlockRequestBuilder Unlock

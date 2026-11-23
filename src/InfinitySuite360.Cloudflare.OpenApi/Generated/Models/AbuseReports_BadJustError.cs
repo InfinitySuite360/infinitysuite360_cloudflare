@@ -8,7 +8,7 @@ using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
     /// <summary>
-    /// Please provide a more detailed description of the infringement between 1 and 5000 characters
+    /// Justification must be at least 20 characters for phishing reports and cannot exceed 5000 characters
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class AbuseReports_BadJustError : IAdditionalDataHolder, IParsable

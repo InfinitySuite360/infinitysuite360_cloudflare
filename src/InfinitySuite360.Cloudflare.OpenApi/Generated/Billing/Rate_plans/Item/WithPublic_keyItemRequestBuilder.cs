@@ -36,25 +36,25 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Billing.Rate_plans.Item
         /// <summary>
         /// Gets a rate plan&apos;s details by its public key (e.g., &apos;teams_free&apos;, &apos;cf_pro_20_20&apos;). This is a public catalog endpoint, so authentication is not enforced and credentials are accepted but not required.
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_rate_plan_simple_response"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_rate_plan_simple_response"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_apiResponseCommonFailure">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_rate_plan_simple_response?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_rate_plan_simple_response?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_rate_plan_simple_response> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_rate_plan_simple_response> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             var requestInfo = ToGetRequestInformation(requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
-            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_rate_plan_simple_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_rate_plan_simple_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_rate_plan_simple_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_rate_plan_simple_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Gets a rate plan&apos;s details by its public key (e.g., &apos;teams_free&apos;, &apos;cf_pro_20_20&apos;). This is a public catalog endpoint, so authentication is not enforced and credentials are accepted but not required.

@@ -14,7 +14,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>if false, participants won&apos;t be able to unmute themselves after they are muted</summary>
+        /// <summary>This field is ignored. Muted participants can unmute themselves if their preset allows them to produce audio.</summary>
+        [Obsolete("")]
         public bool? AllowUnmute { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.MuteAll.MuteAllPostRequestBody"/> and sets the default values.

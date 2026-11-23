@@ -16,7 +16,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Workers.Builds.Deploy_hooks
     public partial class Deploy_hooksRequestBuilder : BaseRequestBuilder
     {
         /// <summary>Gets an item from the InfinitySuite360.Cloudflare.OpenApi.workers.builds.deploy_hooks.item collection</summary>
-        /// <param name="position">Deploy hook UUID</param>
+        /// <param name="position">UUID of the deploy hook, as returned by deploy-hooks list.</param>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Workers.Builds.Deploy_hooks.Item.WithDeploy_hook_uuItemRequestBuilder"/></returns>
         public global::InfinitySuite360.Cloudflare.OpenApi.Workers.Builds.Deploy_hooks.Item.WithDeploy_hook_uuItemRequestBuilder this[Guid position]
         {

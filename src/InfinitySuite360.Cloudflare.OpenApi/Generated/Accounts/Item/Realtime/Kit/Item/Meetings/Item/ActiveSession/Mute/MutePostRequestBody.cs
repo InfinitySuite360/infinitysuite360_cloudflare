@@ -14,15 +14,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The custom_participant_ids property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public List<string>? CustomParticipantIds { get; set; }
-#nullable restore
-#else
-        public List<string> CustomParticipantIds { get; set; }
-#endif
-        /// <summary>The participant_ids property</summary>
+        /// <summary>IDs of the participants to mute, as returned when the participants were added to the meeting.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<string>? ParticipantIds { get; set; }
@@ -55,7 +47,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "custom_participant_ids", n => { CustomParticipantIds = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "participant_ids", n => { ParticipantIds = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
             };
         }
@@ -66,7 +57,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteCollectionOfPrimitiveValues<string>("custom_participant_ids", CustomParticipantIds);
             writer.WriteCollectionOfPrimitiveValues<string>("participant_ids", ParticipantIds);
             writer.WriteAdditionalData(AdditionalData);
         }

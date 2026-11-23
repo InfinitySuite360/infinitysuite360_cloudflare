@@ -49,25 +49,25 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.RegistrarSandbox.Ext
         /// <summary>
         /// Returns metadata and JSON Schema documents describing the expected inputstructure for registration and transfer operations on each supportedextension (TLD).This endpoint uses cursor-based pagination. Results are ordered byextension name by default. To fetch the next page, pass the `cursor`value from the `result_info` object in the response as the `cursor`query parameter in your next request. An empty `cursor` stringindicates there are no more pages.Supports HTTP conditional GET via `ETag`. Include the `ETag` valuefrom a previous response in an `If-None-Match` header to receive a`304 Not Modified` when the data has not changed.
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_extensionResponseCollection"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_extensionResponseCollection"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_apiResponseCommonFailure">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_extensionResponseCollection?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.RegistrarSandbox.Extensions.ExtensionsRequestBuilder.ExtensionsRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_extensionResponseCollection?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.RegistrarSandbox.Extensions.ExtensionsRequestBuilder.ExtensionsRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_extensionResponseCollection> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.RegistrarSandbox.Extensions.ExtensionsRequestBuilder.ExtensionsRequestBuilderGetQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_extensionResponseCollection> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.RegistrarSandbox.Extensions.ExtensionsRequestBuilder.ExtensionsRequestBuilderGetQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             var requestInfo = ToGetRequestInformation(requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
-            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_extensionResponseCollection>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_extensionResponseCollection.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_extensionResponseCollection>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_extensionResponseCollection.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Returns metadata and JSON Schema documents describing the expected inputstructure for registration and transfer operations on each supportedextension (TLD).This endpoint uses cursor-based pagination. Results are ordered byextension name by default. To fetch the next page, pass the `cursor`value from the `result_info` object in the response as the `cursor`query parameter in your next request. An empty `cursor` stringindicates there are no more pages.Supports HTTP conditional GET via `ETag`. Include the `ETag` valuefrom a previous response in an `If-None-Match` header to receive a`304 Not Modified` when the data has not changed.

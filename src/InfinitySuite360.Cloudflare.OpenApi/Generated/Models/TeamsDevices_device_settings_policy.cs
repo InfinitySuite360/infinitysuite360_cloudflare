@@ -56,6 +56,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public bool? Enabled { get; set; }
         /// <summary>Determines whether the WARP client can silently reauthenticate the user with device credentials (Microsoft Entra) instead of prompting for browser-based reauthentication.</summary>
         public bool? EnableDeviceCredentialAuthentication { get; set; }
+        /// <summary>Determines whether NetBIOS over TCP/IP (NetBT) is enabled on the WARP tunnel interface. (Windows only). NetBT is disabled by default for security reasons.</summary>
+        public bool? EnableNetbt { get; set; }
         /// <summary>List of routes excluded in the WARP client&apos;s tunnel.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -194,6 +196,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             DisableAutoFallback = false;
             Enabled = true;
             EnableDeviceCredentialAuthentication = false;
+            EnableNetbt = false;
             ExcludeOfficeIps = false;
             ProfileType = global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_profile_type.Warp;
             RegisterInterfaceIpWithDns = true;
@@ -230,6 +233,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "disable_auto_fallback", n => { DisableAutoFallback = n.GetBoolValue(); } },
                 { "dns_search_suffixes", n => { DnsSearchSuffixes = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_dns_search_suffix>(global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_dns_search_suffix.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "enable_device_credential_authentication", n => { EnableDeviceCredentialAuthentication = n.GetBoolValue(); } },
+                { "enable_netbt", n => { EnableNetbt = n.GetBoolValue(); } },
                 { "enabled", n => { Enabled = n.GetBoolValue(); } },
                 { "exclude", n => { Exclude = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel>(global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "exclude_office_ips", n => { ExcludeOfficeIps = n.GetBoolValue(); } },
@@ -274,6 +278,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_dns_search_suffix>("dns_search_suffixes", DnsSearchSuffixes);
             writer.WriteBoolValue("enabled", Enabled);
             writer.WriteBoolValue("enable_device_credential_authentication", EnableDeviceCredentialAuthentication);
+            writer.WriteBoolValue("enable_netbt", EnableNetbt);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel>("exclude", Exclude);
             writer.WriteBoolValue("exclude_office_ips", ExcludeOfficeIps);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_fallback_domain>("fallback_domains", FallbackDomains);

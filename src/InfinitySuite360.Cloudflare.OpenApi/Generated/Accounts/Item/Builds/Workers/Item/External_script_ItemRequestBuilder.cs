@@ -4,6 +4,7 @@ using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.Buil
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.Deploy_hooks;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.Migrate_to_previews;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.Previews;
+using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.Purge_build_cache;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.Triggers;
 using InfinitySuite360.Cloudflare.OpenApi.Models;
 using Microsoft.Kiota.Abstractions.Extensions;
@@ -41,6 +42,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.Previews.PreviewsRequestBuilder Previews
         {
             get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.Previews.PreviewsRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The purge_build_cache property</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.Purge_build_cache.Purge_build_cacheRequestBuilder Purge_build_cache
+        {
+            get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.Purge_build_cache.Purge_build_cacheRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>The triggers property</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.Triggers.TriggersRequestBuilder Triggers

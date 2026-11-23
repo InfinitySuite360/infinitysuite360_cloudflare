@@ -32,8 +32,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Name { get; set; }
 #endif
-        /// <summary>When this operator was classified for local-only, non-billable settlement. Null for billable operators. Always matches the requesting zone&apos;s classification.</summary>
-        public DateTimeOffset? NonBillableSince { get; private set; }
         /// <summary>Stable pay-per-use operator identifier.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -86,7 +84,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "current_price", n => { CurrentPrice = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.PayPerCrawl_PPUPrice>(global::InfinitySuite360.Cloudflare.OpenApi.Models.PayPerCrawl_PPUPrice.CreateFromDiscriminatorValue); } },
                 { "default_price_usd_microcents", n => { DefaultPriceUsdMicrocents = n.GetIntValue(); } },
                 { "name", n => { Name = n.GetStringValue(); } },
-                { "non_billable_since", n => { NonBillableSince = n.GetDateTimeOffsetValue(); } },
                 { "operator_id", n => { OperatorId = n.GetStringValue(); } },
                 { "proposed_price", n => { ProposedPrice = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.PayPerCrawl_PPUPrice>(global::InfinitySuite360.Cloudflare.OpenApi.Models.PayPerCrawl_PPUPrice.CreateFromDiscriminatorValue); } },
                 { "scheduled_price", n => { ScheduledPrice = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.PayPerCrawl_PPUPrice>(global::InfinitySuite360.Cloudflare.OpenApi.Models.PayPerCrawl_PPUPrice.CreateFromDiscriminatorValue); } },

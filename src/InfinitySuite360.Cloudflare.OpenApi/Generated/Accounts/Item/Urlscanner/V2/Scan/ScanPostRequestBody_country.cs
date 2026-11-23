@@ -91,10 +91,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Urlscanner.V2.Scan
         #pragma warning disable CS1591
         CA,
         #pragma warning restore CS1591
-        [EnumMember(Value = "CD")]
-        #pragma warning disable CS1591
-        CD,
-        #pragma warning restore CS1591
         [EnumMember(Value = "CH")]
         #pragma warning disable CS1591
         CH,
@@ -118,10 +114,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Urlscanner.V2.Scan
         [EnumMember(Value = "CR")]
         #pragma warning disable CS1591
         CR,
-        #pragma warning restore CS1591
-        [EnumMember(Value = "CW")]
-        #pragma warning disable CS1591
-        CW,
         #pragma warning restore CS1591
         [EnumMember(Value = "CY")]
         #pragma warning disable CS1591
@@ -187,10 +179,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Urlscanner.V2.Scan
         #pragma warning disable CS1591
         GB,
         #pragma warning restore CS1591
-        [EnumMember(Value = "GD")]
-        #pragma warning disable CS1591
-        GD,
-        #pragma warning restore CS1591
         [EnumMember(Value = "GE")]
         #pragma warning disable CS1591
         GE,
@@ -207,10 +195,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Urlscanner.V2.Scan
         #pragma warning disable CS1591
         GT,
         #pragma warning restore CS1591
-        [EnumMember(Value = "GU")]
-        #pragma warning disable CS1591
-        GU,
-        #pragma warning restore CS1591
         [EnumMember(Value = "GY")]
         #pragma warning disable CS1591
         GY,
@@ -226,10 +210,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Urlscanner.V2.Scan
         [EnumMember(Value = "HR")]
         #pragma warning disable CS1591
         HR,
-        #pragma warning restore CS1591
-        [EnumMember(Value = "HT")]
-        #pragma warning disable CS1591
-        HT,
         #pragma warning restore CS1591
         [EnumMember(Value = "HU")]
         #pragma warning disable CS1591
@@ -311,10 +291,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Urlscanner.V2.Scan
         #pragma warning disable CS1591
         LK,
         #pragma warning restore CS1591
-        [EnumMember(Value = "LR")]
-        #pragma warning disable CS1591
-        LR,
-        #pragma warning restore CS1591
         [EnumMember(Value = "LT")]
         #pragma warning disable CS1591
         LT,
@@ -327,10 +303,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Urlscanner.V2.Scan
         #pragma warning disable CS1591
         LV,
         #pragma warning restore CS1591
-        [EnumMember(Value = "MA")]
-        #pragma warning disable CS1591
-        MA,
-        #pragma warning restore CS1591
         [EnumMember(Value = "MD")]
         #pragma warning disable CS1591
         MD,
@@ -342,10 +314,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Urlscanner.V2.Scan
         [EnumMember(Value = "MK")]
         #pragma warning disable CS1591
         MK,
-        #pragma warning restore CS1591
-        [EnumMember(Value = "MM")]
-        #pragma warning disable CS1591
-        MM,
         #pragma warning restore CS1591
         [EnumMember(Value = "MN")]
         #pragma warning disable CS1591
@@ -366,10 +334,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Urlscanner.V2.Scan
         [EnumMember(Value = "MV")]
         #pragma warning disable CS1591
         MV,
-        #pragma warning restore CS1591
-        [EnumMember(Value = "MW")]
-        #pragma warning disable CS1591
-        MW,
         #pragma warning restore CS1591
         [EnumMember(Value = "MX")]
         #pragma warning disable CS1591
@@ -511,10 +475,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Urlscanner.V2.Scan
         #pragma warning disable CS1591
         TH,
         #pragma warning restore CS1591
-        [EnumMember(Value = "TJ")]
-        #pragma warning disable CS1591
-        TJ,
-        #pragma warning restore CS1591
         [EnumMember(Value = "TN")]
         #pragma warning disable CS1591
         TN,
@@ -546,10 +506,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Urlscanner.V2.Scan
         [EnumMember(Value = "US")]
         #pragma warning disable CS1591
         US,
-        #pragma warning restore CS1591
-        [EnumMember(Value = "UZ")]
-        #pragma warning disable CS1591
-        UZ,
         #pragma warning restore CS1591
         [EnumMember(Value = "VN")]
         #pragma warning disable CS1591

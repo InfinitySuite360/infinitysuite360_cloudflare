@@ -39,7 +39,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.User.Subscriptions.Item
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.User.Subscriptions.Item.WithIdentifierDeleteResponse"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_apiResponseCommonFailure">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.User.Subscriptions.Item.WithIdentifierDeleteResponse?> DeleteAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -52,34 +52,34 @@ namespace InfinitySuite360.Cloudflare.OpenApi.User.Subscriptions.Item
             var requestInfo = ToDeleteRequestInformation(requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.User.Subscriptions.Item.WithIdentifierDeleteResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.User.Subscriptions.Item.WithIdentifierDeleteResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Updates a user&apos;s subscriptions.
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_user_subscription_response_single"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_user_subscription_response_single"/></returns>
         /// <param name="body">The request body</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_apiResponseCommonFailure">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_user_subscription_response_single?> PutAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_subscriptionV2 body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_user_subscription_response_single?> PutAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_subscriptionV2 body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_user_subscription_response_single> PutAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_subscriptionV2 body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_user_subscription_response_single> PutAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_subscriptionV2 body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = ToPutRequestInformation(body, requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
-            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_user_subscription_response_single>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_user_subscription_response_single.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_user_subscription_response_single>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_user_subscription_response_single.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Deletes a user&apos;s subscription.
@@ -108,11 +108,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.User.Subscriptions.Item
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToPutRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_subscriptionV2 body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToPutRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_subscriptionV2 body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToPutRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_subscriptionV2 body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToPutRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_subscriptionV2 body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
