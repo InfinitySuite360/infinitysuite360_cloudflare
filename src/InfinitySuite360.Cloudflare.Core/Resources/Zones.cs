@@ -133,6 +133,7 @@ public sealed class ZonesClient(ICloudflareApiConnection api) : CloudflareResour
 
     // ---- Cache ----
 
+    [Obsolete("Purging everything needs an explicit switch. Use Cache.PurgeEverythingAsync(allowPurgeAll: true) (0.7.0). Removed in 1.0.")]
     public Task<IdResult> PurgeEverythingAsync(string? zoneId = null, CancellationToken ct = default) =>
         Purge(new JsonObject { ["purge_everything"] = true }, zoneId, ct);
 

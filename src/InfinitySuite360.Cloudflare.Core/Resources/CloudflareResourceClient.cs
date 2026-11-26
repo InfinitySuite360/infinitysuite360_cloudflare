@@ -29,5 +29,25 @@ public abstract class CloudflareResourceClient(ICloudflareApiConnection api)
         catch (CloudflareApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound) { return null; }
     }
 
+    /// <summary>
+    /// DELETE that treats HTTP 404 as "already gone" (idempotent delete): true when Cloudflare deleted the object, false when it did not exist.
+    /// The write guard still applies; other errors throw.
+    /// </summary>
+    protected async Task<bool> DeleteIfExistsAsync(string path, object? body, CancellationToken ct)
+    {
+        try
+        {
+            await Api.SendAsync<JsonElement>(HttpMethod.Delete, path, body, ct).ConfigureAwait(false);
+            return true;
+        }
+        catch (CloudflareApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound) { return false; }
+    }
+
+    /// <summary>
+    /// Checks the write guard before a method reads the current state to decide what to write (Ensure/guarded methods), so that with
+    /// <c>AllowWrites = false</c> nothing is sent at all, not even the preparing read.
+    /// </summary>
+    protected void EnsureWritable(HttpMethod method, string path) => CloudflareWritePolicy.EnsureAllowed(method, path, Api.Options);
+
     protected static JsonElement ToElement(object value) => JsonSerializer.SerializeToElement(value, value.GetType(), CloudflareJson.Options);
 }

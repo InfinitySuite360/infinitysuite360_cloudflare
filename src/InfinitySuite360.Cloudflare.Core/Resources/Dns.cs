@@ -50,7 +50,7 @@ public sealed class DnsRecordQuery
 }
 
 /// <summary>DNS records of a zone.</summary>
-public sealed class DnsClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
+public sealed partial class DnsClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
     public Task<IReadOnlyList<DnsRecord>> ListAsync(DnsRecordQuery? query = null, string? zoneId = null, CancellationToken ct = default)
     {
