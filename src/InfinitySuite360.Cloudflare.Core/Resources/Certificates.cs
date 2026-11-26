@@ -149,6 +149,10 @@ public sealed class CertificatesClient(ICloudflareApiConnection api) : Cloudflar
     public Task<IReadOnlyList<ClientCertificate>> ListClientCertificatesAsync(string? zoneId = null, CancellationToken ct = default) =>
         Api.ListAllToListAsync<ClientCertificate>(ZonePath(zoneId, "client_certificates"), 50, ct);
 
+    /// <summary>Lets Cloudflare sign a client certificate for a CSR, without local checks of the input.</summary>
+    /// <remarks>Obsolete since 0.6.0: <see cref="ApiShieldClient.CreateClientCertificateAsync"/> refuses input that contains a private key, checks the validity
+    /// and has a preview (<see cref="ApiShieldClient.PreviewCreateClientCertificate"/>). This method stays for compatibility and is removed in 1.0.</remarks>
+    [Obsolete("Use ApiShield.CreateClientCertificateAsync: it refuses private keys in the input, checks the validity and has a preview. Removed in 1.0.")]
     public Task<ClientCertificate> CreateClientCertificateAsync(string csrPem, int validityDays = 3650, string? zoneId = null, CancellationToken ct = default) =>
         Api.PostAsync<ClientCertificate>(ZonePath(zoneId, "client_certificates"), new { csr = csrPem, validity_days = validityDays }, ct);
 

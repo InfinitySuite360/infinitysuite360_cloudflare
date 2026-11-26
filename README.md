@@ -106,12 +106,139 @@ var events = await cloudflare.Analytics.GetSecurityEventsAsync(DateTimeOffset.Ut
 | R2 buckets | `R2` |
 | Workers scripts and routes | `Workers` |
 | Health Checks, Logpush, audit logs, notifications | `Monitoring` |
-| Page Shield, Security Center, API Shield, bots | `Security` |
+| Page Shield, Security Center, API Shield, bots (older, untyped parts) | `Security` |
+| Page Shield: settings, scripts, connections, cookies, content security rules | `PageShield` |
+| API Shield: operations, discovery, schema validation, token validation, labels, mTLS client certificates | `ApiShield` |
 | Origin CA and mTLS certificates | `Certificates` |
 | GraphQL Analytics, Web Analytics | `Analytics` |
 | Cloudflare IP ranges | `Ips` |
 | Custom lists (IP lists, bulk status) | `Lists` |
 | IP access rules (zone and account) | `IpAccess` |
+| Rate limiting rules (and the deprecated classic rate limits) | `RateLimiting` |
+| WAF custom rules, managed rules and overrides | `Waf` |
+| Bot Fight Mode, Super Bot Fight Mode, Bot Management, leaked credential checks | `Bots` |
+| Custom hostnames (Cloudflare for SaaS), fallback origin | `CustomHostnames` |
+| Authenticated Origin Pulls (zone-level and per-hostname) | `OriginPulls` |
+| SSL mode, minimum TLS version, HSTS, TLS switches | `Tls` |
+| Logpush jobs (destinations redacted) | `Logpush` |
+| API tokens: create, roll, revoke, permission groups | `ApiTokens` |
+
+Page Shield and API Shield (0.4.0; whether a feature is available depends on the plan and is decided by Cloudflare, an unavailable one throws `CloudflareNotEntitledException`, a subclass of `CloudflareApiException`):
+
+```csharp
+var scripts = await cloudflare.PageShield.ListScriptsAsync(new PageShieldQuery { Status = "active,infrequent", ExcludeCdnCgi = true, PrioritizeMalicious = true });
+var suspicious = scripts.Where(s => s.IsMalicious);
+var cookies = await cloudflare.PageShield.ListCookiesAsync();
+
+// A change is first described, shown to the user and only then sent (and only with AllowWrites = true).
+var plan = cloudflare.PageShield.PreviewCreatePolicy(new PageShieldPolicyInput { Action = "log", Description = "CSP report only", Expression = "(http.host eq \"app.example.com\")", Value = "script-src 'self'" });
+Console.WriteLine($"{plan.Method} {plan.Path}\n{plan.BodyJson}");
+
+var discovered = await cloudflare.ApiShield.ListDiscoveredOperationsAsync(new ApiOperationQuery { State = "review" });
+var operations = await cloudflare.ApiShield.ListOperationsAsync(new ApiOperationQuery { Host = "api.example.com" });
+var validation = await cloudflare.ApiShield.GetSchemaValidationSettingsAsync();
+var jwtRules = await cloudflare.ApiShield.ListTokenValidationRulesAsync();
+```
+
+Shield writes (0.5.0). Each write method has a `Preview…` sister, needs `AllowWrites` and is checked locally first:
+
+```csharp
+// Idempotent: only operations that are not saved yet are added, in one call.
+var ops = await writer.ApiShield.EnsureOperationsAsync([new("GET", "api.example.com", "/v1/users/{var1}"), new("POST", "api.example.com", "/v1/orders")]);
+
+// Schema: stored with validation OFF, the preview shows size and SHA-256 instead of the text.
+var (schema, created) = await writer.ApiShield.EnsureSchemaAsync(new ApiShieldSchemaInput { Name = "api v1", Source = openApiJson },
+    new ApiShieldSchemaUploadOptions { AllowedHosts = ["api.example.com"] });
+await writer.ApiShield.SetDefaultActionAsync(ApiShieldActions.Log);           // "log" needs Enterprise; "block" only with allowBlock: true
+
+// JWT validation (Enterprise + API Shield add-on): keys never appear in previews, models, ToString or errors.
+var keys = JwtKeySet.Parse(jwksJson);                                          // private key members are refused
+var config = await writer.ApiShield.CreateTokenValidationConfigAsync(new TokenValidationConfigInput
+    { Title = "gateway", Description = "", TokenSources = ["http.request.headers[\"authorization\"][0]"], Keys = keys });
+
+// mTLS: removing a hostname is refused unless allowRemovals: true (an mTLS rule would then lock out every client).
+var change = await writer.ApiShield.PreviewReplaceHostnameAssociationsAsync(["api.example.com", "admin.example.com"]);
+
+try { await writer.PageShield.EnsurePolicyAsync(cspReportOnly); }
+catch (CloudflareNotEntitledException ex) { /* plan lacks the feature (rules need Page Shield "Advanced"); show ex.Errors */ }
+```
+
+| Write | Default | Explicit opt-in | Risk |
+|---|---|---|---|
+| Schema / token validation action | `log` or `none` | `allowBlock: true` for `block` | legitimate clients rejected |
+| Page Shield content security rule | `log` (report only) | `allowEnforce: true` for `allow` | unlisted scripts blocked in browsers |
+| mTLS hostname associations | additions only | `allowRemovals: true` | every client blocked by an mTLS rule |
+| Uploaded schema | validation off | `ValidationEnabled = true` / `SetSchemaValidationEnabledAsync` | – |
+
+Errors: `CloudflareNotEntitledException` (plan or add-on missing), `CloudflareConflictException` (409, "already exists"; the `Ensure…` methods handle it),
+`CloudflareWriteNotAllowedException` (blocked locally, nothing sent), otherwise `CloudflareApiException` (for example a missing token permission).
+Token permissions: "Zone: API Gateway: Edit" (operations, schemas, JWT, labels), "Zone: Page Shield: Edit", "Zone: SSL and Certificates: Edit" (mTLS).
+
+Protection and operations (0.6.0). Same pattern: `Preview…` first, writes only with `AllowWrites`, risky options only with an explicit `allow…`:
+
+```csharp
+// Rate limiting rule by ref; only this rule is changed (PATCH/POST), nothing is written when it is already as wanted.
+var (_, changed) = await writer.RateLimiting.UpsertRuleAsync(new RateLimitRuleInput
+{
+    Ref = "login", Expression = "(http.request.uri.path eq \"/api/login\")", Action = WafActions.ManagedChallenge, RequestsPerPeriod = 10, Period = 60,
+});
+
+// Managed rules: deploy the free managed ruleset; overrides that weaken it need allowLoosen: true.
+await writer.Waf.DeployManagedRulesetAsync(ManagedRulesetIds.FreeManaged, "free-managed");
+
+// Bot Fight Mode also challenges your own API clients and cannot be skipped: refused without allowChallengeAutomation.
+var bots = writer.Bots.PreviewUpdateSettings(new BotManagementChange { AiBotsProtection = "block" });
+
+// Authenticated Origin Pulls with your own certificate: the key stays out of previews, ToString, models and errors.
+var pair = OriginPullKeyPair.FromPem(certificatePem, privateKeyPem);
+var cert = await writer.OriginPulls.UploadZoneCertificateAsync(pair);
+await writer.OriginPulls.SetZoneEnabledAsync(true);                  // switching off needs allowDisable: true (origin would reject Cloudflare)
+
+var tls = await cloudflare.Tls.GetOverviewAsync();                   // SSL mode, minimum TLS, HSTS, HTTP/3, ECH, 0-RTT
+await writer.Tls.SetMinTlsVersionAsync("1.2");                       // lowering needs allowWeaken, "1.3" needs allowTls13Only
+
+var jobs = await cloudflare.Logpush.ListJobsAsync();                 // destination_conf with credentials redacted
+```
+
+API tokens (0.6.0). The value Cloudflare shows once exists only in `ApiTokenSecret`:
+
+```csharp
+var groups = await admin.ApiTokens.ListPermissionGroupsAsync(nameContains: "DNS Write");
+var issued = await admin.ApiTokens.CreateAsync(new ApiTokenInput
+{
+    Name = "dns-edit-app", ExpiresOn = DateTimeOffset.UtcNow.AddDays(90), AllowedIps = ["203.0.113.0/24"],
+    Policies = [new ApiTokenPolicyInput { PermissionGroupIds = [groups[0].Id], Resources = new JsonObject { [ApiTokenResources.Zone(zoneId)] = "*" } }],
+});
+secretStore.Save("cloudflare-dns", issued.Secret.TakeValue());      // hand over once; issued.ToString() and JSON show [redacted]
+
+using var rolled = await admin.ApiTokens.RollAsync(issued.Token.Id); // the old value stops working at once
+await admin.ApiTokens.RevokeAsync(oldTokenId);                       // own token: refused unless allowSelf: true
+```
+
+| Write | Default | Explicit opt-in | Risk |
+|---|---|---|---|
+| Rate limit / WAF rule that blocks every request | refused | `allowBroadMatch: true` | everyone locked out |
+| WAF `skip` rule | refused | `allowSkip: true` | matching requests bypass protection |
+| Managed rules disabled, `log`, low sensitivity, removed | refused | `allowLoosen: true` | weaker protection |
+| Bot Fight Mode, (likely) automated → challenge/block | refused | `allowChallengeAutomation: true` | own API and app clients blocked |
+| Verified bots → block | refused | `allowBlockVerifiedBots: true` | search engines, monitors blocked |
+| Authenticated Origin Pulls off, certificate deleted, hostname disabled | refused | `allowDisable: true` | origin rejects all Cloudflare traffic |
+| Custom hostname fallback origin removed | refused | `allowRemoval: true` | hostnames without own origin stop |
+| Custom hostname email validation | refused | `allowEmailValidation: true` | mail to the customer's admin addresses |
+| SSL mode / minimum TLS lowered | refused | `allowWeaken: true` | weaker encryption |
+| Minimum TLS 1.3 | refused | `allowTls13Only: true` | older clients locked out |
+| HSTS > 1 day, subdomains, preload | refused | `allowLongLivedHsts: true` | HTTPS cannot be dropped for max-age |
+| DNS record proxied → DNS only | refused | `allowUnproxy: true` | origin address published |
+| API token with wildcard resources / without expiry | refused | `allowBroadResources` / `allowNoExpiry` | more rights or lifetime than needed |
+| Roll, disable or revoke the client's own token | refused | `allowSelf: true` | client cut off |
+
+Token permissions (minimal, check names in the dashboard): "Zone WAF" (rate limiting, WAF, leaked credentials), "Bot Management", "SSL and Certificates"
+(custom hostnames, origin pulls), "Zone Settings" (TLS), "Logs" (Logpush), "API Tokens" / "Account API Tokens" (token management, a dedicated short-lived token).
+Plans (developers.cloudflare.com, 17.11.2026): rate limiting rules Free 1, Pro 2, Business 5, Enterprise 100; Super Bot Fight Mode from Pro; custom hostnames
+on all plans (100 included), custom certificates Enterprise; Authenticated Origin Pulls and Logpush on all plans. Cloudflare decides: a missing feature
+throws `CloudflareNotEntitledException` with Cloudflare's text.
+
+`Certificates.CreateClientCertificateAsync` is obsolete since 0.6.0; use `ApiShield.CreateClientCertificateAsync` (CSR only, private keys refused, preview).
 
 Edge status and lists (0.3.0):
 
