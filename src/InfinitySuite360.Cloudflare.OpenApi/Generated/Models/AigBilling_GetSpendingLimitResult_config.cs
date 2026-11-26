@@ -7,16 +7,17 @@ using System.IO;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
+    /// <summary>
+    /// Spending limit configuration.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    #pragma warning disable CS1591
     public partial class AigBilling_GetSpendingLimitResult_config : IAdditionalDataHolder, IParsable
-    #pragma warning restore CS1591
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The amount property</summary>
+        /// <summary>Spending limit amount in cents.</summary>
         public double? Amount { get; set; }
-        /// <summary>The duration property</summary>
+        /// <summary>Window the limit applies to: `daily`, `weekly`, or `monthly`.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Duration { get; set; }
@@ -24,7 +25,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Duration { get; set; }
 #endif
-        /// <summary>The strategy property</summary>
+        /// <summary>Window type: `fixed` or `sliding`.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Strategy { get; set; }

@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances
 {
-    /// <summary>Source type. When omitted or null with a non-blank source, HTTP(S) URLs infer web-crawler and existing R2 bucket names infer r2. A missing or blank source without a type uses managed upload-only storage.</summary>
+    /// <summary>Source type. When omitted or null with a non-blank source, HTTP(S) URLs infer web-crawler and existing R2 bucket names infer r2. A missing or blank source without a type uses managed upload-only storage. d1 is never inferred; it indexes the rows returned by source_params.d1.query.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public enum InstancesPostResponse_result_type
     {
@@ -14,6 +14,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.
         [EnumMember(Value = "web-crawler")]
         #pragma warning disable CS1591
         WebCrawler,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "d1")]
+        #pragma warning disable CS1591
+        D1,
         #pragma warning restore CS1591
         [EnumMember(Value = "openapi-json-null-sentinel-value-2BF93600-0FE4-4250-987A-E5DDB203E464")]
         #pragma warning disable CS1591

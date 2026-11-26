@@ -30,7 +30,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppre
 #else
         public string Error { get; set; }
 #endif
-        /// <summary>The created or promoted suppression&apos;s identifier. Present when `status` is `processed`.</summary>
+        /// <summary>The created or updated suppression&apos;s identifier. Present when `status` is `processed`.</summary>
         public Guid? Id { get; set; }
         /// <summary>Zero-based index of this item in the request body.</summary>
         public int? Index { get; set; }

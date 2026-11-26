@@ -15,6 +15,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
+        /// <summary>Agents observability settings for the Preview.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_Preview_observability_agents? Agents { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_Preview_observability_agents Agents { get; set; }
+#endif
         /// <summary>Whether observability is enabled for the Preview.</summary>
         public bool? Enabled { get; set; }
         /// <summary>The sampling rate for observability. From 0 to 1 (1 = 100%, 0.1 = 10%).</summary>
@@ -73,6 +81,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
+                { "agents", n => { Agents = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_Preview_observability_agents>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_Preview_observability_agents.CreateFromDiscriminatorValue); } },
                 { "enabled", n => { Enabled = n.GetBoolValue(); } },
                 { "head_sampling_rate", n => { HeadSamplingRate = n.GetDoubleValue(); } },
                 { "issues", n => { Issues = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_Preview_observability_issues>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_Preview_observability_issues.CreateFromDiscriminatorValue); } },
@@ -88,6 +97,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_Preview_observability_agents>("agents", Agents);
             writer.WriteBoolValue("enabled", Enabled);
             writer.WriteDoubleValue("head_sampling_rate", HeadSamplingRate);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_Preview_observability_issues>("issues", Issues);

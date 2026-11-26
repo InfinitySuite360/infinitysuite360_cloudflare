@@ -35,7 +35,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Teamnet.Virtual_netw
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public Virtual_networksRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/teamnet/virtual_networks{?id*,is_default*,is_default_network*,is_deleted*,name*}", pathParameters)
+        public Virtual_networksRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/teamnet/virtual_networks{?id*,is_default*,is_default_network*,is_deleted*,name*,page*,per_page*}", pathParameters)
         {
         }
         /// <summary>
@@ -43,7 +43,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Teamnet.Virtual_netw
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public Virtual_networksRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/teamnet/virtual_networks{?id*,is_default*,is_default_network*,is_deleted*,name*}", rawUrl)
+        public Virtual_networksRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/teamnet/virtual_networks{?id*,is_default*,is_default_network*,is_deleted*,name*,page*,per_page*}", rawUrl)
         {
         }
         /// <summary>
@@ -180,6 +180,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Teamnet.Virtual_netw
             public string Name { get; set; }
             #pragma warning restore CS1591
 #endif
+            /// <summary>Page number of paginated results, starting at 1. Defaults to 1.</summary>
+            [QueryParameter("page")]
+            public int? Page { get; set; }
+            /// <summary>Number of virtual networks per page, up to 1000. Defaults to 1000.</summary>
+            [QueryParameter("per_page")]
+            public int? PerPage { get; set; }
         }
     }
 }

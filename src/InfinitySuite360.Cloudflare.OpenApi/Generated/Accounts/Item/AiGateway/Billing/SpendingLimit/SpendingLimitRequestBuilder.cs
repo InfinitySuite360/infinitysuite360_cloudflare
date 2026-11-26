@@ -42,6 +42,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Sp
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 400 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 403 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 404 status code</exception>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_DeleteSpendingLimitResponse?> DeleteAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -69,6 +70,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Sp
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 400 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 403 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 404 status code</exception>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetSpendingLimitResponse?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -122,6 +124,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Sp
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public RequestInformation ToDeleteRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
@@ -141,6 +144,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Sp
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
@@ -183,6 +187,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Sp
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.SpendingLimit.SpendingLimitRequestBuilder"/></returns>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
+        [Obsolete("")]
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.SpendingLimit.SpendingLimitRequestBuilder WithUrl(string rawUrl)
         {
             return new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.SpendingLimit.SpendingLimitRequestBuilder(rawUrl, RequestAdapter);

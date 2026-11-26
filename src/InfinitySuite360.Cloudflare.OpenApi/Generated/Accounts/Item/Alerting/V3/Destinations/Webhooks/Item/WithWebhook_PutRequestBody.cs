@@ -22,22 +22,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Alerting.V3.Destinat
 #else
         public string Name { get; set; }
 #endif
-        /// <summary>Optional secret that will be passed in the `cf-webhook-auth` header when dispatching generic webhook notifications or formatted for supported destinations. Secrets are not returned in any API response body.</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public string? Secret { get; set; }
-#nullable restore
-#else
-        public string Secret { get; set; }
-#endif
-        /// <summary>The POST endpoint to call when dispatching a notification.</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public string? Url { get; set; }
-#nullable restore
-#else
-        public string Url { get; set; }
-#endif
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Alerting.V3.Destinations.Webhooks.Item.WithWebhook_PutRequestBody"/> and sets the default values.
         /// </summary>
@@ -64,8 +48,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Alerting.V3.Destinat
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "name", n => { Name = n.GetStringValue(); } },
-                { "secret", n => { Secret = n.GetStringValue(); } },
-                { "url", n => { Url = n.GetStringValue(); } },
             };
         }
         /// <summary>
@@ -76,8 +58,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Alerting.V3.Destinat
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("name", Name);
-            writer.WriteStringValue("secret", Secret);
-            writer.WriteStringValue("url", Url);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

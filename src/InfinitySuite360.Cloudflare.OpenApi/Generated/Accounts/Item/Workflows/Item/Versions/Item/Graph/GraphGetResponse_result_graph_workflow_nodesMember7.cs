@@ -14,29 +14,13 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The catch_block property</summary>
+        /// <summary>Child nodes (recursive).</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_catch_block? CatchBlock { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_nodes>? Nodes { get; set; }
 #nullable restore
 #else
-        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_catch_block CatchBlock { get; set; }
-#endif
-        /// <summary>The finally_block property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_finally_block? FinallyBlock { get; set; }
-#nullable restore
-#else
-        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_finally_block FinallyBlock { get; set; }
-#endif
-        /// <summary>The try_block property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_try_block? TryBlock { get; set; }
-#nullable restore
-#else
-        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_try_block TryBlock { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_nodes> Nodes { get; set; }
 #endif
         /// <summary>The type property</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_type? Type { get; set; }
@@ -65,9 +49,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "catch_block", n => { CatchBlock = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_catch_block>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_catch_block.CreateFromDiscriminatorValue); } },
-                { "finally_block", n => { FinallyBlock = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_finally_block>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_finally_block.CreateFromDiscriminatorValue); } },
-                { "try_block", n => { TryBlock = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_try_block>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_try_block.CreateFromDiscriminatorValue); } },
+                { "nodes", n => { Nodes = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_nodes>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_nodes.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "type", n => { Type = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_type>(); } },
             };
         }
@@ -78,9 +60,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_catch_block>("catch_block", CatchBlock);
-            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_finally_block>("finally_block", FinallyBlock);
-            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_try_block>("try_block", TryBlock);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_nodes>("nodes", Nodes);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember7_type>("type", Type);
             writer.WriteAdditionalData(AdditionalData);
         }

@@ -8,9 +8,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
     public enum GraphGetResponse_result_graph_workflow_nodesMember6_type
     #pragma warning restore CS1591
     {
-        [EnumMember(Value = "parallel")]
+        [EnumMember(Value = "step_dynamic")]
         #pragma warning disable CS1591
-        Parallel,
+        Step_dynamic,
         #pragma warning restore CS1591
     }
 }

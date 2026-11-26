@@ -69,6 +69,26 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Pipelines.V1.Sinks.I
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Pipelines.V1.Sinks.Item.WithSink_GetResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Pipelines.V1.Sinks.Item.WithSink_GetResponse.CreateFromDiscriminatorValue, default, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
+        /// Update a Sink&apos;s credentials or rolling policy, creating a new version of the Sink. Only `credentials` and `rolling_policy` (R2) or `token` and `rolling_policy` (Basin Catalog, including Sinks created with the legacy `r2_data_catalog` type) can be changed; omitted fields keep their current values. Secrets are never returned in responses. Pipelines that use the Sink keep their current version until they are moved to the latest one with Update Pipeline Tables.
+        /// </summary>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Pipelines.V1.Sinks.Item.WithSink_PatchResponse"/></returns>
+        /// <param name="body">The request body</param>
+        /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
+        /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Pipelines.V1.Sinks.Item.WithSink_PatchResponse?> PatchAsync(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Pipelines.V1.Sinks.Item.WithSink_PatchRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        {
+#nullable restore
+#else
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Pipelines.V1.Sinks.Item.WithSink_PatchResponse> PatchAsync(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Pipelines.V1.Sinks.Item.WithSink_PatchRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        {
+#endif
+            if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
+            var requestInfo = ToPatchRequestInformation(body, requestConfiguration);
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Pipelines.V1.Sinks.Item.WithSink_PatchResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Pipelines.V1.Sinks.Item.WithSink_PatchResponse.CreateFromDiscriminatorValue, default, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
         /// Delete Sink in Account.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
@@ -104,6 +124,28 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Pipelines.V1.Sinks.I
             var requestInfo = new RequestInformation(Method.GET, UrlTemplate, PathParameters);
             requestInfo.Configure(requestConfiguration);
             requestInfo.Headers.TryAdd("Accept", "application/json");
+            return requestInfo;
+        }
+        /// <summary>
+        /// Update a Sink&apos;s credentials or rolling policy, creating a new version of the Sink. Only `credentials` and `rolling_policy` (R2) or `token` and `rolling_policy` (Basin Catalog, including Sinks created with the legacy `r2_data_catalog` type) can be changed; omitted fields keep their current values. Secrets are never returned in responses. Pipelines that use the Sink keep their current version until they are moved to the latest one with Update Pipeline Tables.
+        /// </summary>
+        /// <returns>A <see cref="RequestInformation"/></returns>
+        /// <param name="body">The request body</param>
+        /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public RequestInformation ToPatchRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Pipelines.V1.Sinks.Item.WithSink_PatchRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        {
+#nullable restore
+#else
+        public RequestInformation ToPatchRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Pipelines.V1.Sinks.Item.WithSink_PatchRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        {
+#endif
+            if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
+            var requestInfo = new RequestInformation(Method.PATCH, UrlTemplate, PathParameters);
+            requestInfo.Configure(requestConfiguration);
+            requestInfo.Headers.TryAdd("Accept", "application/json");
+            requestInfo.SetContentFromParsable(RequestAdapter, "application/json", body);
             return requestInfo;
         }
         /// <summary>

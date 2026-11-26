@@ -34,7 +34,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Gateway.Rules.Item.R
         {
         }
         /// <summary>
-        /// Resets the expiration of a Zero Trust Gateway Rule if its duration elapsed and it has a default duration. The Zero Trust Gateway Rule must have values  for both `expiration.expires_at` and `expiration.duration`.
+        /// Resets the expiration of a Zero Trust Gateway Rule if its duration elapsed and it has a default duration. The Zero Trust Gateway Rule must have values for both `expiration.expires_at` and `expiration.duration`.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_single_response4"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
@@ -57,7 +57,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Gateway.Rules.Item.R
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_single_response4>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_single_response4.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Resets the expiration of a Zero Trust Gateway Rule if its duration elapsed and it has a default duration. The Zero Trust Gateway Rule must have values  for both `expiration.expires_at` and `expiration.duration`.
+        /// Resets the expiration of a Zero Trust Gateway Rule if its duration elapsed and it has a default duration. The Zero Trust Gateway Rule must have values for both `expiration.expires_at` and `expiration.duration`.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>

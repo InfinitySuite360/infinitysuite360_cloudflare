@@ -98,16 +98,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications
         [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
         public partial class ApplicationsRequestBuilderGetQueryParameters 
         {
-            /// <summary>Filter by supported environment (standard, fedramp).</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
+            /// <summary>Environment to request (standard, fedramp). The result follows the account&apos;s FedRAMP entitlement: FedRAMP-enabled accounts always receive FedRAMP applications and other accounts receive standard applications. Any other non-empty value returns 400.</summary>
             [QueryParameter("environment")]
-            public string? Environment { get; set; }
-#nullable restore
-#else
-            [QueryParameter("environment")]
-            public string Environment { get; set; }
-#endif
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.GetEnvironmentQueryParameterType? Environment { get; set; }
             /// <summary>A page number within the paginated result set.</summary>
             [QueryParameter("page")]
             public int? Page { get; set; }

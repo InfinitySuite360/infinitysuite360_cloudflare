@@ -12,9 +12,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     public partial class AigBilling_SetTopupConfigResultMember3 : IParsable
     #pragma warning restore CS1591
     {
-        /// <summary>The amount property</summary>
+        /// <summary>Auto top-up amount in cents from the request.</summary>
         public double? Amount { get; set; }
-        /// <summary>The client_secret property</summary>
+        /// <summary>Client secret used to complete card authentication.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? ClientSecret { get; set; }
@@ -22,7 +22,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string ClientSecret { get; set; }
 #endif
-        /// <summary>The setup_intent_id property</summary>
+        /// <summary>Card setup identifier to send back as `setup_intent_id` once authenticated.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? SetupIntentId { get; set; }
@@ -30,9 +30,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string SetupIntentId { get; set; }
 #endif
-        /// <summary>The status property</summary>
+        /// <summary>The card must be authenticated with `client_secret` before auto top-up is saved. Then send the request again with `setup_intent_id`.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_SetTopupConfigResultMember3_status? Status { get; set; }
-        /// <summary>The threshold property</summary>
+        /// <summary>Balance threshold in cents from the request.</summary>
         public double? Threshold { get; set; }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value

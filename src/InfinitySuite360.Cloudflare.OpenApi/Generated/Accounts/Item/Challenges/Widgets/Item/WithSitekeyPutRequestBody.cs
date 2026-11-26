@@ -41,15 +41,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.I
 #endif
         /// <summary>Do not show any Cloudflare branding on the widget (ENT only).</summary>
         public bool? Offlabel { get; set; }
-        /// <summary>Region where this widget can be used. This cannot be changed after creation.</summary>
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Turnstile_region? Region { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.Item.WithSitekeyPutRequestBody"/> and sets the default values.
         /// </summary>
         public WithSitekeyPutRequestBody()
         {
             AdditionalData = new Dictionary<string, object>();
-            Region = global::InfinitySuite360.Cloudflare.OpenApi.Models.Turnstile_region.World;
         }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value
@@ -76,7 +73,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.I
                 { "mode", n => { Mode = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Turnstile_widget_mode>(); } },
                 { "name", n => { Name = n.GetStringValue(); } },
                 { "offlabel", n => { Offlabel = n.GetBoolValue(); } },
-                { "region", n => { Region = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Turnstile_region>(); } },
             };
         }
         /// <summary>
@@ -93,7 +89,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.I
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Turnstile_widget_mode>("mode", Mode);
             writer.WriteStringValue("name", Name);
             writer.WriteBoolValue("offlabel", Offlabel);
-            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Turnstile_region>("region", Region);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

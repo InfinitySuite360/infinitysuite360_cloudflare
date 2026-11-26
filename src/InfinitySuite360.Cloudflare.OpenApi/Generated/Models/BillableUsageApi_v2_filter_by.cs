@@ -13,7 +13,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class BillableUsageApi_v2_filter_by : IParsable
     {
-        /// <summary>Restrict results to rows whose `x_BillableMetricId` matches one of these billable metric ids (e.g. `workers_standard_requests`). Values must be unique.</summary>
+        /// <summary>Restrict results to rows whose `x_BillableMetricId` matches one of these billable metric ids (e.g. `workers_standard_requests`). Values must be unique. Cost billed under an archived billable metric carries that metric&apos;s catalog public id as `x_BillableMetricId` and is never matched by this filter; omit the filter to include it.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<string>? BillableMetricIds { get; set; }

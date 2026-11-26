@@ -35,7 +35,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Keyless_certificates
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public Keyless_certificatesRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/zones/{zone_id}/keyless_certificates", pathParameters)
+        public Keyless_certificatesRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/zones/{zone_id}/keyless_certificates{?page*,per_page*}", pathParameters)
         {
         }
         /// <summary>
@@ -43,7 +43,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Keyless_certificates
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public Keyless_certificatesRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/zones/{zone_id}/keyless_certificates", rawUrl)
+        public Keyless_certificatesRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/zones/{zone_id}/keyless_certificates{?page*,per_page*}", rawUrl)
         {
         }
         /// <summary>
@@ -55,11 +55,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Keyless_certificates
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Keyless_certificates.TlsCertificatesAndHostnames_keyless_response_collection4XXError">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.TlsCertificatesAndHostnames_keyless_response_collection?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.TlsCertificatesAndHostnames_keyless_response_collection?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Keyless_certificates.Keyless_certificatesRequestBuilder.Keyless_certificatesRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.TlsCertificatesAndHostnames_keyless_response_collection> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.TlsCertificatesAndHostnames_keyless_response_collection> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Keyless_certificates.Keyless_certificatesRequestBuilder.Keyless_certificatesRequestBuilderGetQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             var requestInfo = ToGetRequestInformation(requestConfiguration);
@@ -101,11 +101,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Keyless_certificates
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Keyless_certificates.Keyless_certificatesRequestBuilder.Keyless_certificatesRequestBuilderGetQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Keyless_certificates.Keyless_certificatesRequestBuilder.Keyless_certificatesRequestBuilderGetQueryParameters>> requestConfiguration = default)
         {
 #endif
             var requestInfo = new RequestInformation(Method.GET, UrlTemplate, PathParameters);
@@ -143,6 +143,19 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Keyless_certificates
         public global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Keyless_certificates.Keyless_certificatesRequestBuilder WithUrl(string rawUrl)
         {
             return new global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Keyless_certificates.Keyless_certificatesRequestBuilder(rawUrl, RequestAdapter);
+        }
+        /// <summary>
+        /// List all Keyless SSL configurations for a given zone.
+        /// </summary>
+        [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
+        public partial class Keyless_certificatesRequestBuilderGetQueryParameters 
+        {
+            /// <summary>Page number of Keyless SSL configurations, starting at 1.</summary>
+            [QueryParameter("page")]
+            public int? Page { get; set; }
+            /// <summary>Number of Keyless SSL configurations per page.</summary>
+            [QueryParameter("per_page")]
+            public int? PerPage { get; set; }
         }
     }
 }

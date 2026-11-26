@@ -23,7 +23,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Ssl.Verification.Item
 #else
         public string Status { get; set; }
 #endif
-        /// <summary>Desired validation method.</summary>
+        /// <summary>SSL validation method.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.TlsCertificatesAndHostnames_validation_method_definition? ValidationMethod { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Ssl.Verification.Item.TlsCertificatesAndHostnames_ssl_validation_method_response_collection4XXError_result"/> and sets the default values.

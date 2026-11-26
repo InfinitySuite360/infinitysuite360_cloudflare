@@ -14,22 +14,16 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
     #pragma warning restore CS1591
     {
         /// <summary>The action property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public string? Action { get; set; }
-#nullable restore
-#else
-        public string Action { get; set; }
-#endif
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Kick.KickPostResponse_data_action? Action { get; set; }
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The participants property</summary>
+        /// <summary>Participants the kick was requested for.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_SessionParticipant>? Participants { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_ActionParticipant>? Participants { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_SessionParticipant> Participants { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_ActionParticipant> Participants { get; set; }
 #endif
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Kick.KickPostResponse_data"/> and sets the default values.
@@ -56,8 +50,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "action", n => { Action = n.GetStringValue(); } },
-                { "participants", n => { Participants = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_SessionParticipant>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_SessionParticipant.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "action", n => { Action = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Kick.KickPostResponse_data_action>(); } },
+                { "participants", n => { Participants = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_ActionParticipant>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_ActionParticipant.CreateFromDiscriminatorValue)?.AsList(); } },
             };
         }
         /// <summary>
@@ -67,8 +61,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteStringValue("action", Action);
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_SessionParticipant>("participants", Participants);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Kick.KickPostResponse_data_action>("action", Action);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_ActionParticipant>("participants", Participants);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

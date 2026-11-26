@@ -49,50 +49,50 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.PaymentMethods
         /// <summary>
         /// Lists all payment methods for an account.
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method_response_collection"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method_response_collection"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_apiResponseCommonFailure">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method_response_collection?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.PaymentMethods.PaymentMethodsRequestBuilder.PaymentMethodsRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method_response_collection?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.PaymentMethods.PaymentMethodsRequestBuilder.PaymentMethodsRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method_response_collection> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.PaymentMethods.PaymentMethodsRequestBuilder.PaymentMethodsRequestBuilderGetQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method_response_collection> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.PaymentMethods.PaymentMethodsRequestBuilder.PaymentMethodsRequestBuilderGetQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             var requestInfo = ToGetRequestInformation(requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
-            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method_response_collection>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method_response_collection.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method_response_collection>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method_response_collection.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Creates a new payment method for an account.
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method_response_single"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method_response_single"/></returns>
         /// <param name="body">The request body</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_apiResponseCommonFailure">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method_response_single?> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method_response_single?> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method_response_single> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method_response_single> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = ToPostRequestInformation(body, requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
-            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method_response_single>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method_response_single.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method_response_single>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method_response_single.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Lists all payment methods for an account.
@@ -121,11 +121,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.PaymentMethods
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_payment_method body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_payment_method body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));

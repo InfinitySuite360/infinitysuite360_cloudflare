@@ -35,7 +35,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public QueuesRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/queues", pathParameters)
+        public QueuesRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/queues{?page*,per_page*}", pathParameters)
         {
         }
         /// <summary>
@@ -43,7 +43,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public QueuesRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/queues", rawUrl)
+        public QueuesRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/queues{?page*,per_page*}", rawUrl)
         {
         }
         /// <summary>
@@ -55,11 +55,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Mq_apiV4Failure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues.QueuesGetResponse?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues.QueuesGetResponse?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues.QueuesRequestBuilder.QueuesRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues.QueuesGetResponse> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues.QueuesGetResponse> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues.QueuesRequestBuilder.QueuesRequestBuilderGetQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             var requestInfo = ToGetRequestInformation(requestConfiguration);
@@ -101,11 +101,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues.QueuesRequestBuilder.QueuesRequestBuilderGetQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues.QueuesRequestBuilder.QueuesRequestBuilderGetQueryParameters>> requestConfiguration = default)
         {
 #endif
             var requestInfo = new RequestInformation(Method.GET, UrlTemplate, PathParameters);
@@ -143,6 +143,19 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues.QueuesRequestBuilder WithUrl(string rawUrl)
         {
             return new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Queues.QueuesRequestBuilder(rawUrl, RequestAdapter);
+        }
+        /// <summary>
+        /// Returns the queues owned by an account.
+        /// </summary>
+        [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
+        public partial class QueuesRequestBuilderGetQueryParameters 
+        {
+            /// <summary>Page number of queues, starting at 1.</summary>
+            [QueryParameter("page")]
+            public int? Page { get; set; }
+            /// <summary>Number of queues per page. Takes precedence over the legacy perPage query parameter.</summary>
+            [QueryParameter("per_page")]
+            public int? PerPage { get; set; }
         }
     }
 }

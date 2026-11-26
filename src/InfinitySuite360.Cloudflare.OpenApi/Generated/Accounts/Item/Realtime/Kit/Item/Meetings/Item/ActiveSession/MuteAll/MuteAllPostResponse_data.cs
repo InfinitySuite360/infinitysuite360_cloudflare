@@ -13,16 +13,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
     #pragma warning restore CS1591
     {
         /// <summary>The action property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public string? Action { get; set; }
-#nullable restore
-#else
-        public string Action { get; set; }
-#endif
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.MuteAll.MuteAllPostResponse_data_action? Action { get; set; }
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The muted_participants_count property</summary>
+        /// <summary>Number of connections (peers) whose microphone was unmuted and has been muted by this request.</summary>
         public double? MutedParticipantsCount { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.MuteAll.MuteAllPostResponse_data"/> and sets the default values.
@@ -49,7 +43,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "action", n => { Action = n.GetStringValue(); } },
+                { "action", n => { Action = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.MuteAll.MuteAllPostResponse_data_action>(); } },
                 { "muted_participants_count", n => { MutedParticipantsCount = n.GetDoubleValue(); } },
             };
         }
@@ -60,7 +54,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteStringValue("action", Action);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.MuteAll.MuteAllPostResponse_data_action>("action", Action);
             writer.WriteDoubleValue("muted_participants_count", MutedParticipantsCount);
             writer.WriteAdditionalData(AdditionalData);
         }

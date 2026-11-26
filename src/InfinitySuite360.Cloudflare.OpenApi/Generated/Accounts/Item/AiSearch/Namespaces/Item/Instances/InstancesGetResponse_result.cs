@@ -206,9 +206,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.
 #else
         public string Status { get; set; }
 #endif
-        /// <summary>The summarization property</summary>
+        /// <summary>Deprecated and ignored during indexing and search; changing it still re-indexes existing files on the next sync. Use indexing_options.file_summary instead.</summary>
+        [Obsolete("")]
         public bool? Summarization { get; set; }
-        /// <summary>The summarization_model property</summary>
+        /// <summary>Deprecated and ignored during indexing and search; changing it still re-indexes existing files on the next sync. Use indexing_options.file_summary instead.</summary>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? SummarizationModel { get; set; }
@@ -232,7 +234,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.
 #else
         public string SystemPromptAiSearch { get; set; }
 #endif
-        /// <summary>The system_prompt_index_summarization property</summary>
+        /// <summary>Deprecated and has no effect. Use indexing_options.file_summary instead.</summary>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? SystemPromptIndexSummarization { get; set; }

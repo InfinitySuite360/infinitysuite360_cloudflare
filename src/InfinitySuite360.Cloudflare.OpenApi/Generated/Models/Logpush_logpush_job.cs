@@ -24,6 +24,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string DestinationConf { get; set; }
 #endif
+        /// <summary>Sanitized destination descriptor with credentials removed.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? DestinationName { get; private set; }
+#nullable restore
+#else
+        public string DestinationName { get; private set; }
+#endif
         /// <summary>Flag that indicates if the job is enabled.</summary>
         public bool? Enabled { get; set; }
         /// <summary>If not null, the job is currently failing. Failures are usually. repetitive (example: no permissions to write to destination bucket). Only the last failure is recorded. On successful execution of a job the error_message and last_error are set to null.</summary>
@@ -133,6 +141,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             {
                 { "dataset", n => { Dataset = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Logpush_dataset>(); } },
                 { "destination_conf", n => { DestinationConf = n.GetStringValue(); } },
+                { "destination_name", n => { DestinationName = n.GetStringValue(); } },
                 { "enabled", n => { Enabled = n.GetBoolValue(); } },
                 { "error_message", n => { ErrorMessage = n.GetStringValue(); } },
                 { "filter_attack_traffic", n => { FilterAttackTraffic = n.GetBoolValue(); } },

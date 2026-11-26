@@ -12,7 +12,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     public partial class SecurityCenter_partnerSettings : IParsable
     #pragma warning restore CS1591
     {
-        /// <summary>Whether the partner integration is enabled for the account.</summary>
+        /// <summary>Whether the partner integration is enabled for the account.Enabling the integration for the first time also schedules an account scan for that partner.Disabling the integration will purge all partner integration-related data, including partner insights, shadow zones, and shadow hosts.</summary>
         public bool? Enabled { get; set; }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value

@@ -14,21 +14,13 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The branches property</summary>
+        /// <summary>Child nodes (recursive).</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10_branches>? Branches { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10_nodes>? Nodes { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10_branches> Branches { get; set; }
-#endif
-        /// <summary>The discriminant property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public string? Discriminant { get; set; }
-#nullable restore
-#else
-        public string Discriminant { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10_nodes> Nodes { get; set; }
 #endif
         /// <summary>The type property</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10_type? Type { get; set; }
@@ -57,8 +49,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "branches", n => { Branches = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10_branches>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10_branches.CreateFromDiscriminatorValue)?.AsList(); } },
-                { "discriminant", n => { Discriminant = n.GetStringValue(); } },
+                { "nodes", n => { Nodes = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10_nodes>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10_nodes.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "type", n => { Type = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10_type>(); } },
             };
         }
@@ -69,8 +60,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10_branches>("branches", Branches);
-            writer.WriteStringValue("discriminant", Discriminant);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10_nodes>("nodes", Nodes);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember10_type>("type", Type);
             writer.WriteAdditionalData(AdditionalData);
         }

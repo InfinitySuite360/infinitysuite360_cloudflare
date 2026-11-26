@@ -88,6 +88,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #endif
         /// <summary>When the version was created.</summary>
         public DateTimeOffset? CreatedOn { get; private set; }
+        /// <summary>Bindings attached to a Worker, keyed by binding name. `bindings`carries the same information as an array of objects that eachname themselves, and an upload can use one form or the other.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_env? Env { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_env Env { get; set; }
+#endif
         /// <summary>Declarative exports for the Worker, keyed by export name. Workerentrypoint entries (`type: worker`) carry cache configuration forthat entrypoint. Durable Object entries (`type: durable-object`)are also configured here and drive namespace reconciliation. Atmost 100 entries; class names are at most 128 characters.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -221,6 +229,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "compatibility_flags", n => { CompatibilityFlags = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "containers", n => { Containers = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_container_item>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_container_item.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "created_on", n => { CreatedOn = n.GetDateTimeOffsetValue(); } },
+                { "env", n => { Env = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_env>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_env.CreateFromDiscriminatorValue); } },
                 { "exports", n => { Exports = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_exports_config_map>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_exports_config_map.CreateFromDiscriminatorValue); } },
                 { "exports_reconciliation", n => { ExportsReconciliation = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_exports_reconciliation_result>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_exports_reconciliation_result.CreateFromDiscriminatorValue); } },
                 { "id", n => { Id = n.GetGuidValue(); } },
@@ -252,6 +261,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteStringValue("compatibility_date", CompatibilityDate);
             writer.WriteCollectionOfPrimitiveValues<string>("compatibility_flags", CompatibilityFlags);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_container_item>("containers", Containers);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_env>("env", Env);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_exports_config_map>("exports", Exports);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Workers_Version_limits>("limits", Limits);
             writer.WriteStringValue("main_module", MainModule);

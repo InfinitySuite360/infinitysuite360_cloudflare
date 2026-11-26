@@ -5,9 +5,10 @@ using InfinitySuite360.Cloudflare.OpenApi.Analytics;
 using InfinitySuite360.Cloudflare.OpenApi.Billing;
 using InfinitySuite360.Cloudflare.OpenApi.Certificates;
 using InfinitySuite360.Cloudflare.OpenApi.Cws;
-using InfinitySuite360.Cloudflare.OpenApi.Heartbeat;
+using InfinitySuite360.Cloudflare.OpenApi.Feedback;
 using InfinitySuite360.Cloudflare.OpenApi.Internal;
 using InfinitySuite360.Cloudflare.OpenApi.Ips;
+using InfinitySuite360.Cloudflare.OpenApi.Item;
 using InfinitySuite360.Cloudflare.OpenApi.Live;
 using InfinitySuite360.Cloudflare.OpenApi.Memberships;
 using InfinitySuite360.Cloudflare.OpenApi.Oauth;
@@ -67,10 +68,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi
         {
             get => new global::InfinitySuite360.Cloudflare.OpenApi.Cws.CwsRequestBuilder(PathParameters, RequestAdapter);
         }
-        /// <summary>The heartbeat property</summary>
-        public global::InfinitySuite360.Cloudflare.OpenApi.Heartbeat.HeartbeatRequestBuilder Heartbeat
+        /// <summary>The feedback property</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Feedback.FeedbackRequestBuilder Feedback
         {
-            get => new global::InfinitySuite360.Cloudflare.OpenApi.Heartbeat.HeartbeatRequestBuilder(PathParameters, RequestAdapter);
+            get => new global::InfinitySuite360.Cloudflare.OpenApi.Feedback.FeedbackRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>The internal property</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Internal.InternalRequestBuilder Internal
@@ -161,6 +162,18 @@ namespace InfinitySuite360.Cloudflare.OpenApi
         public global::InfinitySuite360.Cloudflare.OpenApi.Zones.ZonesRequestBuilder Zones
         {
             get => new global::InfinitySuite360.Cloudflare.OpenApi.Zones.ZonesRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>Gets an item from the InfinitySuite360.Cloudflare.OpenApi.item collection</summary>
+        /// <param name="position">Whether ${account_or_zone} is an account ID (`accounts`) or a zone ID (`zones`).</param>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Item.WithAccount_or_zoneItemRequestBuilder"/></returns>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Item.WithAccount_or_zoneItemRequestBuilder this[string position]
+        {
+            get
+            {
+                var urlTplParams = new Dictionary<string, object>(PathParameters);
+                urlTplParams.Add("account_or_zone", position);
+                return new global::InfinitySuite360.Cloudflare.OpenApi.Item.WithAccount_or_zoneItemRequestBuilder(urlTplParams, RequestAdapter);
+            }
         }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.CloudflareApiClient"/> and sets the default values.

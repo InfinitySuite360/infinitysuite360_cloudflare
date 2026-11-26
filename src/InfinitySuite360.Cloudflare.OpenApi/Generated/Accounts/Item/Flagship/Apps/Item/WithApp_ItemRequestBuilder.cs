@@ -3,6 +3,7 @@
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Flagship.Apps.Item.Definitions;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Flagship.Apps.Item.Evaluate;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Flagship.Apps.Item.Flags;
+using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Flagship.Apps.Item.Ofrep;
 using InfinitySuite360.Cloudflare.OpenApi.Models;
 using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions.Serialization;
@@ -34,6 +35,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Flagship.Apps.Item
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Flagship.Apps.Item.Flags.FlagsRequestBuilder Flags
         {
             get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Flagship.Apps.Item.Flags.FlagsRequestBuilder(PathParameters, RequestAdapter);
+        }
+        /// <summary>The ofrep property</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Flagship.Apps.Item.Ofrep.OfrepRequestBuilder Ofrep
+        {
+            get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Flagship.Apps.Item.Ofrep.OfrepRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Flagship.Apps.Item.WithApp_ItemRequestBuilder"/> and sets the default values.

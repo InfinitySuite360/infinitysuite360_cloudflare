@@ -13,13 +13,13 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Settings.GoogleTagGatew
     public partial class ConfigPutResponse : global::InfinitySuite360.Cloudflare.OpenApi.Models.GoogleTagGateway_apiResponseCommon, IParsable
     #pragma warning restore CS1591
     {
-        /// <summary>Google Tag Gateway configuration for a zone.</summary>
+        /// <summary>The result property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.GoogleTagGateway_googleTagGatewayConfig? Result { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.GoogleTagGateway_googleTagGatewayConfigResponse? Result { get; set; }
 #nullable restore
 #else
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.GoogleTagGateway_googleTagGatewayConfig Result { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.GoogleTagGateway_googleTagGatewayConfigResponse Result { get; set; }
 #endif
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value
@@ -39,7 +39,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Settings.GoogleTagGatew
         {
             return new Dictionary<string, Action<IParseNode>>(base.GetFieldDeserializers())
             {
-                { "result", n => { Result = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.GoogleTagGateway_googleTagGatewayConfig>(global::InfinitySuite360.Cloudflare.OpenApi.Models.GoogleTagGateway_googleTagGatewayConfig.CreateFromDiscriminatorValue); } },
+                { "result", n => { Result = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.GoogleTagGateway_googleTagGatewayConfigResponse>(global::InfinitySuite360.Cloudflare.OpenApi.Models.GoogleTagGateway_googleTagGatewayConfigResponse.CreateFromDiscriminatorValue); } },
             };
         }
         /// <summary>
@@ -50,7 +50,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Settings.GoogleTagGatew
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             base.Serialize(writer);
-            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.GoogleTagGateway_googleTagGatewayConfig>("result", Result);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.GoogleTagGateway_googleTagGatewayConfigResponse>("result", Result);
         }
     }
 }

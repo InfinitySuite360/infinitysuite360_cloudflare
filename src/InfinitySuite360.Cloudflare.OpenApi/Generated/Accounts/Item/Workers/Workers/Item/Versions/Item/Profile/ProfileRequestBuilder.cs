@@ -88,7 +88,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workers.Workers.Item
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = new RequestInformation(Method.POST, UrlTemplate, PathParameters);
             requestInfo.Configure(requestConfiguration);
-            requestInfo.Headers.TryAdd("Accept", "application/vnd.google.protobuf, application/json");
+            requestInfo.Headers.TryAdd("Accept", "application/protobuf, application/json");
             requestInfo.SetContentFromParsable(RequestAdapter, "application/json", body);
             return requestInfo;
         }

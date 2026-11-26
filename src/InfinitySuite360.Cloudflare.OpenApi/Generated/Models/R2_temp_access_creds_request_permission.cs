@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
-    /// <summary>Permissions allowed on the credentials.</summary>
+    /// <summary>Permissions allowed on the credentials. Exactly one of `permission` or `actions` must be provided.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public enum R2_temp_access_creds_request_permission
     {

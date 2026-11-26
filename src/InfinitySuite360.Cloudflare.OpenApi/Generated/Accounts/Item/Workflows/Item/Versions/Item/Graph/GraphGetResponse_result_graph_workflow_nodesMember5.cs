@@ -7,21 +7,42 @@ using System.IO;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph
 {
+    /// <summary>
+    /// A step.runner() call (managed CI): a shell command run in a container as one durable step.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    #pragma warning disable CS1591
     public partial class GraphGetResponse_result_graph_workflow_nodesMember5 : IAdditionalDataHolder, IParsable
-    #pragma warning restore CS1591
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>Child nodes (recursive).</summary>
+        /// <summary>Configuration for a step (retries and timeout).</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_nodes>? Nodes { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_config? Config { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_nodes> Nodes { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_config Config { get; set; }
 #endif
+        /// <summary>The name property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? Name { get; set; }
+#nullable restore
+#else
+        public string Name { get; set; }
+#endif
+        /// <summary>Statically known step.runner() options. A null field is not statically known (a non-literal value, an options object passed as a variable, or a field a spread may set).</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_options? Options { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_options Options { get; set; }
+#endif
+        /// <summary>The resolves property</summary>
+        public double? Resolves { get; set; }
+        /// <summary>The starts property</summary>
+        public double? Starts { get; set; }
         /// <summary>The type property</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_type? Type { get; set; }
         /// <summary>
@@ -49,7 +70,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "nodes", n => { Nodes = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_nodes>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_nodes.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "config", n => { Config = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_config>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_config.CreateFromDiscriminatorValue); } },
+                { "name", n => { Name = n.GetStringValue(); } },
+                { "options", n => { Options = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_options>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_options.CreateFromDiscriminatorValue); } },
+                { "resolves", n => { Resolves = n.GetDoubleValue(); } },
+                { "starts", n => { Starts = n.GetDoubleValue(); } },
                 { "type", n => { Type = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_type>(); } },
             };
         }
@@ -60,7 +85,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_nodes>("nodes", Nodes);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_config>("config", Config);
+            writer.WriteStringValue("name", Name);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_options>("options", Options);
+            writer.WriteDoubleValue("resolves", Resolves);
+            writer.WriteDoubleValue("starts", Starts);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember5_type>("type", Type);
             writer.WriteAdditionalData(AdditionalData);
         }

@@ -14,18 +14,22 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The name property</summary>
+        /// <summary>The branches property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public string? Name { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember12_branches>? Branches { get; set; }
 #nullable restore
 #else
-        public string Name { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember12_branches> Branches { get; set; }
 #endif
-        /// <summary>The resolves property</summary>
-        public double? Resolves { get; set; }
-        /// <summary>The starts property</summary>
-        public double? Starts { get; set; }
+        /// <summary>The discriminant property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? Discriminant { get; set; }
+#nullable restore
+#else
+        public string Discriminant { get; set; }
+#endif
         /// <summary>The type property</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember12_type? Type { get; set; }
         /// <summary>
@@ -53,9 +57,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "name", n => { Name = n.GetStringValue(); } },
-                { "resolves", n => { Resolves = n.GetDoubleValue(); } },
-                { "starts", n => { Starts = n.GetDoubleValue(); } },
+                { "branches", n => { Branches = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember12_branches>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember12_branches.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "discriminant", n => { Discriminant = n.GetStringValue(); } },
                 { "type", n => { Type = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember12_type>(); } },
             };
         }
@@ -66,9 +69,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteStringValue("name", Name);
-            writer.WriteDoubleValue("resolves", Resolves);
-            writer.WriteDoubleValue("starts", Starts);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember12_branches>("branches", Branches);
+            writer.WriteStringValue("discriminant", Discriminant);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember12_type>("type", Type);
             writer.WriteAdditionalData(AdditionalData);
         }

@@ -12,11 +12,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     public partial class AigBilling_SetTopupConfigResultMember2 : IParsable
     #pragma warning restore CS1591
     {
-        /// <summary>The amount property</summary>
+        /// <summary>Auto top-up amount in cents from the request.</summary>
         public double? Amount { get; set; }
-        /// <summary>The status property</summary>
+        /// <summary>Auto top-up is saved.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_SetTopupConfigResultMember2_status? Status { get; set; }
-        /// <summary>The threshold property</summary>
+        /// <summary>Balance threshold in cents from the request.</summary>
         public double? Threshold { get; set; }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value

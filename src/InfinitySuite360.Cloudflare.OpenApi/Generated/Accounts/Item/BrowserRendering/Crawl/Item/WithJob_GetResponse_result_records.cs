@@ -12,7 +12,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Cra
     public partial class WithJob_GetResponse_result_records : IParsable
     #pragma warning restore CS1591
     {
-        /// <summary>HTML content of the crawled URL.</summary>
+        /// <summary>HTML content of the crawled URL. Null if unreadable.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Html { get; set; }
@@ -20,15 +20,15 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Cra
 #else
         public string Html { get; set; }
 #endif
-        /// <summary>JSON of the content of the crawled URL.</summary>
+        /// <summary>JSON of the content of the crawled URL, or the raw text if it is not an object or array. Null if unreadable.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_json? Json { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records.WithJob_GetResponse_result_records_json? Json { get; set; }
 #nullable restore
 #else
-        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_json Json { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records.WithJob_GetResponse_result_records_json Json { get; set; }
 #endif
-        /// <summary>Markdown of the content of the crawled URL.</summary>
+        /// <summary>Markdown of the content of the crawled URL. Null if unreadable.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Markdown { get; set; }
@@ -75,7 +75,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Cra
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "html", n => { Html = n.GetStringValue(); } },
-                { "json", n => { Json = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_json>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_json.CreateFromDiscriminatorValue); } },
+                { "json", n => { Json = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records.WithJob_GetResponse_result_records_json>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records.WithJob_GetResponse_result_records_json.CreateFromDiscriminatorValue); } },
                 { "markdown", n => { Markdown = n.GetStringValue(); } },
                 { "metadata", n => { Metadata = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_metadata>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_metadata.CreateFromDiscriminatorValue); } },
                 { "outcome", n => { Outcome = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_outcome>(); } },
@@ -91,12 +91,96 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Cra
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("html", Html);
-            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_json>("json", Json);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records.WithJob_GetResponse_result_records_json>("json", Json);
             writer.WriteStringValue("markdown", Markdown);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_metadata>("metadata", Metadata);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_outcome>("outcome", Outcome);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_status>("status", Status);
             writer.WriteStringValue("url", Url);
+        }
+        /// <summary>
+        /// Composed type wrapper for classes <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_jsonMember1"/>, <see cref="string"/>, List&lt;global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.Brapi_CrawlJsonValue&gt;
+        /// </summary>
+        [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
+        public partial class WithJob_GetResponse_result_records_json : IComposedTypeWrapper, IParsable
+        {
+            /// <summary>Composed type representation for type List&lt;global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.Brapi_CrawlJsonValue&gt;</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.Brapi_CrawlJsonValue>? BrapiCrawlJsonValue { get; set; }
+#nullable restore
+#else
+            public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.Brapi_CrawlJsonValue> BrapiCrawlJsonValue { get; set; }
+#endif
+            /// <summary>Composed type representation for type <see cref="string"/></summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            public string? String { get; set; }
+#nullable restore
+#else
+            public string String { get; set; }
+#endif
+            /// <summary>Composed type representation for type <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_jsonMember1"/></summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_jsonMember1? WithJobGetResponseResultRecordsJsonMember1 { get; set; }
+#nullable restore
+#else
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_jsonMember1 WithJobGetResponseResultRecordsJsonMember1 { get; set; }
+#endif
+            /// <summary>
+            /// Creates a new instance of the appropriate class based on discriminator value
+            /// </summary>
+            /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records.WithJob_GetResponse_result_records_json"/></returns>
+            /// <param name="parseNode">The parse node to use to read the discriminator value and create the object</param>
+            public static global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records.WithJob_GetResponse_result_records_json CreateFromDiscriminatorValue(IParseNode parseNode)
+            {
+                if(ReferenceEquals(parseNode, null)) throw new ArgumentNullException(nameof(parseNode));
+                var result = new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records.WithJob_GetResponse_result_records_json();
+                if(parseNode.GetStringValue() is string stringValue)
+                {
+                    result.String = stringValue;
+                }
+                else if(parseNode.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.Brapi_CrawlJsonValue>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.Brapi_CrawlJsonValue.CreateFromDiscriminatorValue)?.AsList() is List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.Brapi_CrawlJsonValue> brapiCrawlJsonValueValue)
+                {
+                    result.BrapiCrawlJsonValue = brapiCrawlJsonValueValue;
+                }
+                else {
+                    result.WithJobGetResponseResultRecordsJsonMember1 = new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_jsonMember1();
+                }
+                return result;
+            }
+            /// <summary>
+            /// The deserialization information for the current model
+            /// </summary>
+            /// <returns>A IDictionary&lt;string, Action&lt;IParseNode&gt;&gt;</returns>
+            public virtual IDictionary<string, Action<IParseNode>> GetFieldDeserializers()
+            {
+                if(WithJobGetResponseResultRecordsJsonMember1 != null)
+                {
+                    return ParseNodeHelper.MergeDeserializersForIntersectionWrapper(WithJobGetResponseResultRecordsJsonMember1);
+                }
+                return new Dictionary<string, Action<IParseNode>>();
+            }
+            /// <summary>
+            /// Serializes information the current object
+            /// </summary>
+            /// <param name="writer">Serialization writer to use to serialize this model</param>
+            public virtual void Serialize(ISerializationWriter writer)
+            {
+                if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
+                if(String != null)
+                {
+                    writer.WriteStringValue(null, String);
+                }
+                else if(BrapiCrawlJsonValue != null)
+                {
+                    writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.Brapi_CrawlJsonValue>(null, BrapiCrawlJsonValue);
+                }
+                else {
+                    writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Crawl.Item.WithJob_GetResponse_result_records_jsonMember1>(null, WithJobGetResponseResultRecordsJsonMember1);
+                }
+            }
         }
     }
 }

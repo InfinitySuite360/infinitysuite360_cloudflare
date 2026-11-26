@@ -35,7 +35,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Gateway.Rules
 #endif
         /// <summary>Specify whether the rule is enabled.</summary>
         public bool? Enabled { get; set; }
-        /// <summary>Defines the expiration time stamp and default duration of a DNS policy. Takes precedence over the policy&apos;s `schedule` configuration, if any. This  does not apply to HTTP or network policies. Settable only for `dns` rules.</summary>
+        /// <summary>Defines the expiration time stamp and default duration of a DNS policy. Takes precedence over the policy&apos;s `schedule` configuration, if any. This does not apply to HTTP or network policies. Settable only for `dns` rules.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_expiration? Expiration { get; set; }

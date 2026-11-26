@@ -22,6 +22,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Relevance.Aggregate.AggregateGetResponse_result_combined_articles Articles { get; set; }
 #endif
+        /// <summary>Beta. How many of the articles counted in articles have stale scores, from before a change to the account&apos;s Priority Intelligence Requirements, organization profile, or the article&apos;s content. They are counted by those scores; see the article list&apos;s relevance_coverage.</summary>
+        public int? StaleArticles { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Relevance.Aggregate.AggregateGetResponse_result_combined"/> and sets the default values.
         /// </summary>
@@ -48,6 +50,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "articles", n => { Articles = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Relevance.Aggregate.AggregateGetResponse_result_combined_articles>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Relevance.Aggregate.AggregateGetResponse_result_combined_articles.CreateFromDiscriminatorValue); } },
+                { "stale_articles", n => { StaleArticles = n.GetIntValue(); } },
             };
         }
         /// <summary>
@@ -58,6 +61,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.ThreatSignals.Articles.Relevance.Aggregate.AggregateGetResponse_result_combined_articles>("articles", Articles);
+            writer.WriteIntValue("stale_articles", StaleArticles);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

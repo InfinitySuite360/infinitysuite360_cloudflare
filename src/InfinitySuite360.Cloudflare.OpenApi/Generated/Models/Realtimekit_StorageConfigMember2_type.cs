@@ -12,13 +12,5 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         #pragma warning disable CS1591
         Aws,
         #pragma warning restore CS1591
-        [EnumMember(Value = "azure")]
-        #pragma warning disable CS1591
-        Azure,
-        #pragma warning restore CS1591
-        [EnumMember(Value = "digitalocean")]
-        #pragma warning disable CS1591
-        Digitalocean,
-        #pragma warning restore CS1591
     }
 }

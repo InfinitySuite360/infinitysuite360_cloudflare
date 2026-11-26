@@ -7,10 +7,11 @@ using System.IO;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
+    /// <summary>
+    /// Configures whether Workers bindings can produce records to the stream.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    #pragma warning disable CS1591
     public partial class CloudflareK2_K2StreamWorkerBindingInput : IParsable
-    #pragma warning restore CS1591
     {
         /// <summary>Indicates whether Workers bindings can produce records to the stream.</summary>
         public bool? Enabled { get; set; }

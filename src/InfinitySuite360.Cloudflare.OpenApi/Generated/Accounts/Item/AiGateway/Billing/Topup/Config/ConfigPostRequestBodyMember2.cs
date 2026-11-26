@@ -22,6 +22,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
 #else
         public string ConsentVersion { get; set; }
 #endif
+        /// <summary>Set to 2 to pin auto top-up to this card instead of the default. Read when card setup starts; completion follows the setup.</summary>
+        public double? ContractVersion { get; set; }
         /// <summary>Card to authenticate for future automatic top-ups.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -62,6 +64,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
             {
                 { "amount", n => { Amount = n.GetIntValue(); } },
                 { "consent_version", n => { ConsentVersion = n.GetStringValue(); } },
+                { "contract_version", n => { ContractVersion = n.GetDoubleValue(); } },
                 { "payment_method_id", n => { PaymentMethodId = n.GetStringValue(); } },
                 { "setup_idempotency_key", n => { SetupIdempotencyKey = n.GetGuidValue(); } },
                 { "setup_intent_id", n => { SetupIntentId = n.GetStringValue(); } },
@@ -77,6 +80,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteIntValue("amount", Amount);
             writer.WriteStringValue("consent_version", ConsentVersion);
+            writer.WriteDoubleValue("contract_version", ContractVersion);
             writer.WriteStringValue("payment_method_id", PaymentMethodId);
             writer.WriteGuidValue("setup_idempotency_key", SetupIdempotencyKey);
             writer.WriteStringValue("setup_intent_id", SetupIntentId);

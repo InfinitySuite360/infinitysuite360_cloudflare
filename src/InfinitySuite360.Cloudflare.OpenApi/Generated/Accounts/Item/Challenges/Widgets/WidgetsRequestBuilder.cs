@@ -79,11 +79,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Turnstile_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsPostResponse?> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsPostRequestBody body, Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsRequestBuilder.WidgetsRequestBuilderPostQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsPostResponse?> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsPostRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsPostResponse> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsPostRequestBody body, Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsRequestBuilder.WidgetsRequestBuilderPostQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsPostResponse> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsPostRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
@@ -121,11 +121,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsPostRequestBody body, Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsRequestBuilder.WidgetsRequestBuilderPostQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsPostRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsPostRequestBody body, Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsRequestBuilder.WidgetsRequestBuilderPostQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.WidgetsPostRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
@@ -167,39 +167,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets
             #pragma warning disable CS1591
             [QueryParameter("order")]
             public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.GetOrderQueryParameterType? Order { get; set; }
-            #pragma warning restore CS1591
-            #pragma warning disable CS1591
-            [QueryParameter("page")]
-            public double? Page { get; set; }
-            #pragma warning restore CS1591
-            #pragma warning disable CS1591
-            [QueryParameter("per_page")]
-            public double? PerPage { get; set; }
-            #pragma warning restore CS1591
-        }
-        /// <summary>
-        /// Creates a Turnstile widget for an account.
-        /// </summary>
-        [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-        public partial class WidgetsRequestBuilderPostQueryParameters 
-        {
-            #pragma warning disable CS1591
-            [QueryParameter("direction")]
-            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.PostDirectionQueryParameterType? Direction { get; set; }
-            #pragma warning restore CS1591
-            /// <summary>Filter widgets by field. The `name` field uses case-insensitivesubstring matching; `sitekey` uses exact matching.Format: `field:value`Supported fields:- `name` - Filter by widget name (e.g., `filter=name:login-form`)- `sitekey` - Filter by sitekey (e.g., `filter=sitekey:0x4AAA`)Returns 400 Bad Request if the field is unsupported or format is invalid.An empty filter value returns all results.</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-            [QueryParameter("filter")]
-            public string? Filter { get; set; }
-#nullable restore
-#else
-            [QueryParameter("filter")]
-            public string Filter { get; set; }
-#endif
-            #pragma warning disable CS1591
-            [QueryParameter("order")]
-            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Challenges.Widgets.PostOrderQueryParameterType? Order { get; set; }
             #pragma warning restore CS1591
             #pragma warning disable CS1591
             [QueryParameter("page")]

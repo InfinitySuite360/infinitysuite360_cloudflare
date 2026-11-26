@@ -7,15 +7,38 @@ using System.IO;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph
 {
+    /// <summary>
+    /// A step.dynamic() call (managed CI): runs a workflow bundle in a dynamic Worker. The steps of the child workflow are not known statically, so nodes is empty.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    #pragma warning disable CS1591
     public partial class GraphGetResponse_result_graph_workflow_nodesMember6 : IAdditionalDataHolder, IParsable
-    #pragma warning restore CS1591
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>Parallel execution strategy.</summary>
-        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember6_kind? Kind { get; set; }
+        /// <summary>The entrypoint property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? Entrypoint { get; set; }
+#nullable restore
+#else
+        public string Entrypoint { get; set; }
+#endif
+        /// <summary>The isolation_key property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? IsolationKey { get; set; }
+#nullable restore
+#else
+        public string IsolationKey { get; set; }
+#endif
+        /// <summary>The name property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? Name { get; set; }
+#nullable restore
+#else
+        public string Name { get; set; }
+#endif
         /// <summary>Child nodes (recursive).</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -24,6 +47,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
 #else
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember6_nodes> Nodes { get; set; }
 #endif
+        /// <summary>The resolves property</summary>
+        public double? Resolves { get; set; }
+        /// <summary>The starts property</summary>
+        public double? Starts { get; set; }
         /// <summary>The type property</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember6_type? Type { get; set; }
         /// <summary>
@@ -51,8 +78,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "kind", n => { Kind = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember6_kind>(); } },
+                { "entrypoint", n => { Entrypoint = n.GetStringValue(); } },
+                { "isolation_key", n => { IsolationKey = n.GetStringValue(); } },
+                { "name", n => { Name = n.GetStringValue(); } },
                 { "nodes", n => { Nodes = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember6_nodes>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember6_nodes.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "resolves", n => { Resolves = n.GetDoubleValue(); } },
+                { "starts", n => { Starts = n.GetDoubleValue(); } },
                 { "type", n => { Type = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember6_type>(); } },
             };
         }
@@ -63,8 +94,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versi
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember6_kind>("kind", Kind);
+            writer.WriteStringValue("entrypoint", Entrypoint);
+            writer.WriteStringValue("isolation_key", IsolationKey);
+            writer.WriteStringValue("name", Name);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember6_nodes>("nodes", Nodes);
+            writer.WriteDoubleValue("resolves", Resolves);
+            writer.WriteDoubleValue("starts", Starts);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Workflows.Item.Versions.Item.Graph.GraphGetResponse_result_graph_workflow_nodesMember6_type>("type", Type);
             writer.WriteAdditionalData(AdditionalData);
         }
