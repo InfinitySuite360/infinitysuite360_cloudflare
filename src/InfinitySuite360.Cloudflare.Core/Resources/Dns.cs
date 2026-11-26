@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using InfinitySuite360.Cloudflare.Http;
 
 namespace InfinitySuite360.Cloudflare.Resources;
@@ -50,7 +51,7 @@ public sealed class DnsRecordQuery
 }
 
 /// <summary>DNS records of a zone.</summary>
-public sealed class DnsClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
+public sealed partial class DnsClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
     public Task<IReadOnlyList<DnsRecord>> ListAsync(DnsRecordQuery? query = null, string? zoneId = null, CancellationToken ct = default)
     {
@@ -70,31 +71,48 @@ public sealed class DnsClient(ICloudflareApiConnection api) : CloudflareResource
     public Task<DnsRecord> CreateAsync(DnsRecordInput record, string? zoneId = null, CancellationToken ct = default) =>
         Api.PostAsync<DnsRecord>(ZonePath(zoneId, "dns_records"), record, ct);
 
-    /// <summary>Replaces a record completely (PUT).</summary>
-    public Task<DnsRecord> UpdateAsync(string recordId, DnsRecordInput record, string? zoneId = null, CancellationToken ct = default) =>
-        Api.PutAsync<DnsRecord>(ZonePath(zoneId, "dns_records", recordId), record, ct);
+    /// <summary>
+    /// Replaces a record completely (PUT). Since 0.7.1 the current record is read first (after the guard check): switching a proxied record to DNS-only is
+    /// refused (use <see cref="SafeUpsertAsync"/> with <c>allowUnproxy</c>), and <see cref="DnsRecordInput.Proxied"/> = null keeps the current value instead of
+    /// letting Cloudflare's default (DNS-only) apply.
+    /// </summary>
+    public async Task<DnsRecord> UpdateAsync(string recordId, DnsRecordInput record, string? zoneId = null, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+        var path = ZonePath(zoneId, "dns_records", recordId);
+        EnsureWritable(HttpMethod.Put, path);
+        var current = await GetAsync(recordId, zoneId, ct).ConfigureAwait(false);
+        RefuseUnproxy(current, record.Proxied, allowUnproxy: false);
+        return await Api.PutAsync<DnsRecord>(path, WithProxied(record, current), ct).ConfigureAwait(false);
+    }
 
-    /// <summary>Partial update (PATCH), for example <c>new { proxied = true }</c>.</summary>
-    public Task<DnsRecord> PatchAsync(string recordId, object changes, string? zoneId = null, CancellationToken ct = default) =>
-        Api.PatchAsync<DnsRecord>(ZonePath(zoneId, "dns_records", recordId), changes, ct);
+    /// <summary>
+    /// Partial update (PATCH), for example <c>new { proxied = true }</c>. Since 0.7.1 a change with <c>proxied: false</c> reads the record first and is refused
+    /// when it is proxied (use <see cref="SafeUpsertAsync"/> with <c>allowUnproxy</c>).
+    /// </summary>
+    public async Task<DnsRecord> PatchAsync(string recordId, object changes, string? zoneId = null, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(changes);
+        var path = ZonePath(zoneId, "dns_records", recordId);
+        var node = changes as JsonNode ?? JsonSerializer.SerializeToNode(changes, changes.GetType(), CloudflareJson.Options);
+        if (node is JsonObject o && o["proxied"] is JsonValue v && v.TryGetValue<bool>(out var proxied) && !proxied)
+        {
+            EnsureWritable(HttpMethod.Patch, path);
+            RefuseUnproxy(await GetAsync(recordId, zoneId, ct).ConfigureAwait(false), false, allowUnproxy: false);
+        }
+        return await Api.PatchAsync<DnsRecord>(path, node, ct).ConfigureAwait(false);
+    }
 
     public Task DeleteAsync(string recordId, string? zoneId = null, CancellationToken ct = default) =>
         Api.DeleteAsync(ZonePath(zoneId, "dns_records", recordId), ct);
 
     /// <summary>
     /// Create or update: when exactly one record with this name and type exists it is replaced, otherwise a new one is created.
-    /// With several matches the call fails instead of silently picking one.
+    /// With several matches the call fails instead of silently picking one. Since 0.7.1 this is <see cref="SafeUpsertAsync"/> without <c>allowUnproxy</c>:
+    /// nothing is written when the record is already as wanted, and a proxied record is never switched to DNS-only.
     /// </summary>
-    public async Task<DnsRecord> UpsertAsync(DnsRecordInput record, string? zoneId = null, CancellationToken ct = default)
-    {
-        var existing = await FindAsync(record.Name, record.Type, zoneId, ct).ConfigureAwait(false);
-        return existing.Count switch
-        {
-            0 => await CreateAsync(record, zoneId, ct).ConfigureAwait(false),
-            1 => await UpdateAsync(existing[0].Id, record, zoneId, ct).ConfigureAwait(false),
-            _ => throw new InvalidOperationException($"Several {record.Type} records exist for {record.Name}; update by ID instead."),
-        };
-    }
+    public async Task<DnsRecord> UpsertAsync(DnsRecordInput record, string? zoneId = null, CancellationToken ct = default) =>
+        (await SafeUpsertAsync(record, allowUnproxy: false, zoneId, ct).ConfigureAwait(false)).Record;
 
     /// <summary>Exports the zone file in BIND format.</summary>
     public Task<string> ExportAsync(string? zoneId = null, CancellationToken ct = default) =>

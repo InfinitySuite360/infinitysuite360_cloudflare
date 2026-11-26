@@ -87,9 +87,13 @@ public sealed class ListsClient(ICloudflareApiConnection api) : CloudflareResour
         Api.PostAsync<CloudflareList>(AccountPath(accountId, "rules", "lists"), new JsonObject { ["name"] = name, ["kind"] = kind, ["description"] = description }, ct);
 
     /// <summary>Returns the list with this name, creating it when it does not exist yet.</summary>
-    public async Task<CloudflareList> EnsureAsync(string name, string kind = KindIp, string? description = null, string? accountId = null, CancellationToken ct = default) =>
-        await FindByNameAsync(name, accountId, ct).ConfigureAwait(false)
-        ?? await CreateAsync(name, kind, description, accountId, ct).ConfigureAwait(false);
+    /// <remarks>The write guard is checked before the preparing read (0.7.1), so with <c>AllowWrites = false</c> nothing is sent.</remarks>
+    public async Task<CloudflareList> EnsureAsync(string name, string kind = KindIp, string? description = null, string? accountId = null, CancellationToken ct = default)
+    {
+        EnsureWritable(HttpMethod.Post, AccountPath(accountId, "rules", "lists"));
+        return await FindByNameAsync(name, accountId, ct).ConfigureAwait(false)
+               ?? await CreateAsync(name, kind, description, accountId, ct).ConfigureAwait(false);
+    }
 
     public Task<CloudflareList> UpdateDescriptionAsync(string listId, string description, string? accountId = null, CancellationToken ct = default) =>
         Api.PutAsync<CloudflareList>(AccountPath(accountId, "rules", "lists", listId), new { description }, ct);

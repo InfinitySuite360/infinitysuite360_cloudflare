@@ -18,10 +18,13 @@ Cloudflare publishes official SDKs for TypeScript, Python, Go and Java, but not 
 the complete API surface, generated from the same schema Cloudflare's own SDKs use, plus a thin safety layer:
 
 * **Writes are off by default.** `AllowWrites = false` rejects POST/PUT/PATCH/DELETE locally before anything is sent;
-  `WriteFilter` restricts writes to an allow-list. This applies to the generated client too.
+  `WriteFilter` restricts writes to an allow-list. This applies to the generated client too, but there it is the only protection: the
+  `allow…` switches, previews and lock-out checks belong to the curated clients.
 * **Retries** on HTTP 429 (honouring `Retry-After`) and on 502/503/504 for idempotent methods only.
 * **The token never appears** in exception messages.
-* **IDs are URL-encoded** in the curated client, so an ID can never address another endpoint.
+* **IDs are URL-encoded and checked** in the curated client, so an ID can never address another endpoint: `.`, `..` (also percent-encoded),
+  empty segments, control characters, `/` and `\` inside an ID are refused before anything is sent, and every path is checked as Cloudflare resolves it (0.7.1).
+* **Bounded answers:** HTTPS base address required (plain HTTP only for loopback), at most 10 retries, answers above `MaxResponseBytes` (32 MiB) fail (0.7.1).
 
 ## Install
 
@@ -78,6 +81,7 @@ public sealed class WaitingRoomService(ICloudflareClient cloudflare)
 The generated client is also registered on its own (`CloudflareApiClient`) and can be created without DI:
 `CloudflareOpenApi.CreateClient(options)`. `OpenApi` is an extension property on `ICloudflareClient` (C# 14, the default for net10.0);
 with an older language version call `cloudflare.GetOpenApi()`.
+Write protection of the generated client: **only** `AllowWrites` and `WriteFilter` (no `allow…` switches, no previews, no lock-out checks).
 
 ### Curated clients
 
@@ -100,18 +104,358 @@ var events = await cloudflare.Analytics.GetSecurityEventsAsync(DateTimeOffset.Ut
 | DNS records | `Dns` |
 | Rulesets / WAF / rate limiting | `Rulesets` |
 | Turnstile widgets and siteverify | `Turnstile`, `ITurnstileVerifier` |
-| Cloudflare Tunnel | `Tunnels` |
-| Zero Trust Access | `Access` |
+| Cloudflare Tunnel: tunnels, run token, ingress, private routes, virtual networks | `Tunnels` |
+| Zero Trust Access: applications, policies, policy tests, groups, service tokens, identity providers, mTLS certificates, organization, users | `Access` |
+| Zero Trust Gateway: DNS/HTTP/network rules, lists, DNS locations, configuration, logging, proxy endpoints, inspection certificates | `Gateway` |
+| WARP devices: profiles, Split Tunnel, posture rules, devices, registrations | `Devices` |
+| Data Loss Prevention (read-only), risk scoring (read-only) | `Dlp`, `RiskScoring` |
 | Email Routing | `EmailRouting` |
-| R2 buckets | `R2` |
-| Workers scripts and routes | `Workers` |
+| R2 buckets, custom domains, CORS, lifecycle | `R2` |
+| Workers scripts, routes, domains, cron triggers, versions, deployments, secret names | `Workers` |
+| Workers KV namespaces, keys, bulk operations | `Kv` |
+| D1 databases and SQL (read-only unless allowed) | `D1` |
+| Queues, consumers, publishing | `Queues` |
+| Cache rules, purge, Cache Reserve, regional tiered cache | `Cache` |
+| Argo Smart Routing and tiered caching | `Argo` |
+| Load balancing: monitors, pools, load balancers | `LoadBalancing` |
+| Spectrum applications (TCP/UDP proxy) | `Spectrum` |
 | Health Checks, Logpush, audit logs, notifications | `Monitoring` |
-| Page Shield, Security Center, API Shield, bots | `Security` |
+| Page Shield, Security Center, API Shield, bots (older, untyped parts) | `Security` |
+| Page Shield: settings, scripts, connections, cookies, content security rules | `PageShield` |
+| API Shield: operations, discovery, schema validation, token validation, labels, mTLS client certificates | `ApiShield` |
 | Origin CA and mTLS certificates | `Certificates` |
 | GraphQL Analytics, Web Analytics | `Analytics` |
 | Cloudflare IP ranges | `Ips` |
 | Custom lists (IP lists, bulk status) | `Lists` |
 | IP access rules (zone and account) | `IpAccess` |
+| Rate limiting rules (and the deprecated classic rate limits) | `RateLimiting` |
+| WAF custom rules, managed rules and overrides | `Waf` |
+| Bot Fight Mode, Super Bot Fight Mode, Bot Management, leaked credential checks | `Bots` |
+| Custom hostnames (Cloudflare for SaaS), fallback origin | `CustomHostnames` |
+| Authenticated Origin Pulls (zone-level and per-hostname) | `OriginPulls` |
+| SSL mode, minimum TLS version, HSTS, TLS switches | `Tls` |
+| Logpush jobs (destinations redacted) | `Logpush` |
+| API tokens: create, roll, revoke, permission groups | `ApiTokens` |
+
+Page Shield and API Shield (0.4.0; whether a feature is available depends on the plan and is decided by Cloudflare, an unavailable one throws `CloudflareNotEntitledException`, a subclass of `CloudflareApiException`):
+
+```csharp
+var scripts = await cloudflare.PageShield.ListScriptsAsync(new PageShieldQuery { Status = "active,infrequent", ExcludeCdnCgi = true, PrioritizeMalicious = true });
+var suspicious = scripts.Where(s => s.IsMalicious);
+var cookies = await cloudflare.PageShield.ListCookiesAsync();
+
+// A change is first described, shown to the user and only then sent (and only with AllowWrites = true).
+var plan = cloudflare.PageShield.PreviewCreatePolicy(new PageShieldPolicyInput { Action = "log", Description = "CSP report only", Expression = "(http.host eq \"app.example.com\")", Value = "script-src 'self'" });
+Console.WriteLine($"{plan.Method} {plan.Path}\n{plan.BodyJson}");
+
+var discovered = await cloudflare.ApiShield.ListDiscoveredOperationsAsync(new ApiOperationQuery { State = "review" });
+var operations = await cloudflare.ApiShield.ListOperationsAsync(new ApiOperationQuery { Host = "api.example.com" });
+var validation = await cloudflare.ApiShield.GetSchemaValidationSettingsAsync();
+var jwtRules = await cloudflare.ApiShield.ListTokenValidationRulesAsync();
+```
+
+Shield writes (0.5.0). Each write method has a `Preview…` sister, needs `AllowWrites` and is checked locally first:
+
+```csharp
+// Idempotent: only operations that are not saved yet are added, in one call.
+var ops = await writer.ApiShield.EnsureOperationsAsync([new("GET", "api.example.com", "/v1/users/{var1}"), new("POST", "api.example.com", "/v1/orders")]);
+
+// Schema: stored with validation OFF, the preview shows size and SHA-256 instead of the text.
+var (schema, created) = await writer.ApiShield.EnsureSchemaAsync(new ApiShieldSchemaInput { Name = "api v1", Source = openApiJson },
+    new ApiShieldSchemaUploadOptions { AllowedHosts = ["api.example.com"] });
+await writer.ApiShield.SetDefaultActionAsync(ApiShieldActions.Log);           // "log" needs Enterprise; "block" only with allowBlock: true
+
+// JWT validation (Enterprise + API Shield add-on): keys never appear in previews, models, ToString or errors.
+var keys = JwtKeySet.Parse(jwksJson);                                          // private key members are refused
+var config = await writer.ApiShield.CreateTokenValidationConfigAsync(new TokenValidationConfigInput
+    { Title = "gateway", Description = "", TokenSources = ["http.request.headers[\"authorization\"][0]"], Keys = keys });
+
+// mTLS: removing a hostname is refused unless allowRemovals: true (an mTLS rule would then lock out every client).
+var change = await writer.ApiShield.PreviewReplaceHostnameAssociationsAsync(["api.example.com", "admin.example.com"]);
+
+try { await writer.PageShield.EnsurePolicyAsync(cspReportOnly); }
+catch (CloudflareNotEntitledException ex) { /* plan lacks the feature (rules need Page Shield "Advanced"); show ex.Errors */ }
+```
+
+| Write | Default | Explicit opt-in | Risk |
+|---|---|---|---|
+| Schema / token validation action | `log` or `none` | `allowBlock: true` for `block` | legitimate clients rejected |
+| Page Shield content security rule | `log` (report only) | `allowEnforce: true` for `allow` | unlisted scripts blocked in browsers |
+| mTLS hostname associations | additions only | `allowRemovals: true` | every client blocked by an mTLS rule |
+| Uploaded schema | validation off | `ValidationEnabled = true` / `SetSchemaValidationEnabledAsync` | – |
+
+Errors: `CloudflareNotEntitledException` (plan or add-on missing), `CloudflareConflictException` (409, "already exists"; the `Ensure…` methods handle it),
+`CloudflareWriteNotAllowedException` (blocked locally, nothing sent), otherwise `CloudflareApiException` (for example a missing token permission).
+Token permissions: "Zone: API Gateway: Edit" (operations, schemas, JWT, labels), "Zone: Page Shield: Edit", "Zone: SSL and Certificates: Edit" (mTLS).
+
+Protection and operations (0.6.0). Same pattern: `Preview…` first, writes only with `AllowWrites`, risky options only with an explicit `allow…`:
+
+```csharp
+// Rate limiting rule by ref; only this rule is changed (PATCH/POST), nothing is written when it is already as wanted.
+var (_, changed) = await writer.RateLimiting.UpsertRuleAsync(new RateLimitRuleInput
+{
+    Ref = "login", Expression = "(http.request.uri.path eq \"/api/login\")", Action = WafActions.ManagedChallenge, RequestsPerPeriod = 10, Period = 60,
+});
+
+// Managed rules: deploy the free managed ruleset; overrides that weaken it need allowLoosen: true.
+await writer.Waf.DeployManagedRulesetAsync(ManagedRulesetIds.FreeManaged, "free-managed");
+
+// Bot Fight Mode also challenges your own API clients and cannot be skipped: refused without allowChallengeAutomation.
+var bots = writer.Bots.PreviewUpdateSettings(new BotManagementChange { AiBotsProtection = "block" });
+
+// Authenticated Origin Pulls with your own certificate: the key stays out of previews, ToString, models and errors.
+var pair = OriginPullKeyPair.FromPem(certificatePem, privateKeyPem);
+var cert = await writer.OriginPulls.UploadZoneCertificateAsync(pair);
+await writer.OriginPulls.SetZoneEnabledAsync(true);                  // switching off needs allowDisable: true (origin would reject Cloudflare)
+
+var tls = await cloudflare.Tls.GetOverviewAsync();                   // SSL mode, minimum TLS, HSTS, HTTP/3, ECH, 0-RTT
+await writer.Tls.SetMinTlsVersionAsync("1.2");                       // lowering needs allowWeaken, "1.3" needs allowTls13Only
+
+var jobs = await cloudflare.Logpush.ListJobsAsync();                 // destination_conf with credentials redacted
+```
+
+API tokens (0.6.0). The value Cloudflare shows once exists only in `ApiTokenSecret`:
+
+```csharp
+var groups = await admin.ApiTokens.ListPermissionGroupsAsync(nameContains: "DNS Write");
+var issued = await admin.ApiTokens.CreateAsync(new ApiTokenInput
+{
+    Name = "dns-edit-app", ExpiresOn = DateTimeOffset.UtcNow.AddDays(90), AllowedIps = ["203.0.113.0/24"],
+    Policies = [new ApiTokenPolicyInput { PermissionGroupIds = [groups[0].Id], Resources = new JsonObject { [ApiTokenResources.Zone(zoneId)] = "*" } }],
+});
+secretStore.Save("cloudflare-dns", issued.Secret.TakeValue());      // hand over once; issued.ToString() and JSON show [redacted]
+
+using var rolled = await admin.ApiTokens.RollAsync(issued.Token.Id); // the old value stops working at once
+await admin.ApiTokens.RevokeAsync(oldTokenId);                       // own token: refused unless allowSelf: true
+```
+
+| Write | Default | Explicit opt-in | Risk |
+|---|---|---|---|
+| Rate limit / WAF rule that blocks every request | refused | `allowBroadMatch: true` | everyone locked out |
+| WAF `skip` rule | refused | `allowSkip: true` | matching requests bypass protection |
+| Managed rules disabled, `log`, low sensitivity, removed | refused | `allowLoosen: true` | weaker protection |
+| Bot Fight Mode, (likely) automated → challenge/block | refused | `allowChallengeAutomation: true` | own API and app clients blocked |
+| Verified bots → block | refused | `allowBlockVerifiedBots: true` | search engines, monitors blocked |
+| Authenticated Origin Pulls off, certificate deleted, hostname disabled | refused | `allowDisable: true` | origin rejects all Cloudflare traffic |
+| Custom hostname fallback origin removed | refused | `allowRemoval: true` | hostnames without own origin stop |
+| Custom hostname email validation | refused | `allowEmailValidation: true` | mail to the customer's admin addresses |
+| SSL mode / minimum TLS lowered | refused | `allowWeaken: true` | weaker encryption |
+| Minimum TLS 1.3 | refused | `allowTls13Only: true` | older clients locked out |
+| HSTS > 1 day, subdomains, preload | refused | `allowLongLivedHsts: true` | HTTPS cannot be dropped for max-age |
+| DNS record proxied → DNS only | refused | `allowUnproxy: true` | origin address published |
+| API token with wildcard resources / without expiry | refused | `allowBroadResources` / `allowNoExpiry` | more rights or lifetime than needed |
+| Roll, disable or revoke the client's own token | refused | `allowSelf: true` | client cut off |
+
+Token permissions (minimal, check names in the dashboard): "Zone WAF" (rate limiting, WAF, leaked credentials), "Bot Management", "SSL and Certificates"
+(custom hostnames, origin pulls), "Zone Settings" (TLS), "Logs" (Logpush), "API Tokens" / "Account API Tokens" (token management, a dedicated short-lived token).
+Plans (developers.cloudflare.com, 17.11.2026): rate limiting rules Free 1, Pro 2, Business 5, Enterprise 100; Super Bot Fight Mode from Pro; custom hostnames
+on all plans (100 included), custom certificates Enterprise; Authenticated Origin Pulls and Logpush on all plans. Cloudflare decides: a missing feature
+throws `CloudflareNotEntitledException` with Cloudflare's text.
+
+`Certificates.CreateClientCertificateAsync` is obsolete since 0.6.0; use `ApiShield.CreateClientCertificateAsync` (CSR only, private keys refused, preview).
+
+Workers, storage, cache and load balancing (0.7.0). Same pattern again: every write checks `AllowWrites`/`WriteFilter` first (methods that read before they write check it
+**before** the read, so with `AllowWrites = false` nothing is sent), has a `Preview…` sister, checks its input locally, and risky options need an explicit `allow…`:
+
+```csharp
+// Workers: deploying code and changing secrets change what runs on the edge at once, so they need allowDeploy: true.
+var preview = writer.Workers.PreviewUploadScript("api", source);                  // size and SHA-256, never the source; WARNING in the summary
+await writer.Workers.UploadScriptAsync("api", source, allowDeploy: true);         // existing secrets are kept (keep_bindings)
+await writer.Workers.PutSecretAsync("api", "API_KEY", WorkerSecretText.From(value), allowDeploy: true);   // the value is only in the request body
+var names = await cloudflare.Workers.ListSecretsAsync("api");                     // names and types; Cloudflare never returns values
+await writer.Workers.SetSchedulesAsync("api", ["*/15 * * * *"]);                  // read first, written only on change; an empty list needs allowClear
+await writer.Workers.DeployVersionsAsync("api", [new(oldId, 90), new(newId, 10)], allowDeploy: true);   // gradual rollout; rollback = deploy the old version
+
+// KV: namespaces, keys, bulk operations with Cloudflare's limits checked locally.
+var (ns, _) = await writer.Kv.EnsureNamespaceAsync("cache");
+await writer.Kv.PutValueAsync(ns.Id, "greeting", "hello", expirationTtl: 3600, allowOverwrite: false);
+await writer.Kv.RemoveNamespaceAsync(ns.Id, allowDelete: true);                   // a namespace with keys additionally needs allowNonEmpty: true
+
+// D1: parameters are bound, never concatenated; writes and destructive SQL need their own switch.
+var rows = await writer.D1.QueryAsync(dbId, "SELECT id, name FROM users WHERE id = ?", [42]);
+await writer.D1.QueryAsync(dbId, "DELETE FROM sessions WHERE expires < ?", [now], allowWriteSql: true);   // DELETE/UPDATE without WHERE, DROP, ALTER: allowDestructiveSql
+
+// R2: buckets are private; a custom domain or the r2.dev address publishes every object.
+await writer.R2.EnsureBucketAsync("assets", locationHint: "weur");
+await writer.R2.EnsureCustomDomainAsync("assets", "cdn.example.com", zoneId, allowPublicAccess: true);
+await writer.R2.SetLifecycleAsync("assets", [new R2LifecycleRule("ia", Prefix: "logs/", InfrequentAccessAfter: TimeSpan.FromDays(30))]);   // deleting rules: allowDeletion
+
+// Cache: one rule at a time (phase http_request_cache_settings), purge in batches of 100, purge everything only deliberately.
+await writer.Cache.UpsertRuleAsync(new CacheRuleInput { Ref = "static", Expression = "starts_with(http.request.uri.path, \"/static/\")", Cache = true, EdgeTtl = new("override_origin", 3600) });
+await writer.Cache.PurgeUrlsAsync(["https://example.com/static/app.css"]);
+await writer.Cache.PurgeEverythingAsync(allowPurgeAll: true);
+
+// Load balancing: the last healthy pool of a load balancer is protected.
+await writer.LoadBalancing.SetPoolEnabledAsync(poolId, false);                    // refused when it is the last healthy pool of a load balancer in the zone
+await writer.LoadBalancing.SetPoolEnabledAsync(poolId, false, allowLastHealthyPool: true);
+```
+
+| Write | Default | Explicit opt-in | Risk |
+|---|---|---|---|
+| Upload a Worker, deploy a version, set or delete a secret | refused | `allowDeploy: true` | new code or configuration runs on the edge at once |
+| Delete a Worker, also with `force` | refused | `allowDelete` / `allowForce` | code, versions, triggers, bindings gone |
+| Route with a wildcard host (`*.example.com/*`) | refused | `allowBroadRoute: true` | Worker in front of every subdomain |
+| Detach a Worker custom domain | refused | `allowRemoval: true` | hostname no longer served |
+| Remove every cron trigger | refused | `allowClear: true` | scheduled work stops |
+| Delete a KV namespace / with keys / bulk delete | refused | `allowDelete` / `allowNonEmpty` / `allowBulkDelete` | data lost |
+| D1 write SQL / DROP, ALTER, DELETE or UPDATE without WHERE | refused | `allowWriteSql` / `allowDestructiveSql` | data or schema changed |
+| Delete a D1 database, a queue, a Spectrum application | refused | `allowDelete: true` | data or service gone |
+| Purge a queue, pause its delivery | refused | `allowPurge` / `allowPause` | messages lost, consumers idle |
+| R2 custom domain or r2.dev address on | refused | `allowPublicAccess: true` | every object readable by anyone |
+| R2 CORS origin `*` | refused | `allowAnyOrigin: true` | any website may call the bucket |
+| R2 lifecycle rule that deletes objects | refused | `allowDeletion: true` | objects removed automatically |
+| Delete an R2 bucket, remove a custom domain | refused | `allowDelete` (and the bucket must be empty) / `allowRemoval` | name may be taken, hostname dark |
+| Cache rule that caches everything / edge TTL above one day | refused | `allowBroadCache` / `allowLongTtl` | private pages cached, stale content |
+| Purge everything | refused | `allowPurgeAll: true` | whole load on the origin |
+| Cache Reserve, Argo Smart Routing on | refused | `allowBilling: true` | usage-based charges |
+| Last healthy pool disabled or emptied | refused | `allowLastHealthyPool: true` | load balancer without a target |
+| Disable or delete an enabled load balancer | refused | `allowDisableActive` / `allowDeleteActive` | hostname no longer balanced |
+| Monitor without certificate check | refused | `allowInsecureTls: true` | broken origin certificate stays unseen |
+| Spectrum on SSH, RDP, SMB, database ports … | refused | `allowSensitivePort: true` | management port on the internet |
+
+Secrets: Worker secret values exist only in `WorkerSecretText` (`ToString` and JSON write `[redacted]`) and in the one request body; secret bindings in upload
+metadata are refused. Load balancer monitor header values (often an `Authorization` header) are redacted in every model and preview. KV values, D1 parameters
+and queue message bodies are user data: previews show sizes and counts only.
+Reading many KV keys, D1 queries and the like are `POST` calls on the API, so the write guard applies to them: with `AllowWrites = false` nothing is sent.
+Not included (reachable through `OpenApi`): Durable Objects, Secrets Store, Hyperdrive, Workflows, Pages, D1 export/import and Time Travel restore, Queues pull/acknowledge,
+R2 buckets with a jurisdiction, bucket locks, event notifications, Cache Reserve clear, Argo analytics, account-level load balancers and monitor groups.
+Plans and limits (developers.cloudflare.com/kv, d1, queues, r2, workers, cache, load-balancing, spectrum, argo-smart-routing, retrieved 17.11.2026): KV key 512 B, value 25 MiB,
+10 000 pairs per bulk write; D1 SQL 100 KB, 100 parameters, 10 databases on Free; queue message 128 KB, batch 100 messages; purge 100 items per request on all plans;
+Spectrum custom TCP/UDP needs Enterprise with the add-on. Cloudflare decides: a missing feature throws `CloudflareNotEntitledException` with Cloudflare's text.
+Token permissions (check names in the dashboard): "Workers Scripts", "Workers KV Storage", "D1", "Queues", "Workers R2 Storage" (Account, Edit; reading "Read"),
+"Workers Routes", "Cache Purge", "Cache Rules", "Load Balancers", "Zone Settings" (Zone).
+
+Obsolete since 0.7.0 (removed in 1.0): `Workers.UploadModuleAsync`, `DeleteScriptAsync`, `CreateRouteAsync`, `DeleteRouteAsync`; `R2.CreateBucketAsync`, `DeleteBucketAsync`,
+`PutLifecycleAsync`, `PutCorsAsync`; `Zones.PurgeEverythingAsync`; since 0.7.1 also `Monitoring.DeleteLogpushJobAsync`. Since 0.7.1 they take the guarded paths with the
+safe defaults (see the next section): methods whose risk needs a switch they do not have are always refused, the others apply the same checks.
+
+#### Safe defaults everywhere (0.7.1)
+
+An independent security review of 0.7.0 found ways around the `allow…` switches. Since 0.7.1 every curated method applies them:
+
+| Method | Since 0.7.1 |
+|---|---|
+| `Zones.SetSettingAsync` / `SetSettingsAsync` | weaker `ssl` or `min_tls_version` (one read), TLS 1.3 only, `tls_1_3`/`always_use_https`/`opportunistic_encryption` off: refused → `Tls` with `allowWeaken` |
+| `Zones.Purge…Async` | same checks as `Cache.Purge…Async`; `PurgeEverythingAsync` always refused → `Cache.PurgeEverythingAsync(allowPurgeAll: true)` |
+| `Dns.UpdateAsync` / `PatchAsync` / `UpsertAsync` | a proxied record is never switched to DNS-only (→ `SafeUpsertAsync(allowUnproxy: true)`); `Proxied = null` keeps the current value |
+| `Rulesets.Put…EntrypointAsync`, `UpsertRuleByRefAsync`, `RemoveRuleByRefAsync`, `Add/Update/DeleteRuleAsync` | compared with the current phase: new skip rules, blocking every request, loosening managed overrides, and in the WAF phases removing, disabling or logging instead of acting are refused → `Waf`/`RateLimiting`/`Cache` with the switch |
+| `R2.DeleteBucketAsync`, `Workers.UploadModuleAsync`, `DeleteScriptAsync`, `Monitoring.DeleteLogpushJobAsync` | always refused → `RemoveBucketAsync`, `UploadScriptAsync`, `RemoveScriptAsync`, `Logpush.DeleteJobAsync` with the switch |
+| `R2.PutLifecycleAsync` / `PutCorsAsync` | deleting rules and wildcard origins refused |
+| `Monitoring.ListLogpushJobsAsync` / `CreateLogpushJobAsync` | destination redacted |
+
+New switches for lock-out and loosening (each refuses locally without a request; the previews name the risk):
+
+| Method | Switch |
+|---|---|
+| `ApiShield.RevokeClientCertificateAsync` | `allowRevoke` |
+| `ApiShield.ReplaceTokenValidationKeysAsync` (drops a current key; one read) | `allowKeyRemoval` |
+| `ApiShield.SetOverrideActionAsync("none")` | `allowLoosen` |
+| `ApiShield.DeleteTokenValidationConfigAsync` / `DeleteTokenValidationRuleAsync` | `allowRemoval` |
+| `Workers.AttachDomainAsync` | `allowDeploy` |
+| `Waf.RemoveCustomRuleAsync` | `allowLoosen` |
+| `Tls.SetSwitchAsync` (`tls_1_3`, `always_use_https`, `opportunistic_encryption` off) | `allowWeaken` |
+| `CustomHostnames.Create/Ensure/UpdateAsync`, `R2.EnsureCustomDomainAsync` with minimum TLS 1.0/1.1 | `allowWeaken` |
+| `Logpush.SetJobEnabledAsync(false)` / `DeleteJobAsync` | `allowRemoval` |
+| `ApiTokens.UpdateAsync` on the token this client uses (one verify) | `allowSelf` |
+
+Further: cache rule `ExtraParameters` may not set `cache`, `edge_ttl` or `browser_ttl`; Spectrum checks origin ports against the sensitive ports; R2 CORS accepts a
+wildcard only as a leading `*.` before at least two labels (`https://*` counts as `*`); D1 counts PRAGMAs in their setting form (`user_version(5)`), `WHERE 1`, `WHERE 1=1`,
+`… OR 'a'='a'` and triggers that delete or update as writes or destructive; a load balancer pool without monitor or health report no longer counts as healthy fallback, and
+an origin with weight 0 or without address as unusable; changing one origin keeps every other member (headers such as `Host`, `virtual_network_id`); upserts check the
+allow-list again with the actual plan; rolling an API token is never retried; Logpush redaction also covers bare query parameters and collector paths (`splunk://`, `datadog://`);
+`ApiTokenSecret`, `WorkerSecretText`, `OriginPullKeyPair` and `JwtKeySet` hide their values from the debugger and overwrite their buffer on `Dispose`.
+
+Limits (documented, not enforced): expressions that match every request are recognised syntactically (`true`, `not false`, `1 == 1`, `http.host ne ""`,
+`ip.src in {0.0.0.0/0 ::/0}`, also behind a top-level `or`), not by evaluation; the D1 classification does not evaluate expressions either. `CloudflareNotEntitledException`
+and `CloudflareConflictException` are recognised from Cloudflare's status code and message text; use them for messages, not to steer security decisions.
+Preview methods ending in `…Async` (for example `PreviewSetSslModeAsync`, `PreviewUpsertAsync`, `Preview…RuleAsync`) **read** the current state with GET requests; the
+other `Preview…` methods send nothing.
+
+Zero Trust (0.8.0): Access, Gateway, Tunnels, WARP devices with the same rules, plus **lock-out protection**: every check that depends on the current state reads it
+fresh right before the write and refuses when it cannot be read (fail-closed).
+
+```csharp
+// Access: an application needs a policy; a policy that admits everyone, the removal of the last policy and every loosening need a switch.
+var (policy, _) = await writer.Access.EnsurePolicyAsync(new AccessPolicyInput { Name = "staff", Include = [AccessRules.EmailDomain("example.com")], Require = [AccessRules.Mfa()] });
+await writer.Access.EnsureApplicationAsync(new AccessApplicationInput { Name = "MT5", Domain = "mt5.example.com", Policies = [policy.Id] });
+await writer.Access.RemoveApplicationPolicyAsync(appId, policyId);                 // refused when it is the last policy (or the last that admits anyone)
+var test = await writer.Access.StartPolicyTestAsync([policy.Id]);                  // POST that only reads: the write guard applies
+
+// Service tokens: the client secret only in a CloudflareOneTimeSecret (ToString/JSON "[redacted]").
+using var issued = (await writer.Access.IssueServiceTokenAsync("mt5-bridge", "8760h")).ClientSecret;
+secretStore.Put("cf-access-client-secret", issued.TakeValue());
+await writer.Access.RotateServiceTokenSecretAsync(tokenId, previousSecretGrace: TimeSpan.FromHours(24));   // without grace: allowDisconnect
+
+// Gateway: no default action; block→allow, disabling or deleting a protective rule needs allowLoosen, allow→block allowBlock.
+await writer.Gateway.EnsureRuleAsync(new GatewayRuleInput { Name = "bad domains", Action = "block", Filters = ["dns"], Traffic = $"any(dns.domains[*] in ${listId})" });
+await writer.Gateway.UpdateConfigurationAsync(new GatewaySettingsChange { AntivirusUploadScan = true });  // PATCH of the changed section only
+
+// Tunnels: ingress changes that remove or re-point a hostname (maybe your own gateway) need allowDisconnect; originRequest and warp-routing are kept.
+await writer.Tunnels.UpsertIngressRuleAsync(tunnelId, new TunnelIngressRule { Hostname = "app.example.com", Service = "http://localhost:8080" });
+using var runToken = await writer.Tunnels.GetRunTokenAsync(tunnelId, allowReadSecret: true);   // CloudflareOneTimeSecret (0.8.1: needs the switch)
+await writer.Tunnels.RemoveAsync(tunnelId);                                        // refused while connected or used by routes: allowDeleteActive
+
+// WARP: the default profile reaches every device (allowBroadProfile); loosening (switch off, leave, mode switch, new Split Tunnel exclusions) allowLoosen.
+await writer.Devices.UpdateDefaultProfileAsync(new DeviceProfileSettings { SwitchLocked = true }, allowBroadProfile: true);
+```
+
+| Write | Default | Explicit opt-in | Risk |
+|---|---|---|---|
+| Access application without policies | refused | `allowNoPolicy: true` | nobody gets in |
+| Delete an Access application | refused | `allowUnprotect: true` | hostname without login |
+| Policy or group that admits (nearly) everyone: bypass, or allow/non_identity with `everyone`, an IP range shorter than /8 (IPv6 /16, 0.0.0.0/0, ::/0), `any_valid_service_token` or the `email_domain` of a public mail provider, unless a require rule narrows it (0.8.1); also inline policies of `EnsureApplicationAsync` and reusable policies it refers to | refused | `allowLoosen: true` | public application |
+| Loosen a policy or group: more permissive decision, added include rules, removed require/exclude rules, earlier precedence, longer session; for a deny: removed include, added exclude/require rules, later precedence; remove a deny policy (0.8.1) | refused | `allowLoosen: true` | more people get in |
+| Change the rules of a group that policies, applications or groups use (0.8.1) | refused | `allowInUse: true` | every user of the group changes |
+| Longer Access or WARP sessions, login through a WARP session, "UI read-only" off (organization, 0.8.1) | refused | `allowLoosen: true` | sessions and dashboard changes outside the API |
+| Deny for everyone, "deny unmatched requests" on, MFA for all applications on | refused | `allowBlock: true` | lock-out |
+| Remove the last policy of an application (or the last that admits anyone) | refused | `allowRemoveLast: true` | lock-out |
+| Remove the last identity provider, or the only allowed provider of an application (0.8.1) | refused | `allowRemoveLast: true` | nobody can log in |
+| Delete a group used by policies, applications or groups / change or delete a posture rule used by Access, Gateway or a device profile match / add or remove entries of a Gateway list used by a rule, also a disabled one (0.8.1) | refused | `allowInUse: true` | other rules change their effect |
+| Rotate a service token without grace, delete a used service token or one referenced by a policy, group or application (0.8.1), revoke tokens of an application or a user, change the team domain | refused | `allowDisconnect: true` | machines or users cut off |
+| Service token that never expires | refused | `allowNoExpiry: true` | long-lived credential |
+| Remove hostnames from an mTLS certificate, delete a certificate with hostnames | refused | `allowRemovals: true` | mTLS ends there |
+| Gateway protective rule without selector (or with a selector that matches everything) | refused | `allowBroadMatch: true` | all traffic blocked or isolated |
+| Gateway block → allow, disable/delete/re-match a protective rule, move it later or to another filter, change the rule settings of an enabled rule; inspection, antivirus or activity log off; less logging | refused | `allowLoosen: true` | traffic no longer filtered or logged |
+| Gateway permissive rule (allow, off, noscan, noisolate, override, l4_override, resolve, egress) that matches all traffic or comes before an enabled protective rule; enabling a permissive rule (0.8.1) | refused | `allowLoosen: true` | traffic passes the protective rules |
+| Gateway allow → block, enable a block rule; antivirus fail-closed | refused | `allowBlock: true` | legitimate traffic blocked |
+| TLS decryption on, another inspection certificate | refused | `allowTlsDecrypt: true` | pinned applications break |
+| PII redaction off | refused | `allowPii: true` | personal data in logs |
+| Delete a DNS location, a proxy endpoint, a custom device profile | refused | `allowDelete: true` | clients no longer filtered |
+| Deactivate or delete an inspection certificate in use | refused | `allowDisable: true` | certificate errors on devices |
+| Ingress change that removes, re-points or shadows a hostname (another service, other `originRequest`, a wildcard or a new order that answers first, 0.8.1), remove an ingress rule, publish over a CNAME that points elsewhere, rotate the run token, disconnect connectors, move or delete a private route, delete a virtual network with routes, revoke device registrations, remove Split Tunnel exclusions | refused | `allowDisconnect: true` | hostname, network or device cut off |
+| Catch-all ingress, or a path rule without hostname (0.8.1), that forwards instead of 404 | refused | `allowCatchAllService: true` | every hostname routed to the tunnel reaches the service |
+| Delete a connected tunnel, one with routes, or one whose ingress still serves hostnames (also when "down", 0.8.1) | refused | `allowDeleteActive: true` | outage |
+| Route or Split Tunnel exclusion shorter than /8 (IPv4) or /16 (IPv6), including 0.0.0.0/0 and ::/0 | refused | `allowBroadRoute: true` | most traffic into the tunnel / out of WARP |
+| Change the default virtual network | refused | `allowDefaultChange: true` | routing of every client changes |
+| Change the default device profile or a profile that matches every device (also `identity.email matches ".*"`, `os.name in {all platforms}`, `… or true`) | refused | `allowBroadProfile: true` | every device affected |
+| Loosen a device profile (also when it is created, and a changed match, 0.8.1), add Split Tunnel exclusions, un-revoke registrations | refused | `allowLoosen: true` | traffic bypasses Gateway, revoked device back |
+| Read a tunnel run token (0.8.1) | refused | `allowReadSecret: true` | anybody with it can run the tunnel |
+
+Secrets: service token client secrets and tunnel run tokens only in `CloudflareOneTimeSecret`; `client_secret`, `secret`, `token`, `tunnel_secret`, `credentials_file`
+and similar members are removed from every Zero Trust answer before a model is built (also in the older `List…`/`Get…` methods of `Access` and `Tunnels`); identity
+provider configurations are redacted in previews; the tunnel secret for a token rotation is generated locally and never shown. Previews of device and user operations carry
+counts only, no e-mail addresses, device ids or hardware data; mTLS certificate previews show size and SHA-256. DLP models carry no patterns, word lists or dataset cells.
+Not included (reachable through `OpenApi`): Access SCIM, JIT and infrastructure targets, MCP portals, bookmarks, custom pages, tags; Gateway PAC files, audit SSH, egress
+pairs, rule expiration reset; DEX, device posture integrations, override codes, IP profiles, managed networks; DLP writes, dataset uploads, email security, risk score reset.
+Limits (developers.cloudflare.com/cloudflare-one/account-limits/, retrieved 17.11.2026): 500 Access applications, 50 service tokens, 50 identity providers, 50 mTLS root
+certificates, 500 reusable policies; 500 Gateway rules per type, 250 DNS locations, 100 lists with 1000 entries (Enterprise 5000), 10 active inspection certificates, 3 generated
+per day; 1000 tunnels, 25 replicas, 1 MB tunnel configuration, 1000 virtual networks. Reading a tunnel token needs a write permission ("Cloudflare Tunnel Write",
+developers.cloudflare.com/tunnel/reference/tunnel-tokens/). Token permissions: "Access: Apps and Policies", "Access: Organizations, Identity Providers, and Groups",
+"Access: Service Tokens", "Access: Mutual TLS Certificates", "Zero Trust", "Cloudflare Tunnel" (Account; Read for reading, Edit for writes).
+
+Full replacements keep what this package does not model (0.8.1): `ChangeApplicationPolicyAsync`, `ChangePolicyAsync`, `ChangeGroupAsync`, `Gateway.ChangeRuleAsync` and
+`Devices.UpdatePostureRuleAsync` lay the change over the object as Cloudflare returned it, so `approval_required`, `isolation_required`, `purpose_justification_required`,
+`mfa_config`, `connection_rules`, `schedule`, `expiration`, `rule_settings` and the like are kept. The tunnel configuration version is read again right before the PUT (a
+concurrent change is a `CloudflareConflictException`); the other Zero Trust endpoints offer no `If-Match`, so a change between the check and the write stays possible.
+`Tunnels.PublishAsync` checks that the zone belongs to the tunnel's account and rolls the ingress back when the DNS write fails. The breadth checks of selectors and
+matches are syntactic (no evaluation): read the preview.
+
+Obsolete since 0.8.0 (removed in 1.0, hidden from IntelliSense since 0.8.1): `Access.CreateApplicationAsync`, `UpdateApplicationAsync`, `DeleteApplicationAsync`, `CreateApplicationPolicyAsync`,
+`UpdateApplicationPolicyAsync`, `DeleteApplicationPolicyAsync`, `CreatePolicyAsync`, `DeletePolicyAsync`, `CreateGroupAsync`, `UpdateGroupAsync`, `DeleteGroupAsync`,
+`CreateServiceTokenAsync`, `RotateServiceTokenAsync`, `DeleteServiceTokenAsync`, `CreateIdentityProviderAsync`, `UpdateIdentityProviderAsync`, `DeleteIdentityProviderAsync`,
+`AccessServiceToken.ClientSecret`; `Tunnels.CreateAsync`, `DeleteAsync`, `CleanupConnectionsAsync`, `GetTokenAsync`, `PutConfigurationAsync`, `PublishHostnameAsync`.
+Since 0.8.1 they take the guarded paths with every `allow…` switch off; `UpdateApplicationAsync`, `UpdateIdentityProviderAsync`, `CreateServiceTokenAsync`,
+`RotateServiceTokenAsync` and `GetTokenAsync` are always refused (they would replace without a check or hand out a secret).
 
 Edge status and lists (0.3.0):
 
@@ -132,7 +476,8 @@ var ips = await cloudflare.Ips.GetAsync(); var viaCloudflare = ips.Contains(remo
 
 ### Raw access
 
-Any endpoint, with the same guard, retries and error handling:
+Any endpoint, with the same guard, retries and error handling. `Api` and the generated `OpenApi` client know only `AllowWrites` and `WriteFilter`: none of the
+`allow…` switches, previews or lock-out checks of the curated clients apply there. Use them for reads and for writes you have checked yourself.
 
 ```csharp
 var result = await cloudflare.Api.GetAsync<JsonElement>($"accounts/{accountId}/d1/database");
