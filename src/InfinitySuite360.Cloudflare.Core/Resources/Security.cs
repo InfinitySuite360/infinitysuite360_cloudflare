@@ -16,7 +16,10 @@ public sealed class PageShieldResource : CloudflareModel
     public string? Status { get; init; }
 
     /// <summary>Classified as malicious by Cloudflare (domain or URL category).</summary>
-    public bool IsMalicious => MaliciousDomainCategories is { Count: > 0 } || MaliciousUrlCategories is { Count: > 0 };
+    public bool UrlReportedMalicious { get; init; }
+    public bool DomainReportedMalicious { get; init; }
+
+    public bool IsMalicious => UrlReportedMalicious || DomainReportedMalicious || MaliciousDomainCategories is { Count: > 0 } || MaliciousUrlCategories is { Count: > 0 };
 }
 
 public sealed class SecurityInsight : CloudflareModel
