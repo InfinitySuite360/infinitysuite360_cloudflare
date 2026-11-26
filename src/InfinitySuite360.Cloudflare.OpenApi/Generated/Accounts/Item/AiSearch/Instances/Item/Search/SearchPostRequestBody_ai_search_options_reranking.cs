@@ -16,7 +16,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances.I
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>The enabled property</summary>
         public bool? Enabled { get; set; }
-        /// <summary>The match_threshold property</summary>
+        /// <summary>Minimum reranker relevance score a chunk must reach to be returned. When omitted, falls back to the instance-level score_threshold, then to 0.4.</summary>
         public double? MatchThreshold { get; set; }
         /// <summary>The model property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -32,7 +32,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances.I
         public SearchPostRequestBody_ai_search_options_reranking()
         {
             AdditionalData = new Dictionary<string, object>();
-            MatchThreshold = 0.4;
         }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value

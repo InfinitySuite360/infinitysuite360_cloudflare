@@ -13,7 +13,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Containers.Usage
     public partial class UsageGetResponse : global::InfinitySuite360.Cloudflare.OpenApi.Models.Cc_V4BaseResponse, IParsable
     #pragma warning restore CS1591
     {
-        /// <summary>Current live usage, maximum limits, and utilization percentages for a Cloudchamber account. Usage includes active and assigned instances and is a current snapshot, not a historical or billable metric.</summary>
+        /// <summary>Current live usage, maximum limits, and utilization percentages for your account. Usage includes active and assigned instances and is a current snapshot, not a historical or billable metric.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.Cc_AccountUsageResponse? Result { get; set; }

@@ -31,6 +31,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Creator { get; set; }
 #endif
+        /// <summary>Specifies whether to generate a preview rendition before the standard encoding ladder. `default` generates only the standard encoding ladder. `previewFirst` generates a preview rendition first.</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_encodingMode? EncodingMode { get; set; }
         /// <summary>A video&apos;s URL. The server must be publicly routable and support `HTTP HEAD` requests and `HTTP GET` range requests. The server should respond to `HTTP HEAD` requests with a `content-range` header that includes the size of the file. This is the preferred field over `url`.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -83,6 +85,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public Stream_video_copy_request()
         {
             AdditionalData = new Dictionary<string, object>();
+            EncodingMode = global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_encodingMode.Default;
             RequireSignedURLs = false;
             ThumbnailTimestampPct = 0;
         }
@@ -106,6 +109,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             {
                 { "allowedOrigins", n => { AllowedOrigins = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "creator", n => { Creator = n.GetStringValue(); } },
+                { "encodingMode", n => { EncodingMode = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_encodingMode>(); } },
                 { "input", n => { Input = n.GetStringValue(); } },
                 { "meta", n => { Meta = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_media_metadata>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_media_metadata.CreateFromDiscriminatorValue); } },
                 { "name", n => { Name = n.GetStringValue(); } },
@@ -125,6 +129,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteCollectionOfPrimitiveValues<string>("allowedOrigins", AllowedOrigins);
             writer.WriteStringValue("creator", Creator);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_encodingMode>("encodingMode", EncodingMode);
             writer.WriteStringValue("input", Input);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_media_metadata>("meta", Meta);
             writer.WriteStringValue("name", Name);

@@ -26,8 +26,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public DateTimeOffset? LicenseExpiresAt { get; set; }
         /// <summary>Whether the selected accepted price agreement is currently active or retained after expiration</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.PayPerCrawl_EnabledDomain_license_status? LicenseStatus { get; set; }
-        /// <summary>When the publisher zone was classified for local-only, non-billable settlement. Null for billable zones.</summary>
-        public DateTimeOffset? NonBillableSince { get; set; }
         /// <summary>Price of the selected accepted agreement in microcents. For an active license this is the price currently in effect; for an expired license it is the last accepted price.</summary>
         public long? PriceUsdMicrocents { get; set; }
         /// <summary>
@@ -58,7 +56,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "domain", n => { Domain = n.GetStringValue(); } },
                 { "license_expires_at", n => { LicenseExpiresAt = n.GetDateTimeOffsetValue(); } },
                 { "license_status", n => { LicenseStatus = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.PayPerCrawl_EnabledDomain_license_status>(); } },
-                { "non_billable_since", n => { NonBillableSince = n.GetDateTimeOffsetValue(); } },
                 { "price_usd_microcents", n => { PriceUsdMicrocents = n.GetLongValue(); } },
             };
         }
@@ -72,7 +69,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteStringValue("domain", Domain);
             writer.WriteDateTimeOffsetValue("license_expires_at", LicenseExpiresAt);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.PayPerCrawl_EnabledDomain_license_status>("license_status", LicenseStatus);
-            writer.WriteDateTimeOffsetValue("non_billable_since", NonBillableSince);
             writer.WriteLongValue("price_usd_microcents", PriceUsdMicrocents);
             writer.WriteAdditionalData(AdditionalData);
         }

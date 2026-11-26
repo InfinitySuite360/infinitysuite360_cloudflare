@@ -839,11 +839,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_response_single_account?> PutAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_componentsSchemasAccount body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_response_single_account?> PutAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_account body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_response_single_account> PutAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_componentsSchemasAccount body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_response_single_account> PutAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_account body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
@@ -900,11 +900,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToPutRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_componentsSchemasAccount body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToPutRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_account body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToPutRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_componentsSchemasAccount body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToPutRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_account body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));

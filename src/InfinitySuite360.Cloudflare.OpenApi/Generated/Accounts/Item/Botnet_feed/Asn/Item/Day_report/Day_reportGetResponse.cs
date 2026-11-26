@@ -10,7 +10,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Botnet_feed.Asn.Item
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     #pragma warning disable CS1591
-    public partial class Day_reportGetResponse : global::InfinitySuite360.Cloudflare.OpenApi.Models.BotnetFeedApi_apiResponseCommon, IParsable
+    public partial class Day_reportGetResponse : global::InfinitySuite360.Cloudflare.OpenApi.Models.BotnetFeed_apiResponseCommon, IParsable
     #pragma warning restore CS1591
     {
         /// <summary>The result property</summary>

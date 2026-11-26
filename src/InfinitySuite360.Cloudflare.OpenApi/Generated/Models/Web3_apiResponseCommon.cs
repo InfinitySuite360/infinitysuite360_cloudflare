@@ -85,7 +85,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteAdditionalData(AdditionalData);
         }
         /// <summary>
-        /// Composed type wrapper for classes <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember1"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember2"/>, <see cref="string"/>
+        /// Composed type wrapper for classes <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember1"/>, <see cref="string"/>, List&lt;global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember2&gt;
         /// </summary>
         [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
         public partial class Web3_apiResponseCommon_result : IComposedTypeWrapper, IParsable
@@ -106,13 +106,13 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
             public global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember1 Web3ApiResponseCommonResultMember1 { get; set; }
 #endif
-            /// <summary>Composed type representation for type <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember2"/></summary>
+            /// <summary>Composed type representation for type List&lt;global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember2&gt;</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-            public global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember2? Web3ApiResponseCommonResultMember2 { get; set; }
+            public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember2>? Web3ApiResponseCommonResultMember2 { get; set; }
 #nullable restore
 #else
-            public global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember2 Web3ApiResponseCommonResultMember2 { get; set; }
+            public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember2> Web3ApiResponseCommonResultMember2 { get; set; }
 #endif
             /// <summary>
             /// Creates a new instance of the appropriate class based on discriminator value
@@ -127,9 +127,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 {
                     result.String = stringValue;
                 }
+                else if(parseNode.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember2>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember2.CreateFromDiscriminatorValue)?.AsList() is List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember2> web3ApiResponseCommonResultMember2Value)
+                {
+                    result.Web3ApiResponseCommonResultMember2 = web3ApiResponseCommonResultMember2Value;
+                }
                 else {
                     result.Web3ApiResponseCommonResultMember1 = new global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember1();
-                    result.Web3ApiResponseCommonResultMember2 = new global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember2();
                 }
                 return result;
             }
@@ -139,9 +142,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             /// <returns>A IDictionary&lt;string, Action&lt;IParseNode&gt;&gt;</returns>
             public virtual IDictionary<string, Action<IParseNode>> GetFieldDeserializers()
             {
-                if(Web3ApiResponseCommonResultMember1 != null || Web3ApiResponseCommonResultMember2 != null)
+                if(Web3ApiResponseCommonResultMember1 != null)
                 {
-                    return ParseNodeHelper.MergeDeserializersForIntersectionWrapper(Web3ApiResponseCommonResultMember1, Web3ApiResponseCommonResultMember2);
+                    return ParseNodeHelper.MergeDeserializersForIntersectionWrapper(Web3ApiResponseCommonResultMember1);
                 }
                 return new Dictionary<string, Action<IParseNode>>();
             }
@@ -156,8 +159,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 {
                     writer.WriteStringValue(null, String);
                 }
+                else if(Web3ApiResponseCommonResultMember2 != null)
+                {
+                    writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember2>(null, Web3ApiResponseCommonResultMember2);
+                }
                 else {
-                    writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember1>(null, Web3ApiResponseCommonResultMember1, Web3ApiResponseCommonResultMember2);
+                    writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon_resultMember1>(null, Web3ApiResponseCommonResultMember1);
                 }
             }
         }

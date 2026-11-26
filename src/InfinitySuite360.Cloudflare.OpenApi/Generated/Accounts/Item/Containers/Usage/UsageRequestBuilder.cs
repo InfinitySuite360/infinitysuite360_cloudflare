@@ -34,7 +34,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Containers.Usage
         {
         }
         /// <summary>
-        /// Get current live resource usage and maximum account limits for the authenticated Cloudchamber account. Usage includes active and assigned instances.
+        /// Get current live resource usage and maximum limits for your account. Usage includes active and assigned instances.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Containers.Usage.UsageGetResponse"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
@@ -61,7 +61,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Containers.Usage
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Containers.Usage.UsageGetResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Containers.Usage.UsageGetResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Get current live resource usage and maximum account limits for the authenticated Cloudchamber account. Usage includes active and assigned instances.
+        /// Get current live resource usage and maximum limits for your account. Usage includes active and assigned instances.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>

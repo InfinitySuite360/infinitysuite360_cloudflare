@@ -14,7 +14,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The sessionId property</summary>
+        /// <summary>The session_id property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? SessionId { get; set; }
@@ -63,7 +63,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "sessionId", n => { SessionId = n.GetStringValue(); } },
+                { "session_id", n => { SessionId = n.GetStringValue(); } },
                 { "transcript_download_url", n => { TranscriptDownloadUrl = n.GetStringValue(); } },
                 { "transcript_download_url_expiry", n => { TranscriptDownloadUrlExpiry = n.GetStringValue(); } },
             };
@@ -75,7 +75,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteStringValue("sessionId", SessionId);
+            writer.WriteStringValue("session_id", SessionId);
             writer.WriteStringValue("transcript_download_url", TranscriptDownloadUrl);
             writer.WriteStringValue("transcript_download_url_expiry", TranscriptDownloadUrlExpiry);
             writer.WriteAdditionalData(AdditionalData);

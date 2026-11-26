@@ -7,14 +7,15 @@ using System.IO;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
+    /// <summary>
+    /// Line item pricing.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    #pragma warning disable CS1591
     public partial class AigBilling_GetInvoicePreviewResult_invoice_lines_pricing : IAdditionalDataHolder, IParsable
-    #pragma warning restore CS1591
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The unit_amount_decimal property</summary>
+        /// <summary>Unit price in US cents, as a decimal string.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? UnitAmountDecimal { get; set; }

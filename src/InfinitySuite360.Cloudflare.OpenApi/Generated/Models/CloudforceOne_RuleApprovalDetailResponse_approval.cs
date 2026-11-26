@@ -16,6 +16,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>The audit_log_id property</summary>
         public double? AuditLogId { get; set; }
+        /// <summary>Rule state captured when the approval was requested. Null for creates, when no prior state was recorded, or when the stored snapshot cannot be parsed.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudforceOne_RulePreview? BaseRule { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudforceOne_RulePreview BaseRule { get; set; }
+#endif
         /// <summary>Time at which the requester cancelled the approval.</summary>
         public double? CancelledAt { get; set; }
         /// <summary>Requester who cancelled the pending approval.</summary>
@@ -138,6 +146,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "audit_log_id", n => { AuditLogId = n.GetDoubleValue(); } },
+                { "base_rule", n => { BaseRule = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudforceOne_RulePreview>(global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudforceOne_RulePreview.CreateFromDiscriminatorValue); } },
                 { "can_review", n => { CanReview = n.GetBoolValue(); } },
                 { "cancelled_at", n => { CancelledAt = n.GetDoubleValue(); } },
                 { "cancelled_by", n => { CancelledBy = n.GetStringValue(); } },
@@ -169,6 +178,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteDoubleValue("audit_log_id", AuditLogId);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudforceOne_RulePreview>("base_rule", BaseRule);
             writer.WriteDoubleValue("cancelled_at", CancelledAt);
             writer.WriteStringValue("cancelled_by", CancelledBy);
             writer.WriteBoolValue("can_review", CanReview);

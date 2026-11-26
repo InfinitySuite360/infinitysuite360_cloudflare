@@ -44,7 +44,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
         public double? Page { get; set; }
         /// <summary>The pageSize property</summary>
         public double? PageSize { get; set; }
-        /// <summary>Structured search as a JSON array of {field, op, value} objects, AND&apos;d together. Max 10 conditions per request. `in` and `notIn` take an array of up to 100 values. Exclusions: `not` drops events without a value for the field; `notIn` and `notContains` keep them. On intelligence datasets, a `notIn` list containing `&quot;unknown&quot;` also drops them; analytics datasets treat `&quot;unknown&quot;` as a literal value.</summary>
+        /// <summary>Structured search as a JSON array of {field, op, value} objects, AND&apos;d together. Max 10 conditions per request. `in` and `notIn` take an array of up to 100 values. `containsAny` takes an array of up to 50 strings and matches when the field contains any of them; it is not supported for `indicator`, `date`, `killChain`, or `hasChildren`. Exclusions: `not` drops events without a value for the field; `notIn` and `notContains` keep them. On intelligence datasets, a `notIn` list containing `&quot;unknown&quot;` also drops them; analytics datasets treat `&quot;unknown&quot;` as a literal value.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody.EventsPostRequestBody_search>? Search { get; set; }
@@ -113,7 +113,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
             writer.WriteAdditionalData(AdditionalData);
         }
         /// <summary>
-        /// Composed type wrapper for classes <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember1"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember2"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember3"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember4"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember5"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember6"/>
+        /// Composed type wrapper for classes <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember1"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember2"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember3"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember4"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember5"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember6"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember7"/>
         /// </summary>
         [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
         public partial class EventsPostRequestBody_search : IComposedTypeWrapper, IParsable
@@ -166,6 +166,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
 #else
             public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember6 EventsPostRequestBodySearchMember6 { get; set; }
 #endif
+            /// <summary>Composed type representation for type <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember7"/></summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember7? EventsPostRequestBodySearchMember7 { get; set; }
+#nullable restore
+#else
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember7 EventsPostRequestBodySearchMember7 { get; set; }
+#endif
             /// <summary>
             /// Creates a new instance of the appropriate class based on discriminator value
             /// </summary>
@@ -181,6 +189,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
                 result.EventsPostRequestBodySearchMember4 = new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember4();
                 result.EventsPostRequestBodySearchMember5 = new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember5();
                 result.EventsPostRequestBodySearchMember6 = new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember6();
+                result.EventsPostRequestBodySearchMember7 = new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember7();
                 return result;
             }
             /// <summary>
@@ -189,9 +198,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
             /// <returns>A IDictionary&lt;string, Action&lt;IParseNode&gt;&gt;</returns>
             public virtual IDictionary<string, Action<IParseNode>> GetFieldDeserializers()
             {
-                if(EventsPostRequestBodySearchMember1 != null || EventsPostRequestBodySearchMember2 != null || EventsPostRequestBodySearchMember3 != null || EventsPostRequestBodySearchMember4 != null || EventsPostRequestBodySearchMember5 != null || EventsPostRequestBodySearchMember6 != null)
+                if(EventsPostRequestBodySearchMember1 != null || EventsPostRequestBodySearchMember2 != null || EventsPostRequestBodySearchMember3 != null || EventsPostRequestBodySearchMember4 != null || EventsPostRequestBodySearchMember5 != null || EventsPostRequestBodySearchMember6 != null || EventsPostRequestBodySearchMember7 != null)
                 {
-                    return ParseNodeHelper.MergeDeserializersForIntersectionWrapper(EventsPostRequestBodySearchMember1, EventsPostRequestBodySearchMember2, EventsPostRequestBodySearchMember3, EventsPostRequestBodySearchMember4, EventsPostRequestBodySearchMember5, EventsPostRequestBodySearchMember6);
+                    return ParseNodeHelper.MergeDeserializersForIntersectionWrapper(EventsPostRequestBodySearchMember1, EventsPostRequestBodySearchMember2, EventsPostRequestBodySearchMember3, EventsPostRequestBodySearchMember4, EventsPostRequestBodySearchMember5, EventsPostRequestBodySearchMember6, EventsPostRequestBodySearchMember7);
                 }
                 return new Dictionary<string, Action<IParseNode>>();
             }
@@ -202,7 +211,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
             public virtual void Serialize(ISerializationWriter writer)
             {
                 if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-                writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember1>(null, EventsPostRequestBodySearchMember1, EventsPostRequestBodySearchMember2, EventsPostRequestBodySearchMember3, EventsPostRequestBodySearchMember4, EventsPostRequestBodySearchMember5, EventsPostRequestBodySearchMember6);
+                writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.EventsPostRequestBody_searchMember1>(null, EventsPostRequestBodySearchMember1, EventsPostRequestBodySearchMember2, EventsPostRequestBodySearchMember3, EventsPostRequestBodySearchMember4, EventsPostRequestBodySearchMember5, EventsPostRequestBodySearchMember6, EventsPostRequestBodySearchMember7);
             }
         }
     }

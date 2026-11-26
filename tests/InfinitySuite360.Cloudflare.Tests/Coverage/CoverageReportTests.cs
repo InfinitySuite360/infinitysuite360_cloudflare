@@ -13,8 +13,8 @@ public class CoverageReportTests
     public void The_operation_index_is_the_pinned_schema()
     {
         var index = Index.Value;
-        Assert.Equal(3777, index.Operations.Count);
-        Assert.Contains("650bd71c22db3b938a4611bf4cc5afd896b400b7", index.Header);
+        Assert.Equal(3931, index.Operations.Count);
+        Assert.Contains("3caa09607da12e7b79d55b704a20e2cf4ad8af53", index.Header);
         var lockFile = File.ReadAllText(Path.Combine(CoverageMatrix.Root(), "openapi", "cloudflare-openapi.lock.json"));
         Assert.Contains(index.Header.Split(' ')[2].Split('@')[1], lockFile);
     }
@@ -65,7 +65,7 @@ public class CoverageReportTests
         var clients = typeof(ICloudflareClient).GetProperties().Where(p => typeof(Resources.CloudflareResourceClient).IsAssignableFrom(p.PropertyType)).Select(p => p.Name).ToList();
         var silent = clients.Where(c => !byClient.ContainsKey(c)).ToList();
         Assert.True(silent.Count == 0, "Clients without any matched request: " + string.Join(", ", silent));
-        Assert.Equal(3777, rows.Sum(r => r.Total));
+        Assert.Equal(3931, rows.Sum(r => r.Total));
         // The shield products were the reason for P1/P2: Page Shield almost complete, API Shield at least 40 % (the rest is reachable through OpenApi).
         Assert.True(rows.Single(r => r.Area.Name == "Page Shield").Curated * 10 >= rows.Single(r => r.Area.Name == "Page Shield").Total * 8);
         Assert.True(rows.Single(r => r.Area.Name == "API Shield").Curated * 10 >= rows.Single(r => r.Area.Name == "API Shield").Total * 4);

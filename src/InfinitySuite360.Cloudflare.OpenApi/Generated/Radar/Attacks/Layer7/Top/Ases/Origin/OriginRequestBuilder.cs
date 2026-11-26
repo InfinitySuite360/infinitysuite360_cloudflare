@@ -21,7 +21,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Radar.Attacks.Layer7.Top.Ases.Orig
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public OriginRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/radar/attacks/layer7/top/ases/origin{?continent*,dateEnd*,dateRange*,dateStart*,format*,httpMethod*,httpVersion*,ipVersion*,limit*,location*,mitigationProduct*,name*}", pathParameters)
+        public OriginRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/radar/attacks/layer7/top/ases/origin{?asCategory*,continent*,dateEnd*,dateRange*,dateStart*,format*,httpMethod*,httpVersion*,ipVersion*,limit*,location*,mitigationProduct*,name*}", pathParameters)
         {
         }
         /// <summary>
@@ -29,7 +29,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Radar.Attacks.Layer7.Top.Ases.Orig
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public OriginRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/radar/attacks/layer7/top/ases/origin{?continent*,dateEnd*,dateRange*,dateStart*,format*,httpMethod*,httpVersion*,ipVersion*,limit*,location*,mitigationProduct*,name*}", rawUrl)
+        public OriginRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/radar/attacks/layer7/top/ases/origin{?asCategory*,continent*,dateEnd*,dateRange*,dateStart*,format*,httpMethod*,httpVersion*,ipVersion*,limit*,location*,mitigationProduct*,name*}", rawUrl)
         {
         }
         /// <summary>
@@ -89,6 +89,16 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Radar.Attacks.Layer7.Top.Ases.Orig
         [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
         public partial class OriginRequestBuilderGetQueryParameters 
         {
+            /// <summary>Filters results by the inferred network type of the Autonomous System: `ACCESS_ISP` (networks connecting end users, plus transit), `HOSTING_CLOUD_CONTENT` (hosting providers, clouds and CDNs), `ORGANIZATION` (enterprises, universities, governments, banks and IXP route servers), or `UNCLASSIFIED` (the AS isn&apos;t classified, or the traffic couldn&apos;t be mapped to an AS). In HTTP, only supported for date ranges starting on or after 2023-05-01.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            [QueryParameter("asCategory")]
+            public global::InfinitySuite360.Cloudflare.OpenApi.Radar.Attacks.Layer7.Top.Ases.Origin.GetAsCategoryQueryParameterType[]? AsCategory { get; set; }
+#nullable restore
+#else
+            [QueryParameter("asCategory")]
+            public global::InfinitySuite360.Cloudflare.OpenApi.Radar.Attacks.Layer7.Top.Ases.Origin.GetAsCategoryQueryParameterType[] AsCategory { get; set; }
+#endif
             /// <summary>Filters results by continent. Specify a comma-separated list of alpha-2 codes. Prefix with `-` to exclude continents from results. For example, `-EU,NA` excludes results from EU, but includes results from NA.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable

@@ -40,6 +40,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public bool? Enabled { get; set; }
         /// <summary>Determines whether the WARP client can silently reauthenticate the user with device credentials (Microsoft Entra) instead of prompting for browser-based reauthentication.</summary>
         public bool? EnableDeviceCredentialAuthentication { get; set; }
+        /// <summary>Determines whether NetBIOS over TCP/IP (NetBT) is enabled on the WARP tunnel interface. (Windows only). NetBT is disabled by default for security reasons.</summary>
+        public bool? EnableNetbt { get; set; }
         /// <summary>List of routes excluded in the WARP client&apos;s tunnel.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -82,6 +84,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include> Include { get; set; }
 #endif
+        /// <summary>The amount of time in minutes a user is allowed access to their LAN. A value of 0 will allow LAN access until the next WARP reconnection, such as a reboot or a laptop waking from sleep. Note that this field is omitted from the response if null or unset.</summary>
+        public double? LanAllowMinutes { get; set; }
+        /// <summary>The size of the subnet for the local access network. Note that this field is omitted from the response if null or unset.</summary>
+        public double? LanAllowSubnetSize { get; set; }
         /// <summary>The policy_id property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -146,6 +152,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             DisableAutoFallback = false;
             Enabled = true;
             EnableDeviceCredentialAuthentication = false;
+            EnableNetbt = false;
             ExcludeOfficeIps = false;
             ProfileType = global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_profile_type.Warp;
             RegisterInterfaceIpWithDns = true;
@@ -180,6 +187,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "disable_auto_fallback", n => { DisableAutoFallback = n.GetBoolValue(); } },
                 { "dns_search_suffixes", n => { DnsSearchSuffixes = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_dns_search_suffix>(global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_dns_search_suffix.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "enable_device_credential_authentication", n => { EnableDeviceCredentialAuthentication = n.GetBoolValue(); } },
+                { "enable_netbt", n => { EnableNetbt = n.GetBoolValue(); } },
                 { "enabled", n => { Enabled = n.GetBoolValue(); } },
                 { "exclude", n => { Exclude = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel>(global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "exclude_office_ips", n => { ExcludeOfficeIps = n.GetBoolValue(); } },
@@ -187,6 +195,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "gateway_unique_id", n => { GatewayUniqueId = n.GetStringValue(); } },
                 { "global_acceleration", n => { GlobalAcceleration = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_global_acceleration>(global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_global_acceleration.CreateFromDiscriminatorValue); } },
                 { "include", n => { Include = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include>(global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "lan_allow_minutes", n => { LanAllowMinutes = n.GetDoubleValue(); } },
+                { "lan_allow_subnet_size", n => { LanAllowSubnetSize = n.GetDoubleValue(); } },
                 { "policy_id", n => { PolicyId = n.GetStringValue(); } },
                 { "profile_type", n => { ProfileType = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_profile_type>(); } },
                 { "register_interface_ip_with_dns", n => { RegisterInterfaceIpWithDns = n.GetBoolValue(); } },
@@ -216,12 +226,15 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_dns_search_suffix>("dns_search_suffixes", DnsSearchSuffixes);
             writer.WriteBoolValue("enabled", Enabled);
             writer.WriteBoolValue("enable_device_credential_authentication", EnableDeviceCredentialAuthentication);
+            writer.WriteBoolValue("enable_netbt", EnableNetbt);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel>("exclude", Exclude);
             writer.WriteBoolValue("exclude_office_ips", ExcludeOfficeIps);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_fallback_domain>("fallback_domains", FallbackDomains);
             writer.WriteStringValue("gateway_unique_id", GatewayUniqueId);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_global_acceleration>("global_acceleration", GlobalAcceleration);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_split_tunnel_include>("include", Include);
+            writer.WriteDoubleValue("lan_allow_minutes", LanAllowMinutes);
+            writer.WriteDoubleValue("lan_allow_subnet_size", LanAllowSubnetSize);
             writer.WriteStringValue("policy_id", PolicyId);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.TeamsDevices_profile_type>("profile_type", ProfileType);
             writer.WriteBoolValue("register_interface_ip_with_dns", RegisterInterfaceIpWithDns);

@@ -54,6 +54,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
 #else
         public string Id { get; set; }
 #endif
+        /// <summary>Identifier of the AI Gateway that never changes and is never reused, even after the gateway is deleted. Accepted in place of the gateway ID in any gateway path.</summary>
+        public Guid? InternalId { get; set; }
         /// <summary>The is_default property</summary>
         public bool? IsDefault { get; set; }
         /// <summary>The log_classification property</summary>
@@ -74,6 +76,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
 #endif
         /// <summary>The modified_at property</summary>
         public DateTimeOffset? ModifiedAt { get; set; }
+        /// <summary>Lets requests to a model use every provider that serves it. When off, a model uses only the providers it launched with, so a provider added later receives none of its traffic. A request that names providers (the cf-aig-allowed-providers header or routing.allowedProviders) can still use any of them. Model aliases (custom/) are not restricted.</summary>
+        public bool? MultiproviderEnabled { get; set; }
         /// <summary>The otel property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -159,6 +163,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
                 { "fedramp_mode", n => { FedrampMode = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutResponse_result_fedramp_mode>(); } },
                 { "guardrails", n => { Guardrails = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutResponse_result_guardrails>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutResponse_result_guardrails.CreateFromDiscriminatorValue); } },
                 { "id", n => { Id = n.GetStringValue(); } },
+                { "internal_id", n => { InternalId = n.GetGuidValue(); } },
                 { "is_default", n => { IsDefault = n.GetBoolValue(); } },
                 { "log_classification", n => { LogClassification = n.GetBoolValue(); } },
                 { "log_management", n => { LogManagement = n.GetIntValue(); } },
@@ -166,6 +171,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
                 { "logpush", n => { Logpush = n.GetBoolValue(); } },
                 { "logpush_public_key", n => { LogpushPublicKey = n.GetStringValue(); } },
                 { "modified_at", n => { ModifiedAt = n.GetDateTimeOffsetValue(); } },
+                { "multiprovider_enabled", n => { MultiproviderEnabled = n.GetBoolValue(); } },
                 { "otel", n => { Otel = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutResponse_result_otel>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutResponse_result_otel.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "rate_limiting_interval", n => { RateLimitingInterval = n.GetIntValue(); } },
                 { "rate_limiting_limit", n => { RateLimitingLimit = n.GetIntValue(); } },
@@ -198,6 +204,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutResponse_result_fedramp_mode>("fedramp_mode", FedrampMode);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutResponse_result_guardrails>("guardrails", Guardrails);
             writer.WriteStringValue("id", Id);
+            writer.WriteGuidValue("internal_id", InternalId);
             writer.WriteBoolValue("is_default", IsDefault);
             writer.WriteBoolValue("log_classification", LogClassification);
             writer.WriteIntValue("log_management", LogManagement);
@@ -205,6 +212,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
             writer.WriteBoolValue("logpush", Logpush);
             writer.WriteStringValue("logpush_public_key", LogpushPublicKey);
             writer.WriteDateTimeOffsetValue("modified_at", ModifiedAt);
+            writer.WriteBoolValue("multiprovider_enabled", MultiproviderEnabled);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutResponse_result_otel>("otel", Otel);
             writer.WriteIntValue("rate_limiting_interval", RateLimitingInterval);
             writer.WriteIntValue("rate_limiting_limit", RateLimitingLimit);

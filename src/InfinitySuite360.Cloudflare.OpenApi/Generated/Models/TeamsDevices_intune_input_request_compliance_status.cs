@@ -31,5 +31,13 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         #pragma warning disable CS1591
         Error,
         #pragma warning restore CS1591
+        [EnumMember(Value = "conflict")]
+        #pragma warning disable CS1591
+        Conflict,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "configmanager")]
+        #pragma warning disable CS1591
+        Configmanager,
+        #pragma warning restore CS1591
     }
 }

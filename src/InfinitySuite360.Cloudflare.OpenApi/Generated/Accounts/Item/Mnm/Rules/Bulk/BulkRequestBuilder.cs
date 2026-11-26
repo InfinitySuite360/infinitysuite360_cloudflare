@@ -40,7 +40,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Mnm.Rules.Bulk
         /// <param name="body">The request body</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Mnm.Rules.Bulk.MagicVisibilityMnm_mnm_rules_collection_response4XXError">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_mnm_rules_collection_response?> PostAsync(List<global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_mnm_rule_create> body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -54,7 +54,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Mnm.Rules.Bulk
             var requestInfo = ToPostRequestInformation(body, requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Mnm.Rules.Bulk.MagicVisibilityMnm_mnm_rules_collection_response4XXError.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_mnm_rules_collection_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_mnm_rules_collection_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
@@ -65,7 +65,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Mnm.Rules.Bulk
         /// <param name="body">The request body</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Mnm.Rules.Bulk.MagicVisibilityMnm_mnm_rules_collection_response4XXError">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_mnm_rules_collection_response?> PutAsync(List<global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_mnm_rule_create> body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -79,7 +79,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Mnm.Rules.Bulk
             var requestInfo = ToPutRequestInformation(body, requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Mnm.Rules.Bulk.MagicVisibilityMnm_mnm_rules_collection_response4XXError.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_mnm_rules_collection_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.MagicVisibilityMnm_mnm_rules_collection_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }

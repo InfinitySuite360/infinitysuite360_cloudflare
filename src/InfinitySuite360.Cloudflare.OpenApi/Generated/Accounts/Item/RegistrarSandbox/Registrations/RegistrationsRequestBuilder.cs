@@ -49,50 +49,50 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.RegistrarSandbox.Reg
         /// <summary>
         /// Returns a paginated list of domain registrations owned by the account.This endpoint uses cursor-based pagination. Results are ordered by registrationdate by default. To fetch the next page, pass the `cursor` value from the`result_info` object in the response as the `cursor` query parameter inyour next request. An empty `cursor` string indicates there are no morepages.
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registrationResponseCollection"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registrationResponseCollection"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_apiResponseCommonFailure">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registrationResponseCollection?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.RegistrarSandbox.Registrations.RegistrationsRequestBuilder.RegistrationsRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registrationResponseCollection?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.RegistrarSandbox.Registrations.RegistrationsRequestBuilder.RegistrationsRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registrationResponseCollection> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.RegistrarSandbox.Registrations.RegistrationsRequestBuilder.RegistrationsRequestBuilderGetQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registrationResponseCollection> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.RegistrarSandbox.Registrations.RegistrationsRequestBuilder.RegistrationsRequestBuilderGetQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             var requestInfo = ToGetRequestInformation(requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
-            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registrationResponseCollection>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registrationResponseCollection.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registrationResponseCollection>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registrationResponseCollection.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Starts a domain registration workflow.### Prerequisites- The account must not already be at the maximum supported domain limit.    A single account may own up to 500 domains in total across registrations    created through either the dashboard or this API.- The domain must be on a supported extension for programmatic registration.- Use `POST /domain-check` immediately before calling this endpoint to confirm    real-time availability and pricing.### Defaults- `years`: defaults to the extension&apos;s minimum registration period (1 year for    most extensions, but varies — for example, `.ai` (if supported) requires a minimum of 2 years).- `auto_renew`: defaults to `false`. Setting it to `true` is an explicit    opt-in authorizing Cloudflare to charge the account&apos;s default payment    method up to 30 days before domain expiry to renew the registration.    Renewal pricing may change over time based on registry pricing.- `privacy_mode`: defaults to `redaction`.### Premium domainsPremium domain registration is not currently supported by this API.If `POST /domain-check` returns `tier: premium`, do not call thisendpoint for that domain.### Response behaviorBy default, the server holds the connection for a bounded, server-definedamount of time while the registration completes. Most registrations finishwithin this window and return `201 Created` with a completed workflow status.If the registration is still processing after this synchronous wait window,the server returns `202 Accepted`. Poll the URL in `links.self` to track progress.To skip the wait and receive an immediate `202`, send `Prefer: respond-async`.
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_workflowStatusResponseSingle"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_workflowStatusResponseSingle"/></returns>
         /// <param name="body">The request body</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_apiResponseCommonFailure">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_workflowStatusResponseSingle?> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registration_create_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_workflowStatusResponseSingle?> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registration_create_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_workflowStatusResponseSingle> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registration_create_request body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_workflowStatusResponseSingle> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registration_create_request body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = ToPostRequestInformation(body, requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
-            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_workflowStatusResponseSingle>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_workflowStatusResponseSingle.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_workflowStatusResponseSingle>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_workflowStatusResponseSingle.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Returns a paginated list of domain registrations owned by the account.This endpoint uses cursor-based pagination. Results are ordered by registrationdate by default. To fetch the next page, pass the `cursor` value from the`result_info` object in the response as the `cursor` query parameter inyour next request. An empty `cursor` string indicates there are no morepages.
@@ -121,11 +121,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.RegistrarSandbox.Reg
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registration_create_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registration_create_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registration_create_request body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registration_create_request body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));

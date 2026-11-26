@@ -14,7 +14,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>If true, automatically create the indicator type if it doesn&apos;t exist. If false (default), throw an error when the indicator type doesn&apos;t exist.</summary>
+        /// <summary>If true, automatically create the indicator type if it doesn&apos;t exist. If false (default), reject an indicator type the dataset has not registered, unless the type is pre-approved (the same list event create accepts, such as BITCOIN or ERC-20), in which case it is registered on first use. Direct create applies this check to analytics datasets too. Bulk create skips it for analytics datasets.</summary>
         public bool? AutoCreateType { get; set; }
         /// <summary>The indicatorType property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER

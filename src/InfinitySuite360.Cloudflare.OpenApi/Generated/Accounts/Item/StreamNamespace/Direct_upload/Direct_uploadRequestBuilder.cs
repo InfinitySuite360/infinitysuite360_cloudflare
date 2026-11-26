@@ -34,7 +34,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.StreamNamespace.Dire
         {
         }
         /// <summary>
-        /// Creates a direct upload endpoint that allows an end-user to upload a video without an API key.
+        /// Creates a direct upload endpoint that allows an end-user to upload a video without an API key. `encodingMode` is fixed when the upload URL is created and cannot be changed when the generated URL is used.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_direct_upload_response"/></returns>
         /// <param name="body">The request body</param>
@@ -59,7 +59,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.StreamNamespace.Dire
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_direct_upload_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_direct_upload_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Creates a direct upload endpoint that allows an end-user to upload a video without an API key.
+        /// Creates a direct upload endpoint that allows an end-user to upload a video without an API key. `encodingMode` is fixed when the upload URL is created and cannot be changed when the generated URL is used.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

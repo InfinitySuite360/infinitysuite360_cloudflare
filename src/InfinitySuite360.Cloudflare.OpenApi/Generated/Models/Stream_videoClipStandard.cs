@@ -83,10 +83,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>The watermark property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_watermarkAtUpload? Watermark { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_watermark_at_upload? Watermark { get; set; }
 #nullable restore
 #else
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_watermarkAtUpload Watermark { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_watermark_at_upload Watermark { get; set; }
 #endif
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_videoClipStandard"/> and sets the default values.
@@ -127,7 +127,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "startTimeSeconds", n => { StartTimeSeconds = n.GetIntValue(); } },
                 { "thumbnailTimestampPct", n => { ThumbnailTimestampPct = n.GetDoubleValue(); } },
                 { "url", n => { Url = n.GetStringValue(); } },
-                { "watermark", n => { Watermark = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_watermarkAtUpload>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_watermarkAtUpload.CreateFromDiscriminatorValue); } },
+                { "watermark", n => { Watermark = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_watermark_at_upload>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_watermark_at_upload.CreateFromDiscriminatorValue); } },
             };
         }
         /// <summary>
@@ -149,7 +149,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteIntValue("startTimeSeconds", StartTimeSeconds);
             writer.WriteDoubleValue("thumbnailTimestampPct", ThumbnailTimestampPct);
             writer.WriteStringValue("url", Url);
-            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_watermarkAtUpload>("watermark", Watermark);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_watermark_at_upload>("watermark", Watermark);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

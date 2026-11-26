@@ -17,7 +17,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppre
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>Number of suppressions in this page.</summary>
         public int? Count { get; set; }
-        /// <summary>Opaque cursor for the next page. Pass it back as the `cursor` query parameter and continue until it is `null`. A bounded large-account scan may return a short intermediate page. Sending-domain suppressions are listed before account suppressions; each group is newest first.</summary>
+        /// <summary>Opaque cursor for the next page. Pass it back as the `cursor` query parameter and continue until it is `null`. A bounded large-account scan may return a short intermediate page. Each scope is listed newest first; the order between the two scopes is not fixed.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? NextCursor { get; set; }

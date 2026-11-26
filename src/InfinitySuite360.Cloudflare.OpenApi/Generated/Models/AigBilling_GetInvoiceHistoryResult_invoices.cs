@@ -14,21 +14,21 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The amount_due property</summary>
+        /// <summary>Amount due, in US cents.</summary>
         public double? AmountDue { get; set; }
-        /// <summary>The amount_paid property</summary>
+        /// <summary>Amount paid, in US cents.</summary>
         public double? AmountPaid { get; set; }
-        /// <summary>The amount_remaining property</summary>
+        /// <summary>Amount still owed, in US cents.</summary>
         public double? AmountRemaining { get; set; }
-        /// <summary>The attempt_count property</summary>
+        /// <summary>Number of payment attempts.</summary>
         public double? AttemptCount { get; set; }
-        /// <summary>The attempted property</summary>
+        /// <summary>Whether payment was attempted.</summary>
         public bool? Attempted { get; set; }
-        /// <summary>The auto_advance property</summary>
+        /// <summary>Whether the invoice is finalized and collected without an explicit action. False for top-up invoices, which are charged when the top-up is made.</summary>
         public bool? AutoAdvance { get; set; }
-        /// <summary>The created property</summary>
+        /// <summary>When the invoice was created, as a Unix timestamp in seconds.</summary>
         public double? Created { get; set; }
-        /// <summary>The created_by property</summary>
+        /// <summary>What created the invoice. Always `AI_GATEWAY`.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? CreatedBy { get; set; }
@@ -36,7 +36,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string CreatedBy { get; set; }
 #endif
-        /// <summary>The currency property</summary>
+        /// <summary>Lowercase ISO 4217 currency code.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Currency { get; set; }
@@ -44,7 +44,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Currency { get; set; }
 #endif
-        /// <summary>The description property</summary>
+        /// <summary>Invoice description.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Description { get; set; }
@@ -52,7 +52,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Description { get; set; }
 #endif
-        /// <summary>The id property</summary>
+        /// <summary>Invoice number, as printed on the invoice, rather than an identifier. Null until the invoice is finalized.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Id { get; set; }
@@ -60,7 +60,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Id { get; set; }
 #endif
-        /// <summary>The invoice_origin property</summary>
+        /// <summary>How the top-up was made: `auto` or `manual`.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? InvoiceOrigin { get; set; }
@@ -68,7 +68,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string InvoiceOrigin { get; set; }
 #endif
-        /// <summary>The invoice_pdf property</summary>
+        /// <summary>URL of the invoice PDF. Null until the invoice is finalized.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? InvoicePdf { get; set; }
@@ -76,7 +76,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string InvoicePdf { get; set; }
 #endif
-        /// <summary>The status property</summary>
+        /// <summary>Invoice status: `draft`, `open`, `paid`, `uncollectible`, or `void`.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Status { get; set; }

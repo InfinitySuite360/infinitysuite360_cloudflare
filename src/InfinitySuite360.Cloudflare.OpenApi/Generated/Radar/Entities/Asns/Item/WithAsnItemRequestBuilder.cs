@@ -33,7 +33,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Item
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public WithAsnItemRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/radar/entities/asns/{asn}{?format*}", pathParameters)
+        public WithAsnItemRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/radar/entities/asns/{asn}{?format*,includeConfidenceLevel*}", pathParameters)
         {
         }
         /// <summary>
@@ -41,7 +41,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Item
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public WithAsnItemRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/radar/entities/asns/{asn}{?format*}", rawUrl)
+        public WithAsnItemRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/radar/entities/asns/{asn}{?format*,includeConfidenceLevel*}", rawUrl)
         {
         }
         /// <summary>
@@ -104,6 +104,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Item
             /// <summary>Format in which results will be returned.</summary>
             [QueryParameter("format")]
             public global::InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Item.GetFormatQueryParameterType? Format { get; set; }
+            /// <summary>Include the traffic data confidence level in the response. Set to `false` to skip it and get a faster response.</summary>
+            [QueryParameter("includeConfidenceLevel")]
+            public bool? IncludeConfidenceLevel { get; set; }
         }
     }
 }

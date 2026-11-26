@@ -34,7 +34,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
         {
         }
         /// <summary>
-        /// Retrieve the minimum and maximum allowed top-up amounts (in cents) for this account.
+        /// Deprecated: use `manual_topup.limits` from GET /topup/eligibility. Retrieve the minimum and maximum allowed top-up amounts (in cents) for this account.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupLimitsResponse"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
@@ -42,6 +42,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 400 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 403 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 404 status code</exception>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupLimitsResponse?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -61,10 +62,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupLimitsResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupLimitsResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Retrieve the minimum and maximum allowed top-up amounts (in cents) for this account.
+        /// Deprecated: use `manual_topup.limits` from GET /topup/eligibility. Retrieve the minimum and maximum allowed top-up amounts (in cents) for this account.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
@@ -84,6 +86,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Topup.Limits.LimitsRequestBuilder"/></returns>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
+        [Obsolete("")]
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Topup.Limits.LimitsRequestBuilder WithUrl(string rawUrl)
         {
             return new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Topup.Limits.LimitsRequestBuilder(rawUrl, RequestAdapter);

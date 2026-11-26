@@ -8,9 +8,57 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
     public enum EventsPostRequestBody_searchMember3_field
     #pragma warning restore CS1591
     {
-        [EnumMember(Value = "killChain")]
+        [EnumMember(Value = "attacker")]
         #pragma warning disable CS1591
-        KillChain,
+        Attacker,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "attackerCountry")]
+        #pragma warning disable CS1591
+        AttackerCountry,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "category")]
+        #pragma warning disable CS1591
+        Category,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "createdAt")]
+        #pragma warning disable CS1591
+        CreatedAt,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "event")]
+        #pragma warning disable CS1591
+        Event,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "indicatorType")]
+        #pragma warning disable CS1591
+        IndicatorType,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "mitreAttack")]
+        #pragma warning disable CS1591
+        MitreAttack,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "mitreCapec")]
+        #pragma warning disable CS1591
+        MitreCapec,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "tags")]
+        #pragma warning disable CS1591
+        Tags,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "targetCountry")]
+        #pragma warning disable CS1591
+        TargetCountry,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "targetIndustry")]
+        #pragma warning disable CS1591
+        TargetIndustry,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "tlp")]
+        #pragma warning disable CS1591
+        Tlp,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "uuid")]
+        #pragma warning disable CS1591
+        Uuid,
         #pragma warning restore CS1591
     }
 }

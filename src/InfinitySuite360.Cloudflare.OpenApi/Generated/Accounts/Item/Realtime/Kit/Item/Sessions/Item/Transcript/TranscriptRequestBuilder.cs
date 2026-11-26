@@ -34,7 +34,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Se
         {
         }
         /// <summary>
-        /// Returns a URL to download the transcript for the session ID in CSV format.
+        /// Returns a URL to download the transcript for the session ID in the requested format.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Sessions.Item.Transcript.TranscriptGetResponse"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
@@ -57,7 +57,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Se
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Sessions.Item.Transcript.TranscriptGetResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Sessions.Item.Transcript.TranscriptGetResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Returns a URL to download the transcript for the session ID in CSV format.
+        /// Returns a URL to download the transcript for the session ID in the requested format.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
@@ -85,7 +85,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Se
             return new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Sessions.Item.Transcript.TranscriptRequestBuilder(rawUrl, RequestAdapter);
         }
         /// <summary>
-        /// Returns a URL to download the transcript for the session ID in CSV format.
+        /// Returns a URL to download the transcript for the session ID in the requested format.
         /// </summary>
         [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
         public partial class TranscriptRequestBuilderGetQueryParameters 

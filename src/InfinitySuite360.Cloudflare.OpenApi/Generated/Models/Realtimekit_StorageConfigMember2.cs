@@ -30,6 +30,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public UntypedNode Region { get; set; }
 #endif
+        /// <summary>The secret property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public UntypedNode? Secret { get; set; }
+#nullable restore
+#else
+        public UntypedNode Secret { get; set; }
+#endif
         /// <summary>The type property</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember2_type? Type { get; set; }
         /// <summary>
@@ -59,6 +67,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             {
                 { "access_key", n => { AccessKey = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
                 { "region", n => { Region = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
+                { "secret", n => { Secret = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
                 { "type", n => { Type = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember2_type>(); } },
             };
         }
@@ -71,6 +80,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteObjectValue<UntypedNode>("access_key", AccessKey);
             writer.WriteObjectValue<UntypedNode>("region", Region);
+            writer.WriteObjectValue<UntypedNode>("secret", Secret);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember2_type>("type", Type);
             writer.WriteAdditionalData(AdditionalData);
         }

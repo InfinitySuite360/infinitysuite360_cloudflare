@@ -22,7 +22,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Currency { get; set; }
 #endif
-        /// <summary>The max_cents property</summary>
+        /// <summary>Maximum allowed top-up amount in cents.</summary>
         public int? MaxCents { get; set; }
         /// <summary>Minimum allowed top-up amount in cents.</summary>
         public int? MinCents { get; set; }

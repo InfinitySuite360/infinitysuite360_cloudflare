@@ -30,6 +30,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
         public bool? Enabled { get; set; }
         /// <summary>Polling interval in seconds (60-86400). Default 300s (5 minutes).</summary>
         public int? PollIntervalS { get; set; }
+        /// <summary>When enabled, new articles from this feed are tagged automatically by AI. Changes apply to articles processed afterwards. Default false.</summary>
+        public bool? TaggingEnabled { get; set; }
         /// <summary>Override the feed&apos;s title. Null clears it; omit to keep existing or derived value.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -54,6 +56,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
             AdditionalData = new Dictionary<string, object>();
             Enabled = true;
             PollIntervalS = 300;
+            TaggingEnabled = false;
         }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value
@@ -78,6 +81,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
                 { "display_name", n => { DisplayName = n.GetStringValue(); } },
                 { "enabled", n => { Enabled = n.GetBoolValue(); } },
                 { "poll_interval_s", n => { PollIntervalS = n.GetIntValue(); } },
+                { "tagging_enabled", n => { TaggingEnabled = n.GetBoolValue(); } },
                 { "title", n => { Title = n.GetStringValue(); } },
                 { "url", n => { Url = n.GetStringValue(); } },
             };
@@ -94,6 +98,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
             writer.WriteStringValue("display_name", DisplayName);
             writer.WriteBoolValue("enabled", Enabled);
             writer.WriteIntValue("poll_interval_s", PollIntervalS);
+            writer.WriteBoolValue("tagging_enabled", TaggingEnabled);
             writer.WriteStringValue("title", Title);
             writer.WriteStringValue("url", Url);
             writer.WriteAdditionalData(AdditionalData);

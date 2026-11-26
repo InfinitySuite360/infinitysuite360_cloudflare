@@ -24,6 +24,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip
 #endif
         /// <summary>The asn property</summary>
         public int? Asn { get; set; }
+        /// <summary>Inferred network type of the AS: `ACCESS_ISP` (networks connecting end users, plus transit), `HOSTING_CLOUD_CONTENT` (hosting providers, clouds and CDNs) or `ORGANIZATION` (enterprises, universities, governments, banks and IXP route servers). `null` when the AS is not classified.</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip.IpGetResponse_result_asn_category? Category { get; set; }
         /// <summary>The country property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -115,6 +117,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip
             {
                 { "aka", n => { Aka = n.GetStringValue(); } },
                 { "asn", n => { Asn = n.GetIntValue(); } },
+                { "category", n => { Category = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip.IpGetResponse_result_asn_category>(); } },
                 { "country", n => { Country = n.GetStringValue(); } },
                 { "countryName", n => { CountryName = n.GetStringValue(); } },
                 { "estimatedUsers", n => { EstimatedUsers = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip.IpGetResponse_result_asn_estimatedUsers>(global::InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip.IpGetResponse_result_asn_estimatedUsers.CreateFromDiscriminatorValue); } },
@@ -134,6 +137,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("aka", Aka);
             writer.WriteIntValue("asn", Asn);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip.IpGetResponse_result_asn_category>("category", Category);
             writer.WriteStringValue("country", Country);
             writer.WriteStringValue("countryName", CountryName);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip.IpGetResponse_result_asn_estimatedUsers>("estimatedUsers", EstimatedUsers);

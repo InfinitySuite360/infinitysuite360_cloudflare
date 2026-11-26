@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
-    /// <summary>Desired validation method.</summary>
+    /// <summary>SSL validation method.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public enum TlsCertificatesAndHostnames_validation_method_definition
     {

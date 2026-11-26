@@ -95,7 +95,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Ite
             [QueryParameter("auth_method")]
             public string AuthMethod { get; set; }
 #endif
-            /// <summary>Filter by environment.</summary>
+            /// <summary>Environment to request (standard, fedramp). The result follows the account&apos;s FedRAMP entitlement: FedRAMP-enabled accounts always receive FedRAMP applications and other accounts receive standard applications. Any other non-empty value returns 400.</summary>
             [QueryParameter("environment")]
             public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Item.SetupFlows.GetEnvironmentQueryParameterType? Environment { get; set; }
             /// <summary>A page number within the paginated result set.</summary>

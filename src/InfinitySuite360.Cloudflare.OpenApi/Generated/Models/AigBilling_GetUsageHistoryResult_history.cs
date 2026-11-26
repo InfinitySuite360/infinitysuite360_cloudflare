@@ -16,9 +16,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>AI Gateway usage cost in the window, in US dollars.</summary>
         public double? AggregatedValue { get; set; }
-        /// <summary>The end_time property</summary>
+        /// <summary>End of the window (exclusive), as a Unix timestamp in seconds.</summary>
         public double? EndTime { get; set; }
-        /// <summary>The id property</summary>
+        /// <summary>Usage summary identifier.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Id { get; set; }
@@ -26,7 +26,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Id { get; set; }
 #endif
-        /// <summary>The start_time property</summary>
+        /// <summary>Start of the window, as a Unix timestamp in seconds.</summary>
         public double? StartTime { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetUsageHistoryResult_history"/> and sets the default values.

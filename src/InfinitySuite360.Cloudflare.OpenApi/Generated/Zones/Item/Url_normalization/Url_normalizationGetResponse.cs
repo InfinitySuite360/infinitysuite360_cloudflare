@@ -10,7 +10,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Url_normalization
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     #pragma warning disable CS1591
-    public partial class Url_normalizationGetResponse : global::InfinitySuite360.Cloudflare.OpenApi.Models.Rulesets_Response, IParsable
+    public partial class Url_normalizationGetResponse : global::InfinitySuite360.Cloudflare.OpenApi.Models.UrlNormalization_Response, IParsable
     #pragma warning restore CS1591
     {
         /// <summary>

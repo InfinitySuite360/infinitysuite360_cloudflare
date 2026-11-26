@@ -87,7 +87,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.Datasets.Preferences.PreferencesGetResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.Datasets.Preferences.PreferencesGetResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Sets the datasets to use when a request omits `datasetId`, for you (`scope` `user`) or for the account (`scope` `account`). Your own default datasets take precedence over the account&apos;s. Every dataset must exist and be readable by the account.
+        /// Sets the datasets to use when a request omits `datasetId`, for you (`scope` `user`) or for the account (`scope` `account`). Your own default datasets take precedence over the account&apos;s. Every dataset must exist and be readable by the account, and the list cannot mix analytics and intelligence datasets.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events.Datasets.Preferences.PreferencesPutResponse"/></returns>
         /// <param name="body">The request body</param>
@@ -154,7 +154,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
             return requestInfo;
         }
         /// <summary>
-        /// Sets the datasets to use when a request omits `datasetId`, for you (`scope` `user`) or for the account (`scope` `account`). Your own default datasets take precedence over the account&apos;s. Every dataset must exist and be readable by the account.
+        /// Sets the datasets to use when a request omits `datasetId`, for you (`scope` `user`) or for the account (`scope` `account`). Your own default datasets take precedence over the account&apos;s. Every dataset must exist and be readable by the account, and the list cannot mix analytics and intelligence datasets.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

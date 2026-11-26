@@ -14,13 +14,13 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The balance property</summary>
+        /// <summary>Credit balance in US cents. Can be fractional, because usage is deducted in fractions of a cent, and is negative when usage overdraws it.</summary>
         public double? Balance { get; set; }
-        /// <summary>The first_topup_success property</summary>
+        /// <summary>Whether the account completed its first top-up. Auto top-up can be set up only after it.</summary>
         public bool? FirstTopupSuccess { get; set; }
-        /// <summary>The has_default_payment_method property</summary>
+        /// <summary>Whether AI Gateway billing has a default payment method for the account.</summary>
         public bool? HasDefaultPaymentMethod { get; set; }
-        /// <summary>The payment_method property</summary>
+        /// <summary>The default payment method&apos;s card. Null when there is no default, it isn&apos;t a card, or it couldn&apos;t be read.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetCreditBalanceResult_payment_method? PaymentMethod { get; set; }
@@ -28,7 +28,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetCreditBalanceResult_payment_method PaymentMethod { get; set; }
 #endif
-        /// <summary>The topup_config property</summary>
+        /// <summary>Auto top-up configuration, as GET /topup/config returns it.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetCreditBalanceResult_topup_config? TopupConfig { get; set; }

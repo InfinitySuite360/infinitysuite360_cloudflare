@@ -34,7 +34,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.R2.TempAccessCredent
         {
         }
         /// <summary>
-        /// Creates temporary access credentials on a bucket that can be optionally scoped to prefixes or objects.
+        /// Creates temporary access credentials on a bucket that can be optionally scoped to prefixes or objects. The credentials grant either a permission level or an explicit list of S3 actions.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.R2.TempAccessCredentials.TempAccessCredentialsPostResponse"/></returns>
         /// <param name="body">The request body</param>
@@ -59,7 +59,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.R2.TempAccessCredent
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.R2.TempAccessCredentials.TempAccessCredentialsPostResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.R2.TempAccessCredentials.TempAccessCredentialsPostResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Creates temporary access credentials on a bucket that can be optionally scoped to prefixes or objects.
+        /// Creates temporary access credentials on a bucket that can be optionally scoped to prefixes or objects. The credentials grant either a permission level or an explicit list of S3 actions.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

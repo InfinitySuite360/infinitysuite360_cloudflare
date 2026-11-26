@@ -14,6 +14,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Bra
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
+        /// <summary>The ai_verdict property</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.BrandProtection.Domain.Matches.MatchesGetResponse_matches_ai_verdict? AiVerdict { get; set; }
         /// <summary>Whether the match is dismissed. Only present for single-query requests. For multi-query requests, use the dismissed field in each match_details entry.</summary>
         public bool? Dismissed { get; set; }
         /// <summary>The matched domain name.</summary>
@@ -26,6 +28,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Bra
 #endif
         /// <summary>ID of the matched domain. Present only when `include_domain_id=true`. Use it with `query_id` to dismiss or undismiss the match.</summary>
         public int? DomainId { get; set; }
+        /// <summary>The edit_distance property</summary>
+        public int? EditDistance { get; set; }
         /// <summary>When the domain was matched. For multi-query requests, the most recent match time across the requested queries.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -33,6 +37,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Bra
 #nullable restore
 #else
         public string FirstSeen { get; set; }
+#endif
+        /// <summary>The match_category property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? MatchCategory { get; set; }
+#nullable restore
+#else
+        public string MatchCategory { get; set; }
 #endif
         /// <summary>Per-match detail objects with query metadata and individual dismissed state. Only present when multiple query_ids are requested.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -50,6 +62,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Bra
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.BrandProtection.Domain.Matches.MatchesGetResponse_matches_public_scans PublicScans { get; set; }
 #endif
+        /// <summary>The quality property</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.BrandProtection.Domain.Matches.MatchesGetResponse_matches_quality? Quality { get; set; }
         /// <summary>Registrar of the matched domain, if known.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -101,12 +115,16 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Bra
         {
             return new Dictionary<string, Action<IParseNode>>
             {
+                { "ai_verdict", n => { AiVerdict = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.BrandProtection.Domain.Matches.MatchesGetResponse_matches_ai_verdict>(); } },
                 { "dismissed", n => { Dismissed = n.GetBoolValue(); } },
                 { "domain", n => { Domain = n.GetStringValue(); } },
                 { "domain_id", n => { DomainId = n.GetIntValue(); } },
+                { "edit_distance", n => { EditDistance = n.GetIntValue(); } },
                 { "first_seen", n => { FirstSeen = n.GetStringValue(); } },
+                { "match_category", n => { MatchCategory = n.GetStringValue(); } },
                 { "match_details", n => { MatchDetails = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.BrandProtection.Domain.Matches.MatchesGetResponse_matches_match_details>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.BrandProtection.Domain.Matches.MatchesGetResponse_matches_match_details.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "public_scans", n => { PublicScans = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.BrandProtection.Domain.Matches.MatchesGetResponse_matches_public_scans>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.BrandProtection.Domain.Matches.MatchesGetResponse_matches_public_scans.CreateFromDiscriminatorValue); } },
+                { "quality", n => { Quality = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.BrandProtection.Domain.Matches.MatchesGetResponse_matches_quality>(); } },
                 { "registrar", n => { Registrar = n.GetStringValue(); } },
                 { "scan_status", n => { ScanStatus = n.GetStringValue(); } },
                 { "scan_submission_id", n => { ScanSubmissionId = n.GetIntValue(); } },
@@ -120,12 +138,16 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Bra
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.BrandProtection.Domain.Matches.MatchesGetResponse_matches_ai_verdict>("ai_verdict", AiVerdict);
             writer.WriteBoolValue("dismissed", Dismissed);
             writer.WriteStringValue("domain", Domain);
             writer.WriteIntValue("domain_id", DomainId);
+            writer.WriteIntValue("edit_distance", EditDistance);
             writer.WriteStringValue("first_seen", FirstSeen);
+            writer.WriteStringValue("match_category", MatchCategory);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.BrandProtection.Domain.Matches.MatchesGetResponse_matches_match_details>("match_details", MatchDetails);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.BrandProtection.Domain.Matches.MatchesGetResponse_matches_public_scans>("public_scans", PublicScans);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.BrandProtection.Domain.Matches.MatchesGetResponse_matches_quality>("quality", Quality);
             writer.WriteStringValue("registrar", Registrar);
             writer.WriteStringValue("scan_status", ScanStatus);
             writer.WriteIntValue("scan_submission_id", ScanSubmissionId);

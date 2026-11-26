@@ -132,7 +132,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.
         public bool? RewriteQuery { get; set; }
         /// <summary>Minimum similarity score a chunk must reach to be returned. Defaults to 0.4.</summary>
         public double? ScoreThreshold { get; set; }
-        /// <summary>The source property</summary>
+        /// <summary>The R2 bucket name for r2, the website URL for web-crawler, or the D1 database ID (UUID) for d1. A d1 instance also requires token_id, and the token needs D1 Read permission. The d1 database cannot be changed after creation.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Source { get; set; }
@@ -148,9 +148,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Item.InstancesPutRequestBody_source_params SourceParams { get; set; }
 #endif
-        /// <summary>The summarization property</summary>
+        /// <summary>Deprecated and ignored during indexing and search; changing it still re-indexes existing files on the next sync. Use indexing_options.file_summary instead.</summary>
+        [Obsolete("")]
         public bool? Summarization { get; set; }
-        /// <summary>The summarization_model property</summary>
+        /// <summary>Deprecated and ignored during indexing and search; changing it still re-indexes existing files on the next sync. Use indexing_options.file_summary instead.</summary>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? SummarizationModel { get; set; }
@@ -174,7 +176,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.
 #else
         public string SystemPromptAiSearch { get; set; }
 #endif
-        /// <summary>The system_prompt_index_summarization property</summary>
+        /// <summary>Deprecated and has no effect. Use indexing_options.file_summary instead.</summary>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? SystemPromptIndexSummarization { get; set; }

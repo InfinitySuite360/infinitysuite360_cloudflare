@@ -14,6 +14,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances.I
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
+        /// <summary>Generates a per-file summary, topics, and keywords during indexing for text files and media transcripts of at least three chunks. The summary and keywords are stored as the item&apos;s context metadata (a context you set is kept), and the topics are added to chunk context headers where they fit. Best effort: a file whose summary fails is indexed without one. The model calls are billed to your account through the instance&apos;s AI Gateway. Changing this triggers a full re-index. Defaults to false.</summary>
+        public bool? FileSummary { get; set; }
         /// <summary>Tokenizer used for keyword search indexing. porter provides word-level tokenization with Porter stemming (good for natural language queries). trigram enables character-level substring matching (good for partial matches, code, identifiers). Changing this triggers a full re-index. Defaults to porter.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances.Item.InstancesPutRequestBody_indexing_options_keyword_tokenizer? KeywordTokenizer { get; set; }
         /// <summary>Enables OCR ingestion for PDFs and images. Changing this triggers a full re-index. Defaults to false.</summary>
@@ -24,6 +26,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances.I
         public InstancesPutRequestBody_indexing_options()
         {
             AdditionalData = new Dictionary<string, object>();
+            FileSummary = false;
             KeywordTokenizer = global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances.Item.InstancesPutRequestBody_indexing_options_keyword_tokenizer.Porter;
             UseOcr = false;
         }
@@ -45,6 +48,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances.I
         {
             return new Dictionary<string, Action<IParseNode>>
             {
+                { "file_summary", n => { FileSummary = n.GetBoolValue(); } },
                 { "keyword_tokenizer", n => { KeywordTokenizer = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances.Item.InstancesPutRequestBody_indexing_options_keyword_tokenizer>(); } },
                 { "use_ocr", n => { UseOcr = n.GetBoolValue(); } },
             };
@@ -56,6 +60,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances.I
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
+            writer.WriteBoolValue("file_summary", FileSummary);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances.Item.InstancesPutRequestBody_indexing_options_keyword_tokenizer>("keyword_tokenizer", KeywordTokenizer);
             writer.WriteBoolValue("use_ocr", UseOcr);
             writer.WriteAdditionalData(AdditionalData);

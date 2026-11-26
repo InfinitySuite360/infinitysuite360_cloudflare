@@ -157,8 +157,6 @@ internal static class CoverageMatrix
     public static readonly KnownDeviation[] KnownDeviations =
     [
         new("POST", new Regex("^graphql$"), "Analytics", "GraphQL Analytics API: one endpoint outside the REST schema (developers.cloudflare.com/analytics/graphql-api/)."),
-        new("GET", new Regex("^zones/[^/]+/firewall/access_rules/rules/[^/]+$"), "IpAccess.GetAsync",
-            "Since 0.1: the schema has no GET of a single zone IP access rule (only list, PATCH, DELETE; GET exists for account and user rules). Kept for compatibility; use ListAsync with a filter (open point)."),
         new("GET", new Regex("^accounts/[^/]+/cfd_tunnel/[^/]+/connectors$"), "Tunnels.ListConnectorsAsync",
             "Since 0.1: the schema lists connections (GET …/connections) and one connector (GET …/connectors/{id}), not a connector list. Kept for compatibility; use ListConnectionsAsync (open point)."),
         new("GET", new Regex("^radar/(?!ranking/domain/|entities/asns/)"), "Radar.GetAsync", "Generic Radar access: the dataset path is passed by the caller; the reflective sample is not a real dataset."),

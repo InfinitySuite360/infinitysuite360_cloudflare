@@ -14,7 +14,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The payment_intent_id property</summary>
+        /// <summary>Top-up identifier from the request.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? PaymentIntentId { get; set; }
@@ -22,7 +22,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string PaymentIntentId { get; set; }
 #endif
-        /// <summary>The status property</summary>
+        /// <summary>`completed` once the top-up payment is processed and its credits are added to the balance, `pending` until then.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_TopupStatusResult_status? Status { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_TopupStatusResult"/> and sets the default values.

@@ -114,6 +114,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_protocolDetection ProtocolDetection { get; set; }
 #endif
+        /// <summary>Specify per-region TLS interception and certificate settings for Gateway, keyed by Data Localization Suite region key. Relies on the Zero Trust account region setting  (`GET`/`PUT /accounts/{account_id}/zerotrust/region`) - the account must select a region before Gateway applies these settings for it.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_regionsSettings? Regions { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_regionsSettings Regions { get; set; }
+#endif
         /// <summary>Specify whether to enable the sandbox.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -168,6 +176,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "inspection", n => { Inspection = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_inspectionSettings>(global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_inspectionSettings.CreateFromDiscriminatorValue); } },
                 { "max_ttl_secs", n => { MaxTtlSecs = n.GetIntValue(); } },
                 { "protocol_detection", n => { ProtocolDetection = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_protocolDetection>(global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_protocolDetection.CreateFromDiscriminatorValue); } },
+                { "regions", n => { Regions = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_regionsSettings>(global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_regionsSettings.CreateFromDiscriminatorValue); } },
                 { "sandbox", n => { Sandbox = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_sandbox>(global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_sandbox.CreateFromDiscriminatorValue); } },
                 { "tls_decrypt", n => { TlsDecrypt = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_tlsSettings>(global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_tlsSettings.CreateFromDiscriminatorValue); } },
             };
@@ -192,6 +201,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_inspectionSettings>("inspection", Inspection);
             writer.WriteIntValue("max_ttl_secs", MaxTtlSecs);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_protocolDetection>("protocol_detection", ProtocolDetection);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_regionsSettings>("regions", Regions);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_sandbox>("sandbox", Sandbox);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ZeroTrustGateway_tlsSettings>("tls_decrypt", TlsDecrypt);
             writer.WriteAdditionalData(AdditionalData);

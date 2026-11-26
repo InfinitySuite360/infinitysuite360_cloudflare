@@ -8,9 +8,13 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     public enum Realtimekit_StorageConfigMember3_type
     #pragma warning restore CS1591
     {
-        [EnumMember(Value = "sftp")]
+        [EnumMember(Value = "azure")]
         #pragma warning disable CS1591
-        Sftp,
+        Azure,
+        #pragma warning restore CS1591
+        [EnumMember(Value = "digitalocean")]
+        #pragma warning disable CS1591
+        Digitalocean,
         #pragma warning restore CS1591
     }
 }

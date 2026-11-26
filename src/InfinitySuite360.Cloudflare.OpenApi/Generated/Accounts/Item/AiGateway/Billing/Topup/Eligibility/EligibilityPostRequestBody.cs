@@ -14,17 +14,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The contract_version property</summary>
-        public double? ContractVersion { get; set; }
-        /// <summary>The payment_method_id property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public string? PaymentMethodId { get; set; }
-#nullable restore
-#else
-        public string PaymentMethodId { get; set; }
-#endif
-        /// <summary>Account-level payment methods, forwarded by the dashboard for legacy eligibility only.</summary>
+        /// <summary>Not accepted: any value answers 400. Read the current eligibility with GET /topup/eligibility.</summary>
+        public int? ContractVersion { get; set; }
+        /// <summary>The account&apos;s payment methods. Omit it, or send an empty list, when there are none.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Topup.Eligibility.EligibilityPostRequestBody_payment_methods>? PaymentMethods { get; set; }
@@ -57,8 +49,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "contract_version", n => { ContractVersion = n.GetDoubleValue(); } },
-                { "payment_method_id", n => { PaymentMethodId = n.GetStringValue(); } },
+                { "contract_version", n => { ContractVersion = n.GetIntValue(); } },
                 { "payment_methods", n => { PaymentMethods = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Topup.Eligibility.EligibilityPostRequestBody_payment_methods>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Topup.Eligibility.EligibilityPostRequestBody_payment_methods.CreateFromDiscriminatorValue)?.AsList(); } },
             };
         }
@@ -69,8 +60,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteDoubleValue("contract_version", ContractVersion);
-            writer.WriteStringValue("payment_method_id", PaymentMethodId);
+            writer.WriteIntValue("contract_version", ContractVersion);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Topup.Eligibility.EligibilityPostRequestBody_payment_methods>("payment_methods", PaymentMethods);
             writer.WriteAdditionalData(AdditionalData);
         }

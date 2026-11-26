@@ -57,7 +57,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Re
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Recordings.Item.WithRecording_GetResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Recordings.Item.WithRecording_GetResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Pause/Resume/Stop a given recording ID.
+        /// Pause/Resume/Stop a given recording ID.**Note:** A recording can stay paused for a maximum of 12 hours. After that, it automatically resumes and finishes.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Recordings.Item.WithRecording_PutResponse"/></returns>
         /// <param name="body">The request body</param>
@@ -101,7 +101,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Re
             return requestInfo;
         }
         /// <summary>
-        /// Pause/Resume/Stop a given recording ID.
+        /// Pause/Resume/Stop a given recording ID.**Note:** A recording can stay paused for a maximum of 12 hours. After that, it automatically resumes and finishes.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

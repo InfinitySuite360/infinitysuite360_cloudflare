@@ -2,7 +2,6 @@
 #pragma warning disable CS0618
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Routing.Addresses;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Routing.Rules;
-using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Routing.Suppression;
 using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions;
 using System.Collections.Generic;
@@ -26,11 +25,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Routing
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Routing.Rules.RulesRequestBuilder Rules
         {
             get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Routing.Rules.RulesRequestBuilder(PathParameters, RequestAdapter);
-        }
-        /// <summary>The suppression property</summary>
-        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Routing.Suppression.SuppressionRequestBuilder Suppression
-        {
-            get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Routing.Suppression.SuppressionRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Routing.RoutingRequestBuilder"/> and sets the default values.

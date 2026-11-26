@@ -3,10 +3,9 @@ using System.Runtime.Serialization;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
+    /// <summary>`completed` once the top-up payment is processed and its credits are added to the balance, `pending` until then.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    #pragma warning disable CS1591
     public enum AigBilling_TopupStatusResult_status
-    #pragma warning restore CS1591
     {
         [EnumMember(Value = "completed")]
         #pragma warning disable CS1591

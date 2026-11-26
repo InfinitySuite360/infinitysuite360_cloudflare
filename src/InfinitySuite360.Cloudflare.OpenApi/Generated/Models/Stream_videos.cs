@@ -42,6 +42,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #endif
         /// <summary>The duration of the video in seconds. A value of `-1` means the duration is unknown. The duration becomes available after the upload and before the video is ready.</summary>
         public double? Duration { get; set; }
+        /// <summary>Specifies whether to generate a preview rendition before the standard encoding ladder. `default` generates only the standard encoding ladder. `previewFirst` generates a preview rendition first.</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_encodingMode? EncodingMode { get; set; }
         /// <summary>The input property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -88,6 +90,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Preview { get; set; }
 #endif
+        /// <summary>Reports the current status of preview generation. This value is `null` when `encodingMode` is `default`.</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_previewStatus? PreviewStatus { get; set; }
         /// <summary>Public details for the video including title, share link, channel link, and logo.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -150,6 +154,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public Stream_videos()
         {
             AdditionalData = new Dictionary<string, object>();
+            EncodingMode = global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_encodingMode.Default;
             RequireSignedURLs = false;
             ThumbnailTimestampPct = 0;
         }
@@ -176,6 +181,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "created", n => { Created = n.GetDateTimeOffsetValue(); } },
                 { "creator", n => { Creator = n.GetStringValue(); } },
                 { "duration", n => { Duration = n.GetDoubleValue(); } },
+                { "encodingMode", n => { EncodingMode = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_encodingMode>(); } },
                 { "input", n => { Input = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_input>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_input.CreateFromDiscriminatorValue); } },
                 { "liveInput", n => { LiveInput = n.GetStringValue(); } },
                 { "maxDurationSeconds", n => { MaxDurationSeconds = n.GetIntValue(); } },
@@ -184,6 +190,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "modified", n => { Modified = n.GetDateTimeOffsetValue(); } },
                 { "playback", n => { Playback = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_playback>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_playback.CreateFromDiscriminatorValue); } },
                 { "preview", n => { Preview = n.GetStringValue(); } },
+                { "previewStatus", n => { PreviewStatus = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_previewStatus>(); } },
                 { "publicDetails", n => { PublicDetails = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_videos_publicDetails>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_videos_publicDetails.CreateFromDiscriminatorValue); } },
                 { "readyToStream", n => { ReadyToStream = n.GetBoolValue(); } },
                 { "readyToStreamAt", n => { ReadyToStreamAt = n.GetDateTimeOffsetValue(); } },
@@ -211,6 +218,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteDateTimeOffsetValue("created", Created);
             writer.WriteStringValue("creator", Creator);
             writer.WriteDoubleValue("duration", Duration);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_encodingMode>("encodingMode", EncodingMode);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_input>("input", Input);
             writer.WriteStringValue("liveInput", LiveInput);
             writer.WriteIntValue("maxDurationSeconds", MaxDurationSeconds);
@@ -219,6 +227,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteDateTimeOffsetValue("modified", Modified);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_playback>("playback", Playback);
             writer.WriteStringValue("preview", Preview);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_previewStatus>("previewStatus", PreviewStatus);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Stream_videos_publicDetails>("publicDetails", PublicDetails);
             writer.WriteBoolValue("readyToStream", ReadyToStream);
             writer.WriteDateTimeOffsetValue("readyToStreamAt", ReadyToStreamAt);

@@ -36,22 +36,20 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Tags
         /// <summary>
         /// Removes all tags from a specific zone-level resource.
         /// </summary>
-        /// <param name="body">Request body schema for deleting tags from zone-level resources.</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.ResourceTagging_apiResponseCommonFailure">When receiving a 412 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.ResourceTagging_apiResponseCommonFailure">When receiving a 4XX or 5XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task DeleteAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.ResourceTagging_delete_tags_request_zone_level body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task DeleteAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Tags.TagsRequestBuilder.TagsRequestBuilderDeleteQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task DeleteAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.ResourceTagging_delete_tags_request_zone_level body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task DeleteAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Tags.TagsRequestBuilder.TagsRequestBuilderDeleteQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
-            if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
-            var requestInfo = ToDeleteRequestInformation(body, requestConfiguration);
+            var requestInfo = ToDeleteRequestInformation(requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
                 { "412", global::InfinitySuite360.Cloudflare.OpenApi.Models.ResourceTagging_apiResponseCommonFailure.CreateFromDiscriminatorValue },
@@ -113,22 +111,19 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Tags
         /// Removes all tags from a specific zone-level resource.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
-        /// <param name="body">Request body schema for deleting tags from zone-level resources.</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToDeleteRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.ResourceTagging_delete_tags_request_zone_level body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToDeleteRequestInformation(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Tags.TagsRequestBuilder.TagsRequestBuilderDeleteQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToDeleteRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.ResourceTagging_delete_tags_request_zone_level body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToDeleteRequestInformation(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Tags.TagsRequestBuilder.TagsRequestBuilderDeleteQueryParameters>> requestConfiguration = default)
         {
 #endif
-            if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
-            var requestInfo = new RequestInformation(Method.DELETE, UrlTemplate, PathParameters);
+            var requestInfo = new RequestInformation(Method.DELETE, "{+baseurl}/zones/{zone_id}/tags?resource_id={resource_id}&resource_type={resource_type}{&access_application_id*}", PathParameters);
             requestInfo.Configure(requestConfiguration);
             requestInfo.Headers.TryAdd("Accept", "application/json");
-            requestInfo.SetContentFromParsable(RequestAdapter, "application/json", body);
             return requestInfo;
         }
         /// <summary>
@@ -180,6 +175,29 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Tags
         public global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Tags.TagsRequestBuilder WithUrl(string rawUrl)
         {
             return new global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Tags.TagsRequestBuilder(rawUrl, RequestAdapter);
+        }
+        /// <summary>
+        /// Removes all tags from a specific zone-level resource.
+        /// </summary>
+        [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
+        public partial class TagsRequestBuilderDeleteQueryParameters 
+        {
+            /// <summary>Access application ID identifier. Required for access_application_policy resources.</summary>
+            [QueryParameter("access_application_id")]
+            public Guid? AccessApplicationId { get; set; }
+            /// <summary>The ID of the resource to remove tags from.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            [QueryParameter("resource_id")]
+            public string? ResourceId { get; set; }
+#nullable restore
+#else
+            [QueryParameter("resource_id")]
+            public string ResourceId { get; set; }
+#endif
+            /// <summary>The type of the resource.</summary>
+            [QueryParameter("resource_type")]
+            public global::InfinitySuite360.Cloudflare.OpenApi.Models.ResourceTagging_zone_resource_type? ResourceType { get; set; }
         }
         /// <summary>
         /// Retrieves tags for a specific zone-level resource.

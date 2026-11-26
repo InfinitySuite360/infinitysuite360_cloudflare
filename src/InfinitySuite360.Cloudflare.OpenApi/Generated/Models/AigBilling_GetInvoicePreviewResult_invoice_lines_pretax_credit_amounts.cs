@@ -14,9 +14,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The amount property</summary>
+        /// <summary>Credit applied, in US cents.</summary>
         public double? Amount { get; set; }
-        /// <summary>The credit_balance_transaction property</summary>
+        /// <summary>Credit balance transaction identifier, when `type` is `credit_balance_transaction`.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? CreditBalanceTransaction { get; set; }
@@ -24,7 +24,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string CreditBalanceTransaction { get; set; }
 #endif
-        /// <summary>The discount property</summary>
+        /// <summary>Discount identifier, when `type` is `discount`.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Discount { get; set; }
@@ -32,7 +32,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Discount { get; set; }
 #endif
-        /// <summary>The type property</summary>
+        /// <summary>Credit type: `credit_balance_transaction` or `discount`.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Type { get; set; }
