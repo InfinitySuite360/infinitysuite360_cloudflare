@@ -14,6 +14,36 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
+        /// <summary>The created_at property</summary>
+        public DateTimeOffset? CreatedAt { get; private set; }
+        /// <summary>The description of the label</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? Description { get; set; }
+#nullable restore
+#else
+        public string Description { get; set; }
+#endif
+        /// <summary>The last_updated property</summary>
+        public DateTimeOffset? LastUpdated { get; private set; }
+        /// <summary>Metadata for the label</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.ApiShield_label_metadata? Metadata { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.ApiShield_label_metadata Metadata { get; set; }
+#endif
+        /// <summary>The name of the label</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? Name { get; set; }
+#nullable restore
+#else
+        public string Name { get; set; }
+#endif
+        /// <summary>* `user` - label is owned by the user* `managed` - label is owned by cloudflare</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.ApiShield_label_source? Source { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.ApiShield_label"/> and sets the default values.
         /// </summary>
@@ -39,6 +69,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
+                { "created_at", n => { CreatedAt = n.GetDateTimeOffsetValue(); } },
+                { "description", n => { Description = n.GetStringValue(); } },
+                { "last_updated", n => { LastUpdated = n.GetDateTimeOffsetValue(); } },
+                { "metadata", n => { Metadata = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ApiShield_label_metadata>(global::InfinitySuite360.Cloudflare.OpenApi.Models.ApiShield_label_metadata.CreateFromDiscriminatorValue); } },
+                { "name", n => { Name = n.GetStringValue(); } },
+                { "source", n => { Source = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ApiShield_label_source>(); } },
             };
         }
         /// <summary>
@@ -48,6 +84,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
+            writer.WriteStringValue("description", Description);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ApiShield_label_metadata>("metadata", Metadata);
+            writer.WriteStringValue("name", Name);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.ApiShield_label_source>("source", Source);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

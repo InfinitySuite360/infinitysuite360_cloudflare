@@ -22,7 +22,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Ite
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public AuthMethodsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/one/applications/{application_id}/auth-methods{?page*,page_size*}", pathParameters)
+        public AuthMethodsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/one/applications/{application_id}/auth-methods{?environment*,page*,page_size*}", pathParameters)
         {
         }
         /// <summary>
@@ -30,7 +30,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Ite
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public AuthMethodsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/one/applications/{application_id}/auth-methods{?page*,page_size*}", rawUrl)
+        public AuthMethodsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/one/applications/{application_id}/auth-methods{?environment*,page*,page_size*}", rawUrl)
         {
         }
         /// <summary>
@@ -85,6 +85,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Ite
         [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
         public partial class AuthMethodsRequestBuilderGetQueryParameters 
         {
+            /// <summary>Environment to request (standard, fedramp). The result follows the account&apos;s FedRAMP entitlement: FedRAMP-enabled accounts always receive FedRAMP applications and other accounts receive standard applications. Any other non-empty value returns 400.</summary>
+            [QueryParameter("environment")]
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.One.Applications.Item.AuthMethods.GetEnvironmentQueryParameterType? Environment { get; set; }
             /// <summary>A page number within the paginated result set.</summary>
             [QueryParameter("page")]
             public int? Page { get; set; }

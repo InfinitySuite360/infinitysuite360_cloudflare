@@ -15,10 +15,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>The result property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Rum_rum_site? Result { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Rum_rumSite? Result { get; set; }
 #nullable restore
 #else
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Rum_rum_site Result { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Rum_rumSite Result { get; set; }
 #endif
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value
@@ -38,7 +38,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>(base.GetFieldDeserializers())
             {
-                { "result", n => { Result = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Rum_rum_site>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Rum_rum_site.CreateFromDiscriminatorValue); } },
+                { "result", n => { Result = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Rum_rumSite>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Rum_rumSite.CreateFromDiscriminatorValue); } },
             };
         }
         /// <summary>
@@ -49,7 +49,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             base.Serialize(writer);
-            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Rum_rum_site>("result", Result);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Rum_rumSite>("result", Result);
         }
     }
 }

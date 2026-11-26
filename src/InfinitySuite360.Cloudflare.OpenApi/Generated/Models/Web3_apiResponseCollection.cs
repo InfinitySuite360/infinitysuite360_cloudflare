@@ -9,9 +9,35 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     #pragma warning disable CS1591
-    public partial class Web3_apiResponseCollection : global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon, IParsable
+    public partial class Web3_apiResponseCollection : IAdditionalDataHolder, IParsable
     #pragma warning restore CS1591
     {
+        /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
+        public IDictionary<string, object> AdditionalData { get; set; }
+        /// <summary>The errors property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Hostnames>? Errors { get; set; }
+#nullable restore
+#else
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Hostnames> Errors { get; set; }
+#endif
+        /// <summary>The messages property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Hostnames>? Messages { get; set; }
+#nullable restore
+#else
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Hostnames> Messages { get; set; }
+#endif
+        /// <summary>The result property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCollection_result>? Result { get; set; }
+#nullable restore
+#else
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCollection_result> Result { get; set; }
+#endif
         /// <summary>The result_info property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -20,12 +46,21 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_result_info ResultInfo { get; set; }
 #endif
+        /// <summary>Specifies whether the API call was successful.</summary>
+        public bool? Success { get; set; }
+        /// <summary>
+        /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCollection"/> and sets the default values.
+        /// </summary>
+        public Web3_apiResponseCollection()
+        {
+            AdditionalData = new Dictionary<string, object>();
+        }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCollection"/></returns>
         /// <param name="parseNode">The parse node to use to read the discriminator value and create the object</param>
-        public static new global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCollection CreateFromDiscriminatorValue(IParseNode parseNode)
+        public static global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCollection CreateFromDiscriminatorValue(IParseNode parseNode)
         {
             if(ReferenceEquals(parseNode, null)) throw new ArgumentNullException(nameof(parseNode));
             return new global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCollection();
@@ -34,22 +69,30 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// The deserialization information for the current model
         /// </summary>
         /// <returns>A IDictionary&lt;string, Action&lt;IParseNode&gt;&gt;</returns>
-        public override IDictionary<string, Action<IParseNode>> GetFieldDeserializers()
+        public virtual IDictionary<string, Action<IParseNode>> GetFieldDeserializers()
         {
-            return new Dictionary<string, Action<IParseNode>>(base.GetFieldDeserializers())
+            return new Dictionary<string, Action<IParseNode>>
             {
+                { "errors", n => { Errors = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Hostnames>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Hostnames.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "messages", n => { Messages = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Hostnames>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Hostnames.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "result", n => { Result = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCollection_result>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCollection_result.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "result_info", n => { ResultInfo = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_result_info>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_result_info.CreateFromDiscriminatorValue); } },
+                { "success", n => { Success = n.GetBoolValue(); } },
             };
         }
         /// <summary>
         /// Serializes information the current object
         /// </summary>
         /// <param name="writer">Serialization writer to use to serialize this model</param>
-        public override void Serialize(ISerializationWriter writer)
+        public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            base.Serialize(writer);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Hostnames>("errors", Errors);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Hostnames>("messages", Messages);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCollection_result>("result", Result);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_result_info>("result_info", ResultInfo);
+            writer.WriteBoolValue("success", Success);
+            writer.WriteAdditionalData(AdditionalData);
         }
     }
 }

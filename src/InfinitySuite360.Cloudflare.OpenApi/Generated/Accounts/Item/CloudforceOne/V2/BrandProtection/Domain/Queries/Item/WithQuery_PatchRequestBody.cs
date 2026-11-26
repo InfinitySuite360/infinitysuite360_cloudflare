@@ -34,7 +34,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Bra
         public bool? Scan { get; set; }
         /// <summary>The scan_matches property</summary>
         public bool? ScanMatches { get; set; }
-        /// <summary>On create, also search domains observed in the last 7 days for matches. Defaults to `true`. Ignored on update.</summary>
+        /// <summary>Search domains observed in the last 7 days for matches. On create, applies when `true`. On update, when edit-triggered lookback is enabled for the account, applies only when the patterns change and only to the lookback itself; the match list still refreshes independently. Edit-triggered lookback is being rolled out gradually. Defaults to `true`.</summary>
         public bool? SearchLookback { get; set; }
         /// <summary>Patterns to match against domain names, 1 to 100 per query. Each `pattern` is a brand name or keyword of up to 200 characters. Matching also catches close variants such as typos and look-alike characters; patterns are not regular expressions. On update, this list replaces the query&apos;s existing patterns.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER

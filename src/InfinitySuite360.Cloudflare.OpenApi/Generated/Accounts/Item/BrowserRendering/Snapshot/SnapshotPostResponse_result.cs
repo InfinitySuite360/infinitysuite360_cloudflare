@@ -31,6 +31,22 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Sna
 #else
         public string Content { get; set; }
 #endif
+        /// <summary>Data extracted from the page HTML by the requested prompt.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Snapshot.SnapshotPostResponse_result_json>? Json { get; set; }
+#nullable restore
+#else
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Snapshot.SnapshotPostResponse_result_json> Json { get; set; }
+#endif
+        /// <summary>Links found on the page.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<string>? Links { get; set; }
+#nullable restore
+#else
+        public List<string> Links { get; set; }
+#endif
         /// <summary>Markdown content. Prefixed with YAML frontmatter (e.g. `title`) when the page provides that metadata.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -38,6 +54,22 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Sna
 #nullable restore
 #else
         public string Markdown { get; set; }
+#endif
+        /// <summary>Base64 encoded PDF.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? Pdf { get; set; }
+#nullable restore
+#else
+        public string Pdf { get; set; }
+#endif
+        /// <summary>Elements matched by the requested selectors.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Snapshot.SnapshotPostResponse_result_scrape>? Scrape { get; set; }
+#nullable restore
+#else
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Snapshot.SnapshotPostResponse_result_scrape> Scrape { get; set; }
 #endif
         /// <summary>Base64 encoded image.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -74,7 +106,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Sna
             {
                 { "accessibilityTree", n => { AccessibilityTree = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Brapi_SerializedAXNode>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Brapi_SerializedAXNode.CreateFromDiscriminatorValue); } },
                 { "content", n => { Content = n.GetStringValue(); } },
+                { "json", n => { Json = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Snapshot.SnapshotPostResponse_result_json>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Snapshot.SnapshotPostResponse_result_json.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "links", n => { Links = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "markdown", n => { Markdown = n.GetStringValue(); } },
+                { "pdf", n => { Pdf = n.GetStringValue(); } },
+                { "scrape", n => { Scrape = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Snapshot.SnapshotPostResponse_result_scrape>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Snapshot.SnapshotPostResponse_result_scrape.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "screenshot", n => { Screenshot = n.GetStringValue(); } },
             };
         }
@@ -87,7 +123,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Sna
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Brapi_SerializedAXNode>("accessibilityTree", AccessibilityTree);
             writer.WriteStringValue("content", Content);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Snapshot.SnapshotPostResponse_result_json>("json", Json);
+            writer.WriteCollectionOfPrimitiveValues<string>("links", Links);
             writer.WriteStringValue("markdown", Markdown);
+            writer.WriteStringValue("pdf", Pdf);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.BrowserRendering.Snapshot.SnapshotPostResponse_result_scrape>("scrape", Scrape);
             writer.WriteStringValue("screenshot", Screenshot);
             writer.WriteAdditionalData(AdditionalData);
         }

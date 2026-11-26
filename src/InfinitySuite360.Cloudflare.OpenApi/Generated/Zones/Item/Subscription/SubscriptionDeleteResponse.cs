@@ -10,7 +10,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Subscription
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     #pragma warning disable CS1591
-    public partial class SubscriptionDeleteResponse : global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_apiResponseSingle, IParsable
+    public partial class SubscriptionDeleteResponse : global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_apiResponseSingle, IParsable
     #pragma warning restore CS1591
     {
         /// <summary>

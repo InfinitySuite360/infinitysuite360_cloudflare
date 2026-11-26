@@ -18,10 +18,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.
         /// <summary>The errors property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errors>? Errors { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error.Instances503Error_errors>? Errors { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errors> Errors { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error.Instances503Error_errors> Errors { get; set; }
 #endif
         /// <summary>The primary error message.</summary>
         public override string Message { get => base.Message; }
@@ -52,7 +52,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "errors", n => { Errors = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errors>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errors.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "errors", n => { Errors = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error.Instances503Error_errors>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error.Instances503Error_errors.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "success", n => { Success = n.GetBoolValue(); } },
             };
         }
@@ -63,9 +63,66 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errors>("errors", Errors);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error.Instances503Error_errors>("errors", Errors);
             writer.WriteBoolValue("success", Success);
             writer.WriteAdditionalData(AdditionalData);
+        }
+        /// <summary>
+        /// Composed type wrapper for classes <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errorsMember1"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errorsMember2"/>
+        /// </summary>
+        [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
+        public partial class Instances503Error_errors : IComposedTypeWrapper, IParsable
+        {
+            /// <summary>Composed type representation for type <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errorsMember1"/></summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errorsMember1? Instances503ErrorErrorsMember1 { get; set; }
+#nullable restore
+#else
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errorsMember1 Instances503ErrorErrorsMember1 { get; set; }
+#endif
+            /// <summary>Composed type representation for type <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errorsMember2"/></summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errorsMember2? Instances503ErrorErrorsMember2 { get; set; }
+#nullable restore
+#else
+            public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errorsMember2 Instances503ErrorErrorsMember2 { get; set; }
+#endif
+            /// <summary>
+            /// Creates a new instance of the appropriate class based on discriminator value
+            /// </summary>
+            /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error.Instances503Error_errors"/></returns>
+            /// <param name="parseNode">The parse node to use to read the discriminator value and create the object</param>
+            public static global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error.Instances503Error_errors CreateFromDiscriminatorValue(IParseNode parseNode)
+            {
+                if(ReferenceEquals(parseNode, null)) throw new ArgumentNullException(nameof(parseNode));
+                var result = new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error.Instances503Error_errors();
+                result.Instances503ErrorErrorsMember1 = new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errorsMember1();
+                result.Instances503ErrorErrorsMember2 = new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errorsMember2();
+                return result;
+            }
+            /// <summary>
+            /// The deserialization information for the current model
+            /// </summary>
+            /// <returns>A IDictionary&lt;string, Action&lt;IParseNode&gt;&gt;</returns>
+            public virtual IDictionary<string, Action<IParseNode>> GetFieldDeserializers()
+            {
+                if(Instances503ErrorErrorsMember1 != null || Instances503ErrorErrorsMember2 != null)
+                {
+                    return ParseNodeHelper.MergeDeserializersForIntersectionWrapper(Instances503ErrorErrorsMember1, Instances503ErrorErrorsMember2);
+                }
+                return new Dictionary<string, Action<IParseNode>>();
+            }
+            /// <summary>
+            /// Serializes information the current object
+            /// </summary>
+            /// <param name="writer">Serialization writer to use to serialize this model</param>
+            public virtual void Serialize(ISerializationWriter writer)
+            {
+                if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
+                writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Namespaces.Item.Instances.Instances503Error_errorsMember1>(null, Instances503ErrorErrorsMember1, Instances503ErrorErrorsMember2);
+            }
         }
     }
 }

@@ -7,14 +7,15 @@ using System.IO;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
+    /// <summary>
+    /// The default payment method&apos;s card. Null when there is no default, it isn&apos;t a card, or it couldn&apos;t be read.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    #pragma warning disable CS1591
     public partial class AigBilling_GetCreditBalanceResult_payment_method : IAdditionalDataHolder, IParsable
-    #pragma warning restore CS1591
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The brand property</summary>
+        /// <summary>Card brand, such as `visa`.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Brand { get; set; }
@@ -22,7 +23,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Brand { get; set; }
 #endif
-        /// <summary>The last4 property</summary>
+        /// <summary>Last 4 digits of the card.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Last4 { get; set; }

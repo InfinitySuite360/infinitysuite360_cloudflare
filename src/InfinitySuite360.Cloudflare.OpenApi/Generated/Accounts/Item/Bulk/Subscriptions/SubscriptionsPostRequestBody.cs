@@ -28,10 +28,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Bulk.Subscriptions
         /// <summary>The subscriptions property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_subscriptionV2>? Subscriptions { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_subscriptionV2>? Subscriptions { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_subscriptionV2> Subscriptions { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_subscriptionV2> Subscriptions { get; set; }
 #endif
         /// <summary>The user_is_on_session property</summary>
         public bool? UserIsOnSession { get; set; }
@@ -62,7 +62,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Bulk.Subscriptions
             {
                 { "coupon_code", n => { CouponCode = n.GetStringValue(); } },
                 { "payment_hold_id", n => { PaymentHoldId = n.GetLongValue(); } },
-                { "subscriptions", n => { Subscriptions = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_subscriptionV2>(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_subscriptionV2.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "subscriptions", n => { Subscriptions = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_subscriptionV2>(global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_subscriptionV2.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "user_is_on_session", n => { UserIsOnSession = n.GetBoolValue(); } },
             };
         }
@@ -75,7 +75,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Bulk.Subscriptions
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("coupon_code", CouponCode);
             writer.WriteLongValue("payment_hold_id", PaymentHoldId);
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_subscriptionV2>("subscriptions", Subscriptions);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_subscriptionV2>("subscriptions", Subscriptions);
             writer.WriteBoolValue("user_is_on_session", UserIsOnSession);
             writer.WriteAdditionalData(AdditionalData);
         }

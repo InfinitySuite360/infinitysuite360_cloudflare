@@ -9,7 +9,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     #pragma warning disable CS1591
-    public partial class Web3_content_list_entry_collection_response : global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCollection, IParsable
+    public partial class Web3_content_list_entry_collection_response : global::InfinitySuite360.Cloudflare.OpenApi.Models.Web3_apiResponseCommon, IParsable
     #pragma warning restore CS1591
     {
         /// <summary>

@@ -92,6 +92,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
 #else
         public string SubscribedAt { get; set; }
 #endif
+        /// <summary>When enabled, new articles from this feed are tagged automatically by AI. Changes apply to articles processed afterwards.</summary>
+        public bool? TaggingEnabled { get; set; }
         /// <summary>The title property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -153,6 +155,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
                 { "source_type", n => { SourceType = n.GetStringValue(); } },
                 { "status", n => { Status = n.GetStringValue(); } },
                 { "subscribed_at", n => { SubscribedAt = n.GetStringValue(); } },
+                { "tagging_enabled", n => { TaggingEnabled = n.GetBoolValue(); } },
                 { "title", n => { Title = n.GetStringValue(); } },
                 { "updated_at", n => { UpdatedAt = n.GetStringValue(); } },
                 { "url", n => { Url = n.GetStringValue(); } },
@@ -177,6 +180,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.V2.Thr
             writer.WriteStringValue("source_type", SourceType);
             writer.WriteStringValue("status", Status);
             writer.WriteStringValue("subscribed_at", SubscribedAt);
+            writer.WriteBoolValue("tagging_enabled", TaggingEnabled);
             writer.WriteStringValue("title", Title);
             writer.WriteStringValue("updated_at", UpdatedAt);
             writer.WriteStringValue("url", Url);

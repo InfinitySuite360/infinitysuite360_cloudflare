@@ -33,7 +33,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppre
         {
         }
         /// <summary>
-        /// Deletes the suppression, its note, and every legacy internal zone membership, allowing future delivery attempts to the address.
+        /// Deletes the suppression and its note, allowing future delivery attempts to the address.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppressions.Item.WithSuppression_DeleteResponse"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
@@ -85,7 +85,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppre
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppressions.Item.WithSuppression_GetResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppressions.Item.WithSuppression_GetResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Updates expiry or advisory note fields without changing legacy internal zone memberships. Scope cannot be changed.
+        /// Updates expiry or advisory note fields. Scope cannot be changed.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppressions.Item.WithSuppression_PatchResponse"/></returns>
         /// <param name="body">The request body</param>
@@ -114,7 +114,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppre
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppressions.Item.WithSuppression_PatchResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppressions.Item.WithSuppression_PatchResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Deletes the suppression, its note, and every legacy internal zone membership, allowing future delivery attempts to the address.
+        /// Deletes the suppression and its note, allowing future delivery attempts to the address.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
@@ -152,7 +152,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppre
             return requestInfo;
         }
         /// <summary>
-        /// Updates expiry or advisory note fields without changing legacy internal zone memberships. Scope cannot be changed.
+        /// Updates expiry or advisory note fields. Scope cannot be changed.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

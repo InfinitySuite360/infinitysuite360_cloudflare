@@ -7,16 +7,17 @@ using System.IO;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
+    /// <summary>
+    /// Auto top-up configuration, as GET /topup/config returns it.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    #pragma warning disable CS1591
     public partial class AigBilling_GetCreditBalanceResult_topup_config : IAdditionalDataHolder, IParsable
-    #pragma warning restore CS1591
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The amount property</summary>
+        /// <summary>Amount in cents that each auto top-up adds. 0 when auto top-up is off.</summary>
         public double? Amount { get; set; }
-        /// <summary>The disabledReason property</summary>
+        /// <summary>Why auto top-up was stopped. Present only once it stopped.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? DisabledReason { get; set; }
@@ -24,7 +25,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string DisabledReason { get; set; }
 #endif
-        /// <summary>The error property</summary>
+        /// <summary>Message from the failure that stopped auto top-up. Present only once it stopped.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Error { get; set; }
@@ -32,9 +33,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Error { get; set; }
 #endif
-        /// <summary>The lastFailedAt property</summary>
+        /// <summary>When auto top-up was stopped, as a Unix timestamp in milliseconds. Present only once it stopped.</summary>
         public double? LastFailedAt { get; set; }
-        /// <summary>The threshold property</summary>
+        /// <summary>Balance threshold in cents that triggers an auto top-up. 0 when auto top-up is off.</summary>
         public double? Threshold { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetCreditBalanceResult_topup_config"/> and sets the default values.

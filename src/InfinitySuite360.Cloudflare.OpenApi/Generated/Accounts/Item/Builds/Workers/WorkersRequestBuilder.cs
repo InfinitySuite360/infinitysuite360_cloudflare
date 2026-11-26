@@ -19,7 +19,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers
     public partial class WorkersRequestBuilder : BaseRequestBuilder
     {
         /// <summary>Gets an item from the InfinitySuite360.Cloudflare.OpenApi.accounts.item.builds.workers.item collection</summary>
-        /// <param name="position">The Worker script tag (external script ID)</param>
+        /// <param name="position">Script tag of the Worker.</param>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.External_script_ItemRequestBuilder"/></returns>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.External_script_ItemRequestBuilder this[string position]
         {

@@ -14,7 +14,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The invoices property</summary>
+        /// <summary>Top-up invoices matching `type`, up to 100.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoiceHistoryResult_invoices>? Invoices { get; set; }
@@ -22,7 +22,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoiceHistoryResult_invoices> Invoices { get; set; }
 #endif
-        /// <summary>The pagination property</summary>
+        /// <summary>Pagination details. Results come in a single page.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoiceHistoryResult_pagination? Pagination { get; set; }

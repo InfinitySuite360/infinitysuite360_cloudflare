@@ -26,6 +26,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public long? MinSnapshotsToKeep { get; set; }
         /// <summary>Earliest time when the scheduler can claim this operation. Null when disabled.</summary>
         public DateTimeOffset? NextEligibleAt { get; private set; }
+        /// <summary>Why the operation is not eligible to run before next_eligible_at. Returned by the per-table GET only, and absent from the update response. `held_after_user_error` means a customer-caused failure holds the lease until it expires.</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.R2DataCatalog_nextEligibleReason? NextEligibleReason { get; private set; }
         /// <summary>Specifies the state of maintenance operations.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.R2DataCatalog_catalogMaintenanceState? State { get; set; }
         /// <summary>
@@ -56,6 +58,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "max_snapshot_age", n => { MaxSnapshotAge = n.GetStringValue(); } },
                 { "min_snapshots_to_keep", n => { MinSnapshotsToKeep = n.GetLongValue(); } },
                 { "next_eligible_at", n => { NextEligibleAt = n.GetDateTimeOffsetValue(); } },
+                { "next_eligible_reason", n => { NextEligibleReason = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.R2DataCatalog_nextEligibleReason>(); } },
                 { "state", n => { State = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.R2DataCatalog_catalogMaintenanceState>(); } },
             };
         }

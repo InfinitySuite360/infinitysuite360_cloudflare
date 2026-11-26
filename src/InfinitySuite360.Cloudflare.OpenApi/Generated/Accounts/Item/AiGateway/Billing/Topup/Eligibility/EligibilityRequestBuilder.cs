@@ -34,7 +34,38 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
         {
         }
         /// <summary>
-        /// Determine top-up eligibility. Requests without contract_version retain the legacy forwarded-method contract. Explicit contract_version: 2 opts into the gated, read-only authoritative advisory API; forwarded method metadata is not authoritative. No response authorizes a charge.
+        /// Reports whether the account can top up: its payment methods and whether each can pay for a top-up, whether a manual top-up is available and its limits, and the auto top-up state. Advisory only: every top-up checks again. Answers 409 while this endpoint isn&apos;t available for the account yet.
+        /// </summary>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupEligibilityV2Response"/></returns>
+        /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
+        /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 400 status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 403 status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 404 status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 409 status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 500 status code</exception>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupEligibilityV2Response?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        {
+#nullable restore
+#else
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupEligibilityV2Response> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        {
+#endif
+            var requestInfo = ToGetRequestInformation(requestConfiguration);
+            var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
+            {
+                { "400", global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse.CreateFromDiscriminatorValue },
+                { "403", global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse.CreateFromDiscriminatorValue },
+                { "404", global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse.CreateFromDiscriminatorValue },
+                { "409", global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse.CreateFromDiscriminatorValue },
+                { "500", global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse.CreateFromDiscriminatorValue },
+            };
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupEligibilityV2Response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupEligibilityV2Response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// Deprecated: use GET /topup/eligibility, which reads the account&apos;s payment methods itself. This endpoint keeps working while that one answers 409 for the account. Reports whether the account can make a manual top-up, given the payment methods in the request body. Advisory only: every top-up checks again.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupEligibilityResponse"/></returns>
         /// <param name="body">The request body</param>
@@ -43,7 +74,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 400 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 403 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 404 status code</exception>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse">When receiving a 409 status code</exception>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupEligibilityResponse?> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Topup.Eligibility.EligibilityPostRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -60,16 +91,35 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.To
                 { "400", global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse.CreateFromDiscriminatorValue },
                 { "403", global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse.CreateFromDiscriminatorValue },
                 { "404", global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse.CreateFromDiscriminatorValue },
-                { "409", global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_ErrorResponse.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupEligibilityResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetTopupEligibilityResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Determine top-up eligibility. Requests without contract_version retain the legacy forwarded-method contract. Explicit contract_version: 2 opts into the gated, read-only authoritative advisory API; forwarded method metadata is not authoritative. No response authorizes a charge.
+        /// Reports whether the account can top up: its payment methods and whether each can pay for a top-up, whether a manual top-up is available and its limits, and the auto top-up state. Advisory only: every top-up checks again. Answers 409 while this endpoint isn&apos;t available for the account yet.
+        /// </summary>
+        /// <returns>A <see cref="RequestInformation"/></returns>
+        /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        {
+#nullable restore
+#else
+        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        {
+#endif
+            var requestInfo = new RequestInformation(Method.GET, UrlTemplate, PathParameters);
+            requestInfo.Configure(requestConfiguration);
+            requestInfo.Headers.TryAdd("Accept", "application/json");
+            return requestInfo;
+        }
+        /// <summary>
+        /// Deprecated: use GET /topup/eligibility, which reads the account&apos;s payment methods itself. This endpoint keeps working while that one answers 409 for the account. Reports whether the account can make a manual top-up, given the payment methods in the request body. Advisory only: every top-up checks again.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+        [Obsolete("")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public RequestInformation ToPostRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Billing.Topup.Eligibility.EligibilityPostRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)

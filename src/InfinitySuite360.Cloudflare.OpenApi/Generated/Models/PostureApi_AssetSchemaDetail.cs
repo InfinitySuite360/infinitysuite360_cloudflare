@@ -22,6 +22,26 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string AssetClass { get; set; }
 #endif
+        /// <summary>JSON Schema subset describing the content of each asset of this type. The top level is an `object` with `properties` and an optional `required` list. Property names must be 1 to 32 letters, digits or underscores. A property may be nullable by listing `null` alongside its type.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.PostureApi_AssetTypeContentSchema? ContentSchema { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.PostureApi_AssetTypeContentSchema ContentSchema { get; set; }
+#endif
+        /// <summary>Human-readable name. Present for `cloudflare` and `custom` asset types.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? DisplayName { get; set; }
+#nullable restore
+#else
+        public string DisplayName { get; set; }
+#endif
+        /// <summary>Unique identifier. Present for `cloudflare` and `custom` asset types.</summary>
+        public Guid? Id { get; set; }
+        /// <summary>Who defines the asset class: `system` for built-in asset classes, `cloudflare` for asset types provided by Cloudflare, and `custom` for the account&apos;s own asset types.</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.PostureApi_AssetSchemaDetail_origin? Origin { get; set; }
         /// <summary>Fields and related attributes a custom finding type may reference for this assetclass, as a JSON Schema. Top-level properties are `asset` and, when relatedresources exist, `associated`.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -30,6 +50,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.PostureApi_AssetSchemaDetail_schema Schema { get; set; }
 #endif
+        /// <summary>Current version. Present for `cloudflare` and `custom` asset types.</summary>
+        public long? Version { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.PostureApi_AssetSchemaDetail"/> and sets the default values.
         /// </summary>
@@ -56,7 +78,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "asset_class", n => { AssetClass = n.GetStringValue(); } },
+                { "content_schema", n => { ContentSchema = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.PostureApi_AssetTypeContentSchema>(global::InfinitySuite360.Cloudflare.OpenApi.Models.PostureApi_AssetTypeContentSchema.CreateFromDiscriminatorValue); } },
+                { "display_name", n => { DisplayName = n.GetStringValue(); } },
+                { "id", n => { Id = n.GetGuidValue(); } },
+                { "origin", n => { Origin = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.PostureApi_AssetSchemaDetail_origin>(); } },
                 { "schema", n => { Schema = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.PostureApi_AssetSchemaDetail_schema>(global::InfinitySuite360.Cloudflare.OpenApi.Models.PostureApi_AssetSchemaDetail_schema.CreateFromDiscriminatorValue); } },
+                { "version", n => { Version = n.GetLongValue(); } },
             };
         }
         /// <summary>
@@ -67,7 +94,12 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("asset_class", AssetClass);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.PostureApi_AssetTypeContentSchema>("content_schema", ContentSchema);
+            writer.WriteStringValue("display_name", DisplayName);
+            writer.WriteGuidValue("id", Id);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.PostureApi_AssetSchemaDetail_origin>("origin", Origin);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.PostureApi_AssetSchemaDetail_schema>("schema", Schema);
+            writer.WriteLongValue("version", Version);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

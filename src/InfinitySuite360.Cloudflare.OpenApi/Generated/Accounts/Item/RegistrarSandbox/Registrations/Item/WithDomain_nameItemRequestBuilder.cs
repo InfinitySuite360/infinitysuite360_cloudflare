@@ -48,50 +48,50 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.RegistrarSandbox.Reg
         /// <summary>
         /// Returns the current state of a domain registration.This is the canonical read endpoint for a domain you own. It returnsthe full registration resource including current settings and expiration.When the registration resource is ready, both `created_at` and `expires_at`are present in the response.
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registrationResponseSingle"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registrationResponseSingle"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_apiResponseCommonFailure">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registrationResponseSingle?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registrationResponseSingle?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registrationResponseSingle> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registrationResponseSingle> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             var requestInfo = ToGetRequestInformation(requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
-            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registrationResponseSingle>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registrationResponseSingle.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registrationResponseSingle>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registrationResponseSingle.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Updates an existing domain registration.By default, the server holds the connection for a bounded, server-definedamount of time while the update completes. Most updates finish within thiswindow and return `200 OK` with a completed workflow status.If the update is still processing after this synchronous wait window, theserver returns `202 Accepted`. Poll the URL in `links.self` to track progress.To skip the wait and receive an immediate `202`, send `Prefer: respond-async`.This endpoint currently supports updating `auto_renew` only.
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_workflowStatusResponseSingle"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_workflowStatusResponseSingle"/></returns>
         /// <param name="body">Request to update an existing domain registration.This endpoint currently supports updating `auto_renew` only.</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_apiResponseCommonFailure">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_workflowStatusResponseSingle?> PatchAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registration_update_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_workflowStatusResponseSingle?> PatchAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registration_update_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_workflowStatusResponseSingle> PatchAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registration_update_request body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_workflowStatusResponseSingle> PatchAsync(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registration_update_request body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = ToPatchRequestInformation(body, requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
-            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_workflowStatusResponseSingle>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_workflowStatusResponseSingle.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_workflowStatusResponseSingle>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_workflowStatusResponseSingle.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Returns the current state of a domain registration.This is the canonical read endpoint for a domain you own. It returnsthe full registration resource including current settings and expiration.When the registration resource is ready, both `created_at` and `expires_at`are present in the response.
@@ -120,11 +120,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.RegistrarSandbox.Reg
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToPatchRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registration_update_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToPatchRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registration_update_request body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToPatchRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarApiSandbox_registration_update_request body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToPatchRequestInformation(global::InfinitySuite360.Cloudflare.OpenApi.Models.RegistrarSandbox_registration_update_request body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));

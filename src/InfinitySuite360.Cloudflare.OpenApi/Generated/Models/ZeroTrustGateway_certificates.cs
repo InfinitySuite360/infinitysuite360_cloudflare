@@ -62,7 +62,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string IssuerRaw { get; private set; }
 #endif
-        /// <summary>Indicate the read-only region the certificate authority&apos;s key material is pinned to. Omitted for certificates that were created without a region.</summary>
+        /// <summary>Indicate the read-only Data Localization Suite region the certificate authority&apos;s key material is pinned to. This corresponds to one of the regions selected for the account via the account region setting (`GET`/`PUT /accounts/{account_id}/zerotrust/region`). Omitted for certificates that were created without a region.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Region { get; private set; }

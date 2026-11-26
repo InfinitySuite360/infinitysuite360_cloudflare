@@ -24,6 +24,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip
 #endif
         /// <summary>The asn property</summary>
         public int? Asn { get; set; }
+        /// <summary>Inferred network type of the AS: `ACCESS_ISP` (networks connecting end users, plus transit), `HOSTING_CLOUD_CONTENT` (hosting providers, clouds and CDNs) or `ORGANIZATION` (enterprises, universities, governments, banks and IXP route servers). `null` when the AS is not classified.</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip.IpGetResponse_result_asn_related_category? Category { get; set; }
         /// <summary>Total estimated users.</summary>
         public int? EstimatedUsers { get; set; }
         /// <summary>The name property</summary>
@@ -61,6 +63,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip
             {
                 { "aka", n => { Aka = n.GetStringValue(); } },
                 { "asn", n => { Asn = n.GetIntValue(); } },
+                { "category", n => { Category = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip.IpGetResponse_result_asn_related_category>(); } },
                 { "estimatedUsers", n => { EstimatedUsers = n.GetIntValue(); } },
                 { "name", n => { Name = n.GetStringValue(); } },
             };
@@ -74,6 +77,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("aka", Aka);
             writer.WriteIntValue("asn", Asn);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Radar.Entities.Asns.Ip.IpGetResponse_result_asn_related_category>("category", Category);
             writer.WriteIntValue("estimatedUsers", EstimatedUsers);
             writer.WriteStringValue("name", Name);
             writer.WriteAdditionalData(AdditionalData);

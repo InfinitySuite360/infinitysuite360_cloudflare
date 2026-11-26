@@ -25,13 +25,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hold
         public string HoldAfter { get; set; }
 #endif
         /// <summary>The include_subdomains property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public string? IncludeSubdomains { get; set; }
-#nullable restore
-#else
-        public string IncludeSubdomains { get; set; }
-#endif
+        public bool? IncludeSubdomains { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hold.HoldPatchResponse_result"/> and sets the default values.
         /// </summary>
@@ -59,7 +53,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hold
             {
                 { "hold", n => { Hold = n.GetBoolValue(); } },
                 { "hold_after", n => { HoldAfter = n.GetStringValue(); } },
-                { "include_subdomains", n => { IncludeSubdomains = n.GetStringValue(); } },
+                { "include_subdomains", n => { IncludeSubdomains = n.GetBoolValue(); } },
             };
         }
         /// <summary>
@@ -71,7 +65,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Hold
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteBoolValue("hold", Hold);
             writer.WriteStringValue("hold_after", HoldAfter);
-            writer.WriteStringValue("include_subdomains", IncludeSubdomains);
+            writer.WriteBoolValue("include_subdomains", IncludeSubdomains);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

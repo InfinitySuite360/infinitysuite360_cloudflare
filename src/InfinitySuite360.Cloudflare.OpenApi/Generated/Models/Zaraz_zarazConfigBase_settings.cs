@@ -17,6 +17,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>Automatic injection of Zaraz scripts enabled.</summary>
         public bool? AutoInjectScript { get; set; }
+        /// <summary>Minimum bot score required to load Zaraz.</summary>
+        public long? BotScoreThreshold { get; set; }
         /// <summary>Details of the worker that receives and edits Zaraz Context object.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -111,6 +113,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "autoInjectScript", n => { AutoInjectScript = n.GetBoolValue(); } },
+                { "botScoreThreshold", n => { BotScoreThreshold = n.GetLongValue(); } },
                 { "contextEnricher", n => { ContextEnricher = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Zaraz_zarazConfigBase_settings_contextEnricher>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Zaraz_zarazConfigBase_settings_contextEnricher.CreateFromDiscriminatorValue); } },
                 { "cookieDomain", n => { CookieDomain = n.GetStringValue(); } },
                 { "ecommerce", n => { Ecommerce = n.GetBoolValue(); } },
@@ -134,6 +137,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteBoolValue("autoInjectScript", AutoInjectScript);
+            writer.WriteLongValue("botScoreThreshold", BotScoreThreshold);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Zaraz_zarazConfigBase_settings_contextEnricher>("contextEnricher", ContextEnricher);
             writer.WriteStringValue("cookieDomain", CookieDomain);
             writer.WriteBoolValue("ecommerce", Ecommerce);

@@ -19,7 +19,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.
     public partial class PreviewsRequestBuilder : BaseRequestBuilder
     {
         /// <summary>Gets an item from the InfinitySuite360.Cloudflare.OpenApi.accounts.item.builds.workers.item.previews.item collection</summary>
-        /// <param name="position">The script tag of the Preview, which is a Worker in its own right</param>
+        /// <param name="position">ID of the Preview.</param>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.Previews.Item.WithPreview_ItemRequestBuilder"/></returns>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Builds.Workers.Item.Previews.Item.WithPreview_ItemRequestBuilder this[string position]
         {

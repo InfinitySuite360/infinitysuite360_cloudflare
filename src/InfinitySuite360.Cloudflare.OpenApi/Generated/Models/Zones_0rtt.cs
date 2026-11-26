@@ -8,7 +8,7 @@ using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
     /// <summary>
-    /// 0-RTT session resumption enabled for this zone.
+    /// 0-RTT session resumption enabled for this zone.Changing this setting does not enable or disable TLS 1.3. Writing the `tls_1_3` setting also changes 0-RTT: `zrt` enables it, and `on` or `off` disables it.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class Zones_0rtt : global::InfinitySuite360.Cloudflare.OpenApi.Models.Zones_base, IParsable

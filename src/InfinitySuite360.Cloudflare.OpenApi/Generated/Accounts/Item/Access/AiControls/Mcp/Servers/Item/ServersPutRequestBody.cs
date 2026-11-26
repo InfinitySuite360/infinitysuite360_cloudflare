@@ -50,7 +50,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mc
 #endif
         /// <summary>Route outbound traffic to this MCP server through Zero Trust Secure Web Gateway.</summary>
         public bool? SecureWebGateway { get; set; }
-        /// <summary>Server-wide prompt capability overrides.</summary>
+        /// <summary>Prompt overrides. Omit to preserve, send [] to clear, or null to reset the field to absence.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mcp.Servers.Item.ServersPutRequestBody_updated_prompts>? UpdatedPrompts { get; set; }
@@ -58,7 +58,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mc
 #else
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mcp.Servers.Item.ServersPutRequestBody_updated_prompts> UpdatedPrompts { get; set; }
 #endif
-        /// <summary>Server-wide tool capability overrides.</summary>
+        /// <summary>Tool overrides. Omit to preserve, send [] to clear, or null to reset the field to absence.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mcp.Servers.Item.ServersPutRequestBody_updated_tools>? UpdatedTools { get; set; }

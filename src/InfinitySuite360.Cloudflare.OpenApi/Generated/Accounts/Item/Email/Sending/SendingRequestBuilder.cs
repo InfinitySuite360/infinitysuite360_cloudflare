@@ -5,7 +5,6 @@ using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Messages;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Reputation;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Send;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Send_raw;
-using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppression;
 using InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppressions;
 using Microsoft.Kiota.Abstractions.Extensions;
 using Microsoft.Kiota.Abstractions;
@@ -45,11 +44,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Send_raw.Send_rawRequestBuilder Send_raw
         {
             get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Send_raw.Send_rawRequestBuilder(PathParameters, RequestAdapter);
-        }
-        /// <summary>The suppression property</summary>
-        public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppression.SuppressionRequestBuilder Suppression
-        {
-            get => new global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppression.SuppressionRequestBuilder(PathParameters, RequestAdapter);
         }
         /// <summary>The suppressions property</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppressions.SuppressionsRequestBuilder Suppressions

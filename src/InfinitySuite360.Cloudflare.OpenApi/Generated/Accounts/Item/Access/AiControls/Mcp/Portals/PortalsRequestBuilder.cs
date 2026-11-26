@@ -69,7 +69,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mc
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mcp.Portals.PortalsGetResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mcp.Portals.PortalsGetResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Creates a new MCP portal for managing AI tool access through Cloudflare Access.
+        /// Creates a new MCP portal. Each account supports up to 50 portals, including disabled portals.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mcp.Portals.PortalsPostResponse"/></returns>
         /// <param name="body">The request body</param>
@@ -113,7 +113,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mc
             return requestInfo;
         }
         /// <summary>
-        /// Creates a new MCP portal for managing AI tool access through Cloudflare Access.
+        /// Creates a new MCP portal. Each account supports up to 50 portals, including disabled portals.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

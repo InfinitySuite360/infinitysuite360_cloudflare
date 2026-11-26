@@ -157,7 +157,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.BillableUsageApi_cost_and_usage_data_Tags Tags { get; set; }
 #endif
-        /// <summary>The unique identifier for the billable metric in the Cloudflare catalog. Cloudflare extension; replaces FOCUS SkuId.</summary>
+        /// <summary>The unique identifier for the billable metric in the Cloudflare catalog. For cost billed under a since-archived billable metric this is the metric&apos;s catalog public id (a UUID) rather than its usage metric name, so it stays separate from the live metric that replaced it. Cloudflare extension; replaces FOCUS SkuId.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? XBillableMetricId { get; set; }

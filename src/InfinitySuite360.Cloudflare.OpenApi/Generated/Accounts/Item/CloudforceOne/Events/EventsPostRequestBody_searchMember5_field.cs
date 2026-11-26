@@ -8,9 +8,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.CloudforceOne.Events
     public enum EventsPostRequestBody_searchMember5_field
     #pragma warning restore CS1591
     {
-        [EnumMember(Value = "hasChildren")]
+        [EnumMember(Value = "killChain")]
         #pragma warning disable CS1591
-        HasChildren,
+        KillChain,
         #pragma warning restore CS1591
     }
 }

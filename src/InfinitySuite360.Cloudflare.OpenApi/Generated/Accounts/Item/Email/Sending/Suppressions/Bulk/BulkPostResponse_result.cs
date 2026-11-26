@@ -28,9 +28,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppre
 #else
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Email.Sending.Suppressions.Bulk.BulkPostResponse_result_items> Items { get; set; }
 #endif
-        /// <summary>Number of items successfully created or promoted.</summary>
+        /// <summary>Number of items successfully created or updated.</summary>
         public int? Processed { get; set; }
-        /// <summary>Number of items skipped because the existing suppression is not customer-managed (for example, a read-only policy suppression).</summary>
+        /// <summary>Number of items skipped because the existing suppression is not customer-managed.</summary>
         public int? Skipped { get; set; }
         /// <summary>Total number of items in the request body, including duplicates.</summary>
         public int? Total { get; set; }

@@ -14,13 +14,13 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The amount_due property</summary>
+        /// <summary>Amount due, in US cents.</summary>
         public double? AmountDue { get; set; }
-        /// <summary>The amount_paid property</summary>
+        /// <summary>Amount paid, in US cents.</summary>
         public double? AmountPaid { get; set; }
-        /// <summary>The amount_remaining property</summary>
+        /// <summary>Amount still owed, in US cents.</summary>
         public double? AmountRemaining { get; set; }
-        /// <summary>The currency property</summary>
+        /// <summary>Lowercase ISO 4217 currency code.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Currency { get; set; }
@@ -28,7 +28,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Currency { get; set; }
 #endif
-        /// <summary>The id property</summary>
+        /// <summary>Invoice number, as printed on the invoice, rather than an identifier. Empty until the invoice is finalized.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Id { get; set; }
@@ -36,7 +36,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Id { get; set; }
 #endif
-        /// <summary>The invoice_lines property</summary>
+        /// <summary>Invoice line items.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoicePreviewResult_invoice_lines>? InvoiceLines { get; set; }
@@ -44,11 +44,11 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoicePreviewResult_invoice_lines> InvoiceLines { get; set; }
 #endif
-        /// <summary>The period_end property</summary>
+        /// <summary>End of the billing period, as a Unix timestamp in seconds.</summary>
         public double? PeriodEnd { get; set; }
-        /// <summary>The period_start property</summary>
+        /// <summary>Start of the billing period, as a Unix timestamp in seconds.</summary>
         public double? PeriodStart { get; set; }
-        /// <summary>The status property</summary>
+        /// <summary>Invoice status.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoicePreviewResult_status? Status { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoicePreviewResult"/> and sets the default values.

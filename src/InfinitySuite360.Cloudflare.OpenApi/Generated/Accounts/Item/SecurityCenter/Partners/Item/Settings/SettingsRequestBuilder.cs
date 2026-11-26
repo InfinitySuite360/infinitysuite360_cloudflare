@@ -57,7 +57,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.SecurityCenter.Partn
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_partnerSettingsGetResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_partnerSettingsGetResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Enables or disables the selected partner integration for the account. Enabling the integration for the first time also schedules an account scan for that partner.
+        /// Enables or disables the selected partner integration for the account.Enabling the integration for the first time also schedules an account scan for that partner.Disabling the integration will purge all partner integration-related data, including partner insights, shadow zones, and shadow hosts.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.SecurityCenter_partnerSettingsPostResponse"/></returns>
         /// <param name="body">The request body</param>
@@ -101,7 +101,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.SecurityCenter.Partn
             return requestInfo;
         }
         /// <summary>
-        /// Enables or disables the selected partner integration for the account. Enabling the integration for the first time also schedules an account scan for that partner.
+        /// Enables or disables the selected partner integration for the account.Enabling the integration for the first time also schedules an account scan for that partner.Disabling the integration will purge all partner integration-related data, including partner insights, shadow zones, and shadow hosts.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

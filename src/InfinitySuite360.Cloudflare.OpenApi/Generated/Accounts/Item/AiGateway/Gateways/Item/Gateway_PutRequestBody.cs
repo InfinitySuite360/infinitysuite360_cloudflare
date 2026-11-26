@@ -56,6 +56,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
 #else
         public string LogpushPublicKey { get; set; }
 #endif
+        /// <summary>Lets requests to a model use every provider that serves it. When off, a model uses only the providers it launched with, so a provider added later receives none of its traffic. A request that names providers (the cf-aig-allowed-providers header or routing.allowedProviders) can still use any of them. Model aliases (custom/) are not restricted.</summary>
+        public bool? MultiproviderEnabled { get; set; }
         /// <summary>The otel property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -141,6 +143,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
                 { "log_management_strategy", n => { LogManagementStrategy = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutRequestBody_log_management_strategy>(); } },
                 { "logpush", n => { Logpush = n.GetBoolValue(); } },
                 { "logpush_public_key", n => { LogpushPublicKey = n.GetStringValue(); } },
+                { "multiprovider_enabled", n => { MultiproviderEnabled = n.GetBoolValue(); } },
                 { "otel", n => { Otel = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutRequestBody_otel>(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutRequestBody_otel.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "rate_limiting_interval", n => { RateLimitingInterval = n.GetIntValue(); } },
                 { "rate_limiting_limit", n => { RateLimitingLimit = n.GetIntValue(); } },
@@ -174,6 +177,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.I
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutRequestBody_log_management_strategy>("log_management_strategy", LogManagementStrategy);
             writer.WriteBoolValue("logpush", Logpush);
             writer.WriteStringValue("logpush_public_key", LogpushPublicKey);
+            writer.WriteBoolValue("multiprovider_enabled", MultiproviderEnabled);
             writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiGateway.Gateways.Item.Gateway_PutRequestBody_otel>("otel", Otel);
             writer.WriteIntValue("rate_limiting_interval", RateLimitingInterval);
             writer.WriteIntValue("rate_limiting_limit", RateLimitingLimit);

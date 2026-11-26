@@ -34,13 +34,16 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
         {
         }
         /// <summary>
-        /// Kicks one or more participants from an active session using user ID or custom participant ID.
+        /// Kicks one or more participants from an active session using their participant IDs. Every connection of each participant is removed from the session.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Kick.KickPostResponse"/></returns>
         /// <param name="body">The request body</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse">When receiving a 400 status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse">When receiving a 401 status code</exception>
         /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse">When receiving a 404 status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse">When receiving a 500 status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Kick.KickPostResponse?> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Kick.KickPostRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -54,12 +57,15 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Me
             var requestInfo = ToPostRequestInformation(body, requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
+                { "400", global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse.CreateFromDiscriminatorValue },
+                { "401", global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse.CreateFromDiscriminatorValue },
                 { "404", global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse.CreateFromDiscriminatorValue },
+                { "500", global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_GenericErrorResponse.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Kick.KickPostResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Realtime.Kit.Item.Meetings.Item.ActiveSession.Kick.KickPostResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Kicks one or more participants from an active session using user ID or custom participant ID.
+        /// Kicks one or more participants from an active session using their participant IDs. Every connection of each participant is removed from the session.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="body">The request body</param>

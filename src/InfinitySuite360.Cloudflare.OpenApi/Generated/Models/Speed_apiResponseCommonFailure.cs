@@ -18,20 +18,20 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>The errors property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Automatic_platform_optimization>? Errors { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Binary_ast>? Errors { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Automatic_platform_optimization> Errors { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Binary_ast> Errors { get; set; }
 #endif
         /// <summary>The primary error message.</summary>
         public override string Message { get => base.Message; }
         /// <summary>The messages property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Automatic_platform_optimization>? Messages { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Binary_ast>? Messages { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Automatic_platform_optimization> Messages { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Binary_ast> Messages { get; set; }
 #endif
         /// <summary>The result property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -68,8 +68,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "errors", n => { Errors = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Automatic_platform_optimization>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Automatic_platform_optimization.CreateFromDiscriminatorValue)?.AsList(); } },
-                { "messages", n => { Messages = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Automatic_platform_optimization>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Automatic_platform_optimization.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "errors", n => { Errors = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Binary_ast>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Binary_ast.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "messages", n => { Messages = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Binary_ast>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Binary_ast.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "result", n => { Result = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_apiResponseCommonFailure_result>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_apiResponseCommonFailure_result.CreateFromDiscriminatorValue); } },
                 { "success", n => { Success = n.GetBoolValue(); } },
             };
@@ -81,8 +81,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Automatic_platform_optimization>("errors", Errors);
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Automatic_platform_optimization>("messages", Messages);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Binary_ast>("errors", Errors);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Binary_ast>("messages", Messages);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_apiResponseCommonFailure_result>("result", Result);
             writer.WriteBoolValue("success", Success);
             writer.WriteAdditionalData(AdditionalData);

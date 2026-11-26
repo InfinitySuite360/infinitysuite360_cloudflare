@@ -42,10 +42,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>Array of OAuth grant types the client is allowed to use. `authorization_code` is required; `refresh_token` may be included optionally.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Accounts>? GrantTypes { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Scopes>? GrantTypes { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Accounts> GrantTypes { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Scopes> GrantTypes { get; set; }
 #endif
         /// <summary>URL of the client&apos;s logo.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -90,10 +90,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>Array of OAuth response types the client is allowed to use.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Accounts>? ResponseTypes { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Scopes>? ResponseTypes { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Accounts> ResponseTypes { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Scopes> ResponseTypes { get; set; }
 #endif
         /// <summary>Array of OAuth scopes the client is allowed to request. Colon-delimited scopes are not accepted. Dot-delimited scopes are validated against available OAuth API scopes; simple identity scopes are allowed. Protocol scopes `offline_access` and `openid` are added or removed automatically based on `grant_types` and `response_types`.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -141,13 +141,13 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "allowed_cors_origins", n => { AllowedCorsOrigins = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "client_name", n => { ClientName = n.GetStringValue(); } },
                 { "client_uri", n => { ClientUri = n.GetStringValue(); } },
-                { "grant_types", n => { GrantTypes = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Accounts>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Accounts.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "grant_types", n => { GrantTypes = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Scopes>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Scopes.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "logo_uri", n => { LogoUri = n.GetStringValue(); } },
                 { "optional_scopes", n => { OptionalScopes = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "policy_uri", n => { PolicyUri = n.GetStringValue(); } },
                 { "post_logout_redirect_uris", n => { PostLogoutRedirectUris = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "redirect_uris", n => { RedirectUris = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
-                { "response_types", n => { ResponseTypes = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Accounts>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Accounts.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "response_types", n => { ResponseTypes = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Scopes>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Scopes.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "scopes", n => { Scopes = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "token_endpoint_auth_method", n => { TokenEndpointAuthMethod = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_oauth_client_token_endpoint_auth_method>(); } },
                 { "tos_uri", n => { TosUri = n.GetStringValue(); } },
@@ -163,13 +163,13 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteCollectionOfPrimitiveValues<string>("allowed_cors_origins", AllowedCorsOrigins);
             writer.WriteStringValue("client_name", ClientName);
             writer.WriteStringValue("client_uri", ClientUri);
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Accounts>("grant_types", GrantTypes);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Scopes>("grant_types", GrantTypes);
             writer.WriteStringValue("logo_uri", LogoUri);
             writer.WriteCollectionOfPrimitiveValues<string>("optional_scopes", OptionalScopes);
             writer.WriteStringValue("policy_uri", PolicyUri);
             writer.WriteCollectionOfPrimitiveValues<string>("post_logout_redirect_uris", PostLogoutRedirectUris);
             writer.WriteCollectionOfPrimitiveValues<string>("redirect_uris", RedirectUris);
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Accounts>("response_types", ResponseTypes);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Scopes>("response_types", ResponseTypes);
             writer.WriteCollectionOfPrimitiveValues<string>("scopes", Scopes);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Iam_oauth_client_token_endpoint_auth_method>("token_endpoint_auth_method", TokenEndpointAuthMethod);
             writer.WriteStringValue("tos_uri", TosUri);

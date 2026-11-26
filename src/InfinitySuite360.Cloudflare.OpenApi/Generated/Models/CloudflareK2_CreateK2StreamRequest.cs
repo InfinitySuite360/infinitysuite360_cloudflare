@@ -30,7 +30,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #endif
         /// <summary>Sets the record retention period from 1 hour (3600 seconds) to 30 days (2592000 seconds), inclusive.</summary>
         public int? RetentionSeconds { get; set; }
-        /// <summary>The worker_binding property</summary>
+        /// <summary>Configures whether Workers bindings can produce records to the stream.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.CloudflareK2_K2StreamWorkerBindingInput? WorkerBinding { get; set; }

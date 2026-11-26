@@ -35,7 +35,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Event_subscriptions.
         /// </summary>
         /// <param name="pathParameters">Path parameters for the request</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public SubscriptionsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/event_subscriptions/subscriptions{?direction*,order*,page*,per_page*}", pathParameters)
+        public SubscriptionsRequestBuilder(Dictionary<string, object> pathParameters, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/event_subscriptions/subscriptions{?direction*,order*,page*,per_page*,queue_id*}", pathParameters)
         {
         }
         /// <summary>
@@ -43,7 +43,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Event_subscriptions.
         /// </summary>
         /// <param name="rawUrl">The raw URL to use for the request builder.</param>
         /// <param name="requestAdapter">The request adapter to use to execute the requests.</param>
-        public SubscriptionsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/event_subscriptions/subscriptions{?direction*,order*,page*,per_page*}", rawUrl)
+        public SubscriptionsRequestBuilder(string rawUrl, IRequestAdapter requestAdapter) : base(requestAdapter, "{+baseurl}/accounts/{account_id}/event_subscriptions/subscriptions{?direction*,order*,page*,per_page*,queue_id*}", rawUrl)
         {
         }
         /// <summary>
@@ -166,6 +166,16 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Event_subscriptions.
             /// <summary>Number of items per page</summary>
             [QueryParameter("per_page")]
             public int? PerPage { get; set; }
+            /// <summary>Filter event subscriptions by destination queue ID.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+            [QueryParameter("queue_id")]
+            public string? QueueId { get; set; }
+#nullable restore
+#else
+            [QueryParameter("queue_id")]
+            public string QueueId { get; set; }
+#endif
         }
     }
 }

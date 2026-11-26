@@ -16,7 +16,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.SecurityCenter.Partn
     public partial class PartnersRequestBuilder : BaseRequestBuilder
     {
         /// <summary>Gets an item from the InfinitySuite360.Cloudflare.OpenApi.accounts.item.securityCenter.partners.item collection</summary>
-        /// <param name="position">The partner integration identifier.</param>
+        /// <param name="position">Unique identifier of the item</param>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.SecurityCenter.Partners.Item.WithPartnerItemRequestBuilder"/></returns>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.SecurityCenter.Partners.Item.WithPartnerItemRequestBuilder this[string position]
         {

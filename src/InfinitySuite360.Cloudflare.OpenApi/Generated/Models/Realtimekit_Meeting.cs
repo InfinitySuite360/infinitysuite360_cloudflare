@@ -34,6 +34,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public bool? RecordOnStart { get; set; }
         /// <summary>Time in seconds, for which a session remains active, after the last participant has left the meeting.</summary>
         public double? SessionKeepAliveTimeInSecs { get; set; }
+        /// <summary>SIP dial-in details. `null` if SIP is not enabled for the meeting.</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_MeetingSip? Sip { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_MeetingSip Sip { get; set; }
+#endif
         /// <summary>Whether the meeting is `ACTIVE` or `INACTIVE`. Users will not be able to join an `INACTIVE` meeting.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_Meeting_status? Status { get; set; }
         /// <summary>Automatically generate summary of meetings using transcripts. Requires Transcriptions to be enabled, and can be retrieved via Webhooks or summary API.</summary>
@@ -83,6 +91,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "record_on_start", n => { RecordOnStart = n.GetBoolValue(); } },
                 { "recording_config", n => { RecordingConfig = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_RecordingConfig>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_RecordingConfig.CreateFromDiscriminatorValue); } },
                 { "session_keep_alive_time_in_secs", n => { SessionKeepAliveTimeInSecs = n.GetDoubleValue(); } },
+                { "sip", n => { Sip = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_MeetingSip>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_MeetingSip.CreateFromDiscriminatorValue); } },
                 { "status", n => { Status = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_Meeting_status>(); } },
                 { "summarize_on_end", n => { SummarizeOnEnd = n.GetBoolValue(); } },
                 { "title", n => { Title = n.GetStringValue(); } },
@@ -102,6 +111,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_RecordingConfig>("recording_config", RecordingConfig);
             writer.WriteBoolValue("record_on_start", RecordOnStart);
             writer.WriteDoubleValue("session_keep_alive_time_in_secs", SessionKeepAliveTimeInSecs);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_MeetingSip>("sip", Sip);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_Meeting_status>("status", Status);
             writer.WriteBoolValue("summarize_on_end", SummarizeOnEnd);
             writer.WriteStringValue("title", Title);

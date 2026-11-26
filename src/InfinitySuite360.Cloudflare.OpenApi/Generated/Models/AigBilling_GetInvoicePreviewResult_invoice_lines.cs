@@ -14,9 +14,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>The amount property</summary>
+        /// <summary>Line item amount, in US cents.</summary>
         public double? Amount { get; set; }
-        /// <summary>The currency property</summary>
+        /// <summary>Lowercase ISO 4217 currency code.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Currency { get; set; }
@@ -24,7 +24,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Currency { get; set; }
 #endif
-        /// <summary>The description property</summary>
+        /// <summary>Line item description.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Description { get; set; }
@@ -32,7 +32,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Description { get; set; }
 #endif
-        /// <summary>The period property</summary>
+        /// <summary>Period the line item covers.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoicePreviewResult_invoice_lines_period? Period { get; set; }
@@ -40,7 +40,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoicePreviewResult_invoice_lines_period Period { get; set; }
 #endif
-        /// <summary>The pretax_credit_amounts property</summary>
+        /// <summary>Credits applied to the line item before tax.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoicePreviewResult_invoice_lines_pretax_credit_amounts>? PretaxCreditAmounts { get; set; }
@@ -48,7 +48,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoicePreviewResult_invoice_lines_pretax_credit_amounts> PretaxCreditAmounts { get; set; }
 #endif
-        /// <summary>The pricing property</summary>
+        /// <summary>Line item pricing.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoicePreviewResult_invoice_lines_pricing? Pricing { get; set; }
@@ -56,7 +56,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoicePreviewResult_invoice_lines_pricing Pricing { get; set; }
 #endif
-        /// <summary>The quantity property</summary>
+        /// <summary>Quantity billed.</summary>
         public double? Quantity { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.AigBilling_GetInvoicePreviewResult_invoice_lines"/> and sets the default values.

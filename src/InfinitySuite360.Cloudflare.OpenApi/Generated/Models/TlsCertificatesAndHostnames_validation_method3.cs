@@ -7,14 +7,15 @@ using System.IO;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
+    /// <summary>
+    /// SSL validation settings. Omit validation_method to use the current or default method.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    #pragma warning disable CS1591
     public partial class TlsCertificatesAndHostnames_validation_method3 : IAdditionalDataHolder, IParsable
-    #pragma warning restore CS1591
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>Desired validation method.</summary>
+        /// <summary>SSL validation method.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.TlsCertificatesAndHostnames_validation_method_definition? ValidationMethod { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.TlsCertificatesAndHostnames_validation_method3"/> and sets the default values.

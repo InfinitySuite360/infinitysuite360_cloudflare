@@ -15,13 +15,13 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Settings.Automatic_plat
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>Configuration for Automatic Platform Optimization (APO) for WordPress.Set to &quot;off&quot; to disable, or provide an object to configure APO settings.</summary>
+        /// <summary>Configuration for Automatic Platform Optimization (APO) for WordPress.Set to &quot;off&quot; to disable, or provide an object to configure APO settings.When an APO configuration already exists, fields omitted from the object keep their current value, and &quot;off&quot; disables APO without erasing the detected zone/site/plugin facts.On the first write for a zone (no existing configuration) an object must include `enabled`, `cf`, `wordpress` and `wp_plugin`; otherwise the request fails with error 1023 and no configuration is created. Setting &quot;off&quot; when no configuration exists is a no-op.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_automatic_platform_optimization_value? Value { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_automatic_platform_optimization_patch_value? Value { get; set; }
 #nullable restore
 #else
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_automatic_platform_optimization_value Value { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_automatic_platform_optimization_patch_value Value { get; set; }
 #endif
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Settings.Automatic_platform_optimization.Automatic_platform_optimizationPatchRequestBody"/> and sets the default values.
@@ -48,7 +48,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Settings.Automatic_plat
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "value", n => { Value = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_automatic_platform_optimization_value>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_automatic_platform_optimization_value.CreateFromDiscriminatorValue); } },
+                { "value", n => { Value = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_automatic_platform_optimization_patch_value>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_automatic_platform_optimization_patch_value.CreateFromDiscriminatorValue); } },
             };
         }
         /// <summary>
@@ -58,7 +58,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Settings.Automatic_plat
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_automatic_platform_optimization_value>("value", Value);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Speed_automatic_platform_optimization_patch_value>("value", Value);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

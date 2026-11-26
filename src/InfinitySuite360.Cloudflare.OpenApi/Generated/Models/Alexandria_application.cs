@@ -113,10 +113,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>Cloudflare products that support this application.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Categories>? Supported { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Applications>? Supported { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Categories> Supported { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Applications> Supported { get; set; }
 #endif
         /// <summary>Returns the application update time.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -174,7 +174,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "name", n => { Name = n.GetStringValue(); } },
                 { "port_protocols", n => { PortProtocols = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "support_domains", n => { SupportDomains = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
-                { "supported", n => { Supported = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Categories>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Categories.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "supported", n => { Supported = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Applications>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Applications.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "updated_at", n => { UpdatedAt = n.GetStringValue(); } },
                 { "version", n => { Version = n.GetStringValue(); } },
             };
@@ -201,7 +201,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteStringValue("name", Name);
             writer.WriteCollectionOfPrimitiveValues<string>("port_protocols", PortProtocols);
             writer.WriteCollectionOfPrimitiveValues<string>("support_domains", SupportDomains);
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Categories>("supported", Supported);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Applications>("supported", Supported);
             writer.WriteStringValue("updated_at", UpdatedAt);
             writer.WriteStringValue("version", Version);
             writer.WriteAdditionalData(AdditionalData);

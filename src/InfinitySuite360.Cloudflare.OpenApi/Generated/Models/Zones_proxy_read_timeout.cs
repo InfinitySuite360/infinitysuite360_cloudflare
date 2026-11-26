@@ -8,7 +8,7 @@ using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
     /// <summary>
-    /// Maximum time between two read operations from origin.
+    /// Maximum time in seconds between two read operations from origin.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class Zones_proxy_read_timeout : global::InfinitySuite360.Cloudflare.OpenApi.Models.Zones_base, IParsable

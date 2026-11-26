@@ -1,95 +1,99 @@
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema abuse-reports_UnauthorizedErrorResponse is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema access_app_policy_result is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema access_app_policy_write_request is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema aaa_audit_logs_response_collection is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema access_identity-providers is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema access_identity-providers-2 is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema aig-billing_SetTopupConfigResult is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema alexandria_create_application_request is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema access_scim_config_single_authentication is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema analytics-sql_SqlQueryScope is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema api-shield_credentials-JWT-Key-patch-request is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema api-shield_credentials-JWT-Key-request is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema api-shield_credentials-JWT-Key-response is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema api-shield_operation_features is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema api-shield_position is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema cc_ContainersApplicationResponse is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema cc_ContainersCreateApplicationRequest is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema cc_DurableObjectsConfiguration is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema aig-billing_SetTopupConfigResult is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema aaa_audit_logs_response_collection is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema cloudforce-one-events_PirDefinition is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema cloudforce-one_ApprovalProposedChanges is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema access_scim_config_single_authentication-2 is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema cws_JSONDocument is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema cws_JSONValue is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema access_rule is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema dlp_AddinAuth is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema api-shield_credentials-JWT-Key-patch-request is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema brapi_CrawlJsonValue is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema d1_batch-query is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema dlp_AddinAuth is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema dlp_PredefinedEntryVariant is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema dlp_EntryOfNewProfile is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema dlp_ProfileEntryUpdate is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema cloudflare-pipelines_FieldType is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema dns-settings_zone-nameservers is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema email-security_BulkJobActionParams is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema email-security_BulkMessageActionParams is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema api-shield_position is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema api-shield_credentials-JWT-Key-request is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema analytics-sql_SqlQueryScope is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema access_app_policy_write_request is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema firewall_configuration is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema firewall_package is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema firewall_package_response_collection is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema flagship_ChangelogEntry is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema iam_resources is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema flagship_Condition is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema flagship_Condition1 is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema flagship_Condition2 is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema firewall_package_response_collection is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema flagship_ChangelogEntry is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema flagship_Condition3 is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema flagship_Condition is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema hyperdrive_hyperdrive-caching is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema flagship_Condition4 is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema flagship_JsonValue is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema hyperdrive_hyperdrive-caching is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema api-shield_credentials-JWT-Key-response is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema hyperdrive_hyperdrive-caching-create is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema api-shield_operation_features is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema lists_operation is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema managed-defense-vulnerability-discovery_CreateRepositoryResult is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema infra_ServiceHost is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema magic-visibility-pcaps_pcaps_request_pcap is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema magic_app is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema managed-defense-vulnerability-discovery_CreateRepositoryResult is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema cc_ContainersApplicationResponse is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema cc_ContainersCreateApplicationRequest is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema organizations-api_UserTenantAllocationValue is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema dns-records_dns-record-patch is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema mq_event-source is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema mq_producer is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema nsc_StatusInfo is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema magic_app is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema cc_DurableObjectsConfiguration is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema realtimekit_StorageConfig is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema registrar-api_domain_transfer_check_result is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema dns-records_dns-record-post is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema rulesets_SetCacheControlDirective is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema rulesets_SetCacheControlDirectiveWithQualifiers is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema rulesets_SetCacheControlDirectiveWithValue is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema registrar_domain_transfer_check_result is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema r2-slurper_SourceJobSchema is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema security-center_newScanRequest is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema smartshield_api-response-result is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema spectrum-config_edge_ips is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema speed_automatic_platform_optimization_value is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema mq_event-source is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema mq_producer is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema access_app_policy_result is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema teams-devices_config_request is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema access_scim_config_single_authentication-2 is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema teams-devices_split_tunnel is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema abuse-reports_UnauthorizedErrorResponse is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema teams-devices_split_tunnel_include is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema teams-devices_split_tunnel is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema teams-devices_split_tunnel_include_request is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema vectorize_index-configuration is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema waitingroom_rule_position is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema teams-devices_split_tunnel_request is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema workers-kv_any is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema workers-observability_filter_node is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema waf-managed-rules_rule is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema workers_code_update_strategy is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema workers_durable_object_export_variants is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema teams-devices_input is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema rulesets_SetCacheControlDirective is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema rulesets_SetCacheControlDirectiveWithQualifiers is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema rulesets_SetCacheControlDirectiveWithValue is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema workers_placement_info_no_status is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema workers_placement_target is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema workers_durable_object_export_variants is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema access_rule is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema teams-devices_input is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema zero-trust-gateway_app-types is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema zones_zone_settings_single_request is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema speed_automatic_platform_optimization_patch_value is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema speed_automatic_platform_optimization_value is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema workers-observability_filter_node is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema iam_resources is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema waf-managed-rules_rule is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema access_identity-providers is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema email-security_BulkJobActionParams is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema email-security_BulkMessageActionParams is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema dns-records_dns-record-patch is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema access_identity-providers-2 is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema cloudflare-pipelines_FieldType is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema dns-records_dns-record-post is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema dns-records_dns-record-with-data is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema r2-slurper_SourceJobSchema is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema dns-records_dns-record-without-data is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema zones_setting is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema zones_setting_value is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema /accounts/{account_id}/ai/models/search is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema /accounts/{account_id}/analytics/sql is a polymorphic type but does not define a discriminator. This will result in serialization errors.
-Warning: KiotaBuilder OpenAPI warning: #/ - The schema /accounts/{account_id}/analytics/sql is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema zones_zone_settings_single_request is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema /accounts/{account_id}/cloudforce-one/v2/brand-protection/domain/matches/bulk-dismiss is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema /accounts/{account_id}/ai/models/search is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema /accounts/{account_id}/cloudforce-one/v2/collections/{collection_id}/items is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema /accounts/{account_id}/r2/buckets/{bucket_name}/objects is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema /accounts/{account_id}/analytics/sql is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema /analytics/sql is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema /accounts/{account_id}/analytics/sql is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/ - The schema /analytics/sql is a polymorphic type but does not define a discriminator. This will result in serialization errors.
 Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1access~1ai-controls~1mcp~1portals/get/responses/200/content/application~1json/schema/properties/result/items/properties/servers/items/properties/hostname - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1access~1ai-controls~1mcp~1portals/post/responses/201/content/application~1json/schema/properties/result/properties/servers/items/properties/hostname - The format uri is not supported by Kiota and the string type will be used.
@@ -430,12 +434,6 @@ Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1cloudfo
 Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1d1~1database~1{database_id}~1export/post - The operation describes multiple response schemas that are divergent. Only the schema of the lowest success status code will be used.
 Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1d1~1database~1{database_id}~1import/post - The operation describes multiple response schemas that are divergent. Only the schema of the lowest success status code will be used.
 Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1email-security~1investigate/get - The operation describes multiple response schemas that are divergent. Only the schema of the lowest success status code will be used.
-Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1email~1routing~1suppression/get/responses/200/content/application~1json/schema/properties/result/items/properties/email - The format email is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1email~1routing~1suppression/post/requestBody/content/application~1json/schema/properties/email - The format email is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1email~1routing~1suppression~1{suppression_id}/get/responses/200/content/application~1json/schema/properties/result/properties/email - The format email is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1email~1sending~1suppression/get/responses/200/content/application~1json/schema/properties/result/items/properties/email - The format email is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1email~1sending~1suppression/post/requestBody/content/application~1json/schema/properties/email - The format email is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1email~1sending~1suppression~1{suppression_id}/get/responses/200/content/application~1json/schema/properties/result/properties/email - The format email is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1email~1sending~1suppressions/get/parameters/3/schema - The format email is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1email~1sending~1suppressions/get/responses/200/content/application~1json/schema/properties/result/items/properties/email - The format email is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/paths/~1accounts~1{account_id}~1email~1sending~1suppressions/post/requestBody/content/application~1json/schema/properties/email - The format email is not supported by Kiota and the string type will be used.
@@ -687,12 +685,6 @@ Warning: KiotaBuilder OpenAPI warning: #/paths/~1radar~1tlds~1performance~1times
 Warning: KiotaBuilder OpenAPI warning: #/paths/~1radar~1verified_bots~1top~1bots/get/responses/200/content/application~1json/schema/properties/result/properties/meta/properties/confidenceInfo/properties/annotations/items/properties/linkedUrl - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/paths/~1radar~1verified_bots~1top~1categories/get/responses/200/content/application~1json/schema/properties/result/properties/meta/properties/confidenceInfo/properties/annotations/items/properties/linkedUrl - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/paths/~1user~1audit_logs/get/parameters/4/schema - The format email is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/paths/~1zones~1{zone_id}~1email~1routing~1suppression/get/responses/200/content/application~1json/schema/properties/result/items/properties/email - The format email is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/paths/~1zones~1{zone_id}~1email~1routing~1suppression/post/requestBody/content/application~1json/schema/properties/email - The format email is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/paths/~1zones~1{zone_id}~1email~1routing~1suppression~1{suppression_id}/get/responses/200/content/application~1json/schema/properties/result/properties/email - The format email is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/paths/~1zones~1{zone_id}~1email~1sending~1suppression/get/responses/200/content/application~1json/schema/properties/result/items/properties/email - The format email is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/paths/~1zones~1{zone_id}~1email~1sending~1suppression/post/requestBody/content/application~1json/schema/properties/email - The format email is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/paths/~1zones~1{zone_id}~1email~1sending~1suppression~1{suppression_id}/get/responses/200/content/application~1json/schema/properties/result/properties/email - The format email is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/aaa_audit-log-actor-base/properties/email - The format email is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/aaa_audit-logs/properties/actor/properties/email - The format email is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/aaa_unsubscribe_email/properties/email - The format email is not supported by Kiota and the string type will be used.
@@ -711,6 +703,8 @@ Warning: KiotaBuilder OpenAPI warning: #/components/schemas/access_jit_request_l
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/access_leak_report_url - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/access_resource_user_email/items - The format email is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/access_responses/properties/resource_user_email - The format email is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/access_saml/allOf/1/properties/config/properties/metadata_url - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/access_saml-2/allOf/1/properties/config/properties/metadata_url - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/access_scim_meta/properties/location - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/access_users/properties/emails/items/properties/value - The format email is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/api-shield_endpoint - The format uri-template is not supported by Kiota and the string type will be used.
@@ -719,23 +713,18 @@ Warning: KiotaBuilder OpenAPI warning: #/components/schemas/billing-spend-polici
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/builds_BuildResponse/properties/preview_url - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/builds_BuildResponse/properties/pull_request/properties/pull_request_url - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-k2_K2Stream/properties/endpoint - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_Sink/properties/used_by/items/properties/href - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_SinkRollingPolicy/properties/file_size_bytes - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_SinkRollingPolicy/properties/inactivity_seconds - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_SinkRollingPolicy/properties/interval_seconds - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_basin_catalogTableUpdate/properties/token - The format var-str is not supported by Kiota for the type String and will be ignored.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2Table/properties/credentials/properties/access_key_id - The format var-str is not supported by Kiota for the type String and will be ignored.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2Table/properties/credentials/properties/secret_access_key - The format var-str is not supported by Kiota for the type String and will be ignored.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2Table/properties/rolling_policy/properties/file_size_bytes - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2Table/properties/rolling_policy/properties/inactivity_seconds - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2Table/properties/rolling_policy/properties/interval_seconds - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2TablePublic/properties/rolling_policy/properties/file_size_bytes - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2TablePublic/properties/rolling_policy/properties/inactivity_seconds - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2TablePublic/properties/rolling_policy/properties/interval_seconds - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2TableUpdate/properties/credentials/properties/access_key_id - The format var-str is not supported by Kiota for the type String and will be ignored.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2TableUpdate/properties/credentials/properties/secret_access_key - The format var-str is not supported by Kiota for the type String and will be ignored.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2_data_catalogTable/properties/account_id - The format uri is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2_data_catalogTable/properties/rolling_policy/properties/file_size_bytes - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2_data_catalogTable/properties/rolling_policy/properties/inactivity_seconds - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2_data_catalogTable/properties/rolling_policy/properties/interval_seconds - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2_data_catalogTable/properties/token - The format var-str is not supported by Kiota for the type String and will be ignored.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2_data_catalogTablePublic/properties/account_id - The format uri is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2_data_catalogTablePublic/properties/rolling_policy/properties/file_size_bytes - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2_data_catalogTablePublic/properties/rolling_policy/properties/inactivity_seconds - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/cloudflare-pipelines_r2_data_catalogTablePublic/properties/rolling_policy/properties/interval_seconds - The format uint64 is not supported by Kiota for the type Integer and will be ignored.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/custom-pages_asset_url - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/custom-pages_preview_request/properties/url - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/custom-pages_url - The format uri is not supported by Kiota and the string type will be used.
@@ -766,6 +755,7 @@ Warning: KiotaBuilder OpenAPI warning: #/components/schemas/intel_ipv4 - The for
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/intel_ipv6 - The format ipv6 is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/logpush_destination_conf - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/logpush_destination_conf-2 - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/logpush_destination_name - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/logpush_logpull_options - The format uri-reference is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/magic_bgp_config/properties/extra_prefixes/items - The format cidr is not supported by Kiota for the type String and will be ignored.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/magic_bgp_settings/properties/cloudflare_asn - The format uint32 is not supported by Kiota for the type Integer and will be ignored.
@@ -808,6 +798,8 @@ Warning: KiotaBuilder OpenAPI warning: #/components/schemas/posture-api_Webhook/
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/posture-api_messages/items/properties/documentation_url - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/posture-api_result-info/properties/next - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/posture-api_result-info/properties/previous - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/r2-data-catalog_catalog/properties/catalog_uri - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/r2-data-catalog_catalog-activation-response/properties/catalog_uri - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/r2-slurper_JobResponse/properties/source/oneOf/0/properties/endpoint - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/r2-slurper_S3SourceSchema/properties/endpoint - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/realtimekit_LivestreamingConfig/properties/rtmp_url - The format uri is not supported by Kiota and the string type will be used.
@@ -820,8 +812,8 @@ Warning: KiotaBuilder OpenAPI warning: #/components/schemas/realtimekit_UpdatePr
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/realtimekit_VideoConfig/properties/watermark/properties/url - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/realtimekit_Webhook/properties/url - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/realtimekit_WebhookRequest/properties/url - The format uri is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/registrar-api-sandbox_registration_contact/properties/email - The format email is not supported by Kiota and the string type will be used.
-Warning: KiotaBuilder OpenAPI warning: #/components/schemas/registrar-api_registration_contact/properties/email - The format email is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/registrar-sandbox_registration_contact/properties/email - The format email is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/registrar_registration_contact/properties/email - The format email is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/security-center_securityTxt/properties/acknowledgments/items - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/security-center_securityTxt/properties/canonical/items - The format uri is not supported by Kiota and the string type will be used.
 Warning: KiotaBuilder OpenAPI warning: #/components/schemas/security-center_securityTxt/properties/contact/items - The format uri is not supported by Kiota and the string type will be used.
@@ -888,13 +880,19 @@ Warning: KiotaBuilder Could not create error type for 500 in sql-api-query-post
 Warning: KiotaBuilder Could not create error type for 501 in sql-api-query-post
 Warning: KiotaBuilder Could not create error type for 503 in sql-api-query-post
 Warning: KiotaBuilder Could not create error type for 507 in sql-api-query-post
+Warning: KiotaBuilder Discriminator dns-custom-nameservers_get_response is not inherited from dnsCustomNameservers_apiResponseCollection.
+Warning: KiotaBuilder Discriminator dns-custom-nameservers_get_response is not inherited from dnsCustomNameservers_apiResponseCommon.
+Warning: KiotaBuilder Discriminator zone-analytics-api_since is not a valid model and points to a union type.
 Warning: KiotaBuilder Could not create error type for 400 in sql-api-introspection
 Warning: KiotaBuilder Could not create error type for 403 in sql-api-introspection
 Warning: KiotaBuilder Could not create error type for 422 in sql-api-introspection
 Warning: KiotaBuilder Could not create error type for 500 in sql-api-introspection
 Warning: KiotaBuilder Could not create error type for 503 in sql-api-introspection
-Warning: KiotaBuilder Discriminator dns-custom-nameservers_get_response is not inherited from dnsCustomNameservers_apiResponseCollection.
-Warning: KiotaBuilder Discriminator dns-custom-nameservers_get_response is not inherited from dnsCustomNameservers_apiResponseCommon.
+Warning: KiotaBuilder Discriminator zone-analytics-api_until is not a valid model and points to a union type.
+Warning: KiotaBuilder Discriminator zone-analytics-api_since is not a valid model and points to a union type.
+Warning: KiotaBuilder Discriminator zone-analytics-api_until is not a valid model and points to a union type.
+Warning: KiotaBuilder Discriminator zone-analytics-api_since is not a valid model and points to a union type.
+Warning: KiotaBuilder Discriminator zone-analytics-api_until is not a valid model and points to a union type.
 Warning: KiotaBuilder Could not create error type for 401 in ListAbuseReports
 Warning: KiotaBuilder Could not create error type for 401 in ListSubmittedAbuseReports
 Warning: KiotaBuilder Could not create error type for 401 in GetSubmittedAbuseReport
@@ -929,18 +927,14 @@ Warning: KiotaBuilder Discriminator abuse-reports_UnexpectedActError is not inhe
 Warning: KiotaBuilder Discriminator abuse-reports_UnknownError is not inherited from abuseReports_UnknownError.
 Warning: KiotaBuilder Discriminator abuse-reports_UrlNotOrangeError is not inherited from abuseReports_UrlNotOrangeError.
 Warning: KiotaBuilder Discriminator abuse-reports_UrlNotvalidError is not inherited from abuseReports_UrlNotvalidError.
-Warning: KiotaBuilder Discriminator zone-analytics-api_since is not a valid model and points to a union type.
-Warning: KiotaBuilder Discriminator zone-analytics-api_until is not a valid model and points to a union type.
 Warning: KiotaBuilder Could not create error type for 401 in SubmitAbuseReport
-Warning: KiotaBuilder Discriminator zone-analytics-api_since is not a valid model and points to a union type.
-Warning: KiotaBuilder Discriminator zone-analytics-api_until is not a valid model and points to a union type.
 Warning: KiotaBuilder Could not create error type for 401 in CheckAppealEligibility
-Warning: KiotaBuilder Discriminator zone-analytics-api_since is not a valid model and points to a union type.
-Warning: KiotaBuilder Discriminator zone-analytics-api_until is not a valid model and points to a union type.
 Warning: KiotaBuilder Could not create error type for 401 in ListEmails
+Warning: KiotaBuilder Discriminator access_end_user_props is not inherited from access_app_request.
 Warning: KiotaBuilder Could not create error type for 401 in ListMitigations
 Warning: KiotaBuilder Could not create error type for 401 in RequestReview
-Warning: KiotaBuilder Discriminator access_end_user_props is not inherited from access_app_request.
+Warning: KiotaBuilder Discriminator dns-custom-nameservers_get_response is not inherited from dnsCustomNameservers_zone_metadata.
+Warning: KiotaBuilder Could not create error type for 400 in workers-ai-ai-gateway-web-search
 Warning: KiotaBuilder Could not create error type for 400 in sql-api-query-get-account-scoped
 Warning: KiotaBuilder Could not create error type for 403 in sql-api-query-get-account-scoped
 Warning: KiotaBuilder Could not create error type for 422 in sql-api-query-get-account-scoped
@@ -976,15 +970,28 @@ Warning: KiotaBuilder Could not create error type for 429 in analytics-engine-sq
 Warning: KiotaBuilder Could not create error type for 500 in analytics-engine-sql-query-post
 Warning: KiotaBuilder Could not create error type for 503 in analytics-engine-sql-query-post
 Warning: KiotaBuilder Could not create error type for 504 in analytics-engine-sql-query-post
-Warning: KiotaBuilder Could not create error type for 400 in workers-ai-ai-gateway-web-search
-Warning: KiotaBuilder Discriminator dns-custom-nameservers_get_response is not inherited from dnsCustomNameservers_zone_metadata.
-Warning: KiotaBuilder Discriminator spectrum-config_paygo_app_config is not inherited from spectrumConfig_base_app_config.
-Warning: KiotaBuilder Discriminator spectrum-config_app_config is not inherited from spectrumConfig_base_app_config.
-Warning: KiotaBuilder Discriminator email-sending_EmailAddressString is not inherited from emailSending_EmailAddressString.
-Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-list-images
-Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-upload-an-image-via-url
+Warning: KiotaBuilder Discriminator logshare_logs_response_json_lines is not a valid model and points to a union type.
+Warning: KiotaBuilder Discriminator logshare_logs_response_json_lines is not a valid model and points to a union type.
 Warning: KiotaBuilder Discriminator api-shield_credentials-JWT-Key-EC-ES384 is not inherited from apiShield_credentialsJWTKeyCommon.
 Warning: KiotaBuilder Discriminator api-shield_credentials-JWT-Key-EC-ES256 is not inherited from apiShield_credentialsJWTKeyCommon.
+Warning: KiotaBuilder Discriminator spectrum-config_paygo_app_config is not inherited from spectrumConfig_base_app_config.
+Warning: KiotaBuilder Discriminator spectrum-config_app_config is not inherited from spectrumConfig_base_app_config.
+Warning: KiotaBuilder Discriminator zones_ssl_recommender is not inherited from zones_ssl_recommender.
+Warning: KiotaBuilder Discriminator workers_single_step_migrations is not inherited from workers_migration_step.
+Warning: KiotaBuilder Discriminator workers_single_step_migrations is not inherited from workers_migration_tag_conditions.
+Warning: KiotaBuilder Discriminator intel_ipv4 is not inherited from intel_ipv4.
+Warning: KiotaBuilder Discriminator intel_ipv6 is not inherited from intel_ipv6.
+Warning: KiotaBuilder Discriminator moq_cloudflare_jwt_issuer is not inherited from moq_issuer.
+Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-list-images
+Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-upload-an-image-via-url
+Warning: KiotaBuilder Discriminator zones_browser_cache_ttl_value is not inherited from zones_browser_cache_ttl_value.
+Warning: KiotaBuilder Discriminator zones_challenge_ttl_value is not inherited from zones_challenge_ttl_value.
+Warning: KiotaBuilder Discriminator zones_edge_cache_ttl_value is not inherited from zones_edge_cache_ttl_value.
+Warning: KiotaBuilder Discriminator zones_max_upload_value is not inherited from zones_max_upload_value.
+Warning: KiotaBuilder Discriminator zones_cache-rules_origin_h2_max_streams_value is not inherited from zones_cacheRules_origin_h2_max_streams_value.
+Warning: KiotaBuilder Discriminator zones_proxy_read_timeout_value is not inherited from zones_proxy_read_timeout_value.
+Warning: KiotaBuilder Discriminator zones_webmcp_mcp_url_value is not inherited from zones_webmcp_mcp_url_value.
+Warning: KiotaBuilder Discriminator zones_webmcp_packs_value is not inherited from zones_webmcp_packs_value.
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-create-authenticated-direct-upload-url-v-1
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-keys-list-signing-keys
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-keys-delete-signing-key
@@ -999,50 +1006,35 @@ Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-v
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-delete-image
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-image-details
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-update-image
-Warning: KiotaBuilder Discriminator logshare_logs_response_json_lines is not a valid model and points to a union type.
-Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-create-authenticated-direct-upload-url-v-2
+Warning: KiotaBuilder Discriminator email-sending_EmailAddressString is not inherited from emailSending_EmailAddressString.
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-base-image
-Warning: KiotaBuilder Discriminator logshare_logs_response_json_lines is not a valid model and points to a union type.
+Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-create-authenticated-direct-upload-url-v-2
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-list-migrations
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-create-migration
-Warning: KiotaBuilder Discriminator intel_ipv4 is not inherited from intel_ipv4.
-Warning: KiotaBuilder Discriminator intel_ipv6 is not inherited from intel_ipv6.
-Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-list-sources
-Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-create-source
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-delete-migration
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-get-migration
-Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-precheck-source-connectivity
-Warning: KiotaBuilder Discriminator moq_cloudflare_jwt_issuer is not inherited from moq_issuer.
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-get-migration-progress
+Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-list-migration-logs
+Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-list-sources
+Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-create-source
+Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-precheck-source-connectivity
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-delete-source
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-get-source
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-update-source
-Warning: KiotaBuilder Discriminator workers_single_step_migrations is not inherited from workers_migration_step.
-Warning: KiotaBuilder Discriminator workers_single_step_migrations is not inherited from workers_migration_tag_conditions.
 Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-get-source-connectivity
-Warning: KiotaBuilder Could not create error type for 4XX in cloudflare-images-sourcingkit-list-migration-logs
-Warning: KiotaBuilder Discriminator zones_ssl_recommender is not inherited from zones_ssl_recommender.
-Warning: KiotaBuilder Discriminator zones_browser_cache_ttl_value is not inherited from zones_browser_cache_ttl_value.
-Warning: KiotaBuilder Discriminator zones_challenge_ttl_value is not inherited from zones_challenge_ttl_value.
-Warning: KiotaBuilder Discriminator zones_edge_cache_ttl_value is not inherited from zones_edge_cache_ttl_value.
-Warning: KiotaBuilder Discriminator zones_max_upload_value is not inherited from zones_max_upload_value.
-Warning: KiotaBuilder Discriminator zones_cache-rules_origin_h2_max_streams_value is not inherited from zones_cacheRules_origin_h2_max_streams_value.
-Warning: KiotaBuilder Discriminator zones_proxy_read_timeout_value is not inherited from zones_proxy_read_timeout_value.
-Warning: KiotaBuilder Discriminator zones_webmcp_mcp_url_value is not inherited from zones_webmcp_mcp_url_value.
-Warning: KiotaBuilder Discriminator zones_webmcp_packs_value is not inherited from zones_webmcp_packs_value.
+Warning: KiotaBuilder Discriminator vuln-scanner_zone-target is not inherited from vulnScanner_targetType.
 Warning: KiotaBuilder Discriminator vuln-scanner_create-bola-scan-request is not inherited from vulnScanner_createScanRequest.
 Warning: KiotaBuilder Could not create error type for 4XX in namespace-worker-script-upload-worker-module
-Warning: KiotaBuilder Discriminator vuln-scanner_zone-target is not inherited from vulnScanner_targetType.
-Warning: KiotaBuilder Could not create error type for 4XX in namespace-worker-patch-script-settings
 Warning: KiotaBuilder Could not create error type for 4XX in worker-script-upload-worker-module
-Warning: KiotaBuilder Could not create error type for 4XX in worker-script-environment-patch-settings
+Warning: KiotaBuilder Could not create error type for 4XX in namespace-worker-patch-script-settings
 Warning: KiotaBuilder Discriminator workers_ErrorWorkerNameConflict is not inherited from workers409Error_errors.
-Warning: KiotaBuilder Could not create error type for 4XX in worker-script-settings-patch-settings
-Warning: KiotaBuilder Could not create error type for 4XX in worker-script-patch-settings
+Warning: KiotaBuilder Could not create error type for 4XX in worker-script-environment-patch-settings
 Warning: KiotaBuilder Discriminator workers_ErrorMissingParam is not inherited from workers_apiResponseCommon400Error_errors.
 Warning: KiotaBuilder Discriminator workers_ErrorMissingParam is not inherited from WithWorker_400Error_errors.
 Warning: KiotaBuilder Discriminator workers_ErrorWorkerNameConflict is not inherited from WithWorker_409Error_errors.
-Warning: KiotaBuilder Could not create error type for 4XX in workers.previews.deployments.create
-Warning: KiotaBuilder Could not create error type for 4XX in workers.previews.deployments.patchLatest
+Warning: KiotaBuilder Could not create error type for 4XX in worker-script-settings-patch-settings
+Warning: KiotaBuilder Could not create error type for 4XX in worker-script-patch-settings
 Warning: KiotaBuilder Could not create error type for 4XX in createWorkerVersion
+Warning: KiotaBuilder Could not create error type for 4XX in workers.previews.deployments.create
 Warning: KiotaBuilder Could not create error type for 4XX in patchLatestWorkerVersion
+Warning: KiotaBuilder Could not create error type for 4XX in workers.previews.deployments.patchLatest

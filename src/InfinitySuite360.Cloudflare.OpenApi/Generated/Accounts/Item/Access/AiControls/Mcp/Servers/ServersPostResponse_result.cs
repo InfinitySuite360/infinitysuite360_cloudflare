@@ -146,7 +146,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mc
             AdditionalData = new Dictionary<string, object>();
             IsSharedOauthCallbackEnabled = false;
             SecureWebGateway = false;
-            Status = global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Access.AiControls.Mcp.Servers.ServersPostResponse_result_status.Waiting;
         }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value

@@ -30,6 +30,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string DefaultWorkerName { get; set; }
 #endif
+        /// <summary>Deployment CLI detected in the selected root directory. A Wrangler config takes precedence. `cf` requires `cloudflare.config.ts` and a `cf` dependency or dev dependency in `package.json`.</summary>
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Builds_ConfigAutofillResponse_deploy_tool? DeployTool { get; set; }
         /// <summary>The env_worker_names property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -75,6 +77,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             {
                 { "config_file", n => { ConfigFile = n.GetStringValue(); } },
                 { "default_worker_name", n => { DefaultWorkerName = n.GetStringValue(); } },
+                { "deploy_tool", n => { DeployTool = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Builds_ConfigAutofillResponse_deploy_tool>(); } },
                 { "env_worker_names", n => { EnvWorkerNames = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Builds_ConfigAutofillResponse_env_worker_names>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Builds_ConfigAutofillResponse_env_worker_names.CreateFromDiscriminatorValue); } },
                 { "package_manager", n => { PackageManager = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Builds_PackageManager>(); } },
                 { "scripts", n => { Scripts = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Builds_ConfigAutofillResponse_scripts>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Builds_ConfigAutofillResponse_scripts.CreateFromDiscriminatorValue); } },
@@ -89,6 +92,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteStringValue("config_file", ConfigFile);
             writer.WriteStringValue("default_worker_name", DefaultWorkerName);
+            writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Builds_ConfigAutofillResponse_deploy_tool>("deploy_tool", DeployTool);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Builds_ConfigAutofillResponse_env_worker_names>("env_worker_names", EnvWorkerNames);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Builds_PackageManager>("package_manager", PackageManager);
             writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Builds_ConfigAutofillResponse_scripts>("scripts", Scripts);

@@ -36,27 +36,27 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Bulk.Subscriptions
         /// <summary>
         /// Creates multiple subscriptions for an account in a single request.
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_bulk_account_subscription_response"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_bulk_account_subscription_response"/></returns>
         /// <param name="body">The request body</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_apiResponseCommonFailure">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_bulk_account_subscription_response?> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Bulk.Subscriptions.SubscriptionsPostRequestBody body, Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Bulk.Subscriptions.SubscriptionsRequestBuilder.SubscriptionsRequestBuilderPostQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_bulk_account_subscription_response?> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Bulk.Subscriptions.SubscriptionsPostRequestBody body, Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Bulk.Subscriptions.SubscriptionsRequestBuilder.SubscriptionsRequestBuilderPostQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_bulk_account_subscription_response> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Bulk.Subscriptions.SubscriptionsPostRequestBody body, Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Bulk.Subscriptions.SubscriptionsRequestBuilder.SubscriptionsRequestBuilderPostQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_bulk_account_subscription_response> PostAsync(global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Bulk.Subscriptions.SubscriptionsPostRequestBody body, Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Bulk.Subscriptions.SubscriptionsRequestBuilder.SubscriptionsRequestBuilderPostQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
             if(ReferenceEquals(body, null)) throw new ArgumentNullException(nameof(body));
             var requestInfo = ToPostRequestInformation(body, requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_apiResponseCommonFailure.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
-            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_bulk_account_subscription_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubsApi_bulk_account_subscription_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
+            return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_bulk_account_subscription_response>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.BillSubs_bulk_account_subscription_response.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Creates multiple subscriptions for an account in a single request.

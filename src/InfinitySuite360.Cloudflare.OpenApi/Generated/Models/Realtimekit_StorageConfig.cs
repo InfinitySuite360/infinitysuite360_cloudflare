@@ -8,7 +8,7 @@ using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
     /// <summary>
-    /// Composed type wrapper for classes <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember1"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember2"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember3"/>
+    /// Composed type wrapper for classes <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember1"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember2"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember3"/>, <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember4"/>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     public partial class Realtimekit_StorageConfig : IComposedTypeWrapper, IParsable
@@ -36,6 +36,14 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #nullable restore
 #else
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember3 RealtimekitStorageConfigMember3 { get; set; }
+#endif
+        /// <summary>Composed type representation for type <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember4"/></summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember4? RealtimekitStorageConfigMember4 { get; set; }
+#nullable restore
+#else
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember4 RealtimekitStorageConfigMember4 { get; set; }
 #endif
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value
@@ -67,6 +75,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             {
                 return RealtimekitStorageConfigMember3.GetFieldDeserializers();
             }
+            else if(RealtimekitStorageConfigMember4 != null)
+            {
+                return RealtimekitStorageConfigMember4.GetFieldDeserializers();
+            }
             return new Dictionary<string, Action<IParseNode>>();
         }
         /// <summary>
@@ -87,6 +99,10 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             else if(RealtimekitStorageConfigMember3 != null)
             {
                 writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember3>(null, RealtimekitStorageConfigMember3);
+            }
+            else if(RealtimekitStorageConfigMember4 != null)
+            {
+                writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Realtimekit_StorageConfigMember4>(null, RealtimekitStorageConfigMember4);
             }
         }
     }

@@ -45,7 +45,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Analytics.Latency
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.ArgoAnalytics_response_single"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
-        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Analytics.Latency.ArgoAnalytics_response_single4XXError">When receiving a 4XX status code</exception>
+        /// <exception cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.ArgoAnalytics_apiResponseCommonFailure">When receiving a 4XX status code</exception>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public async Task<global::InfinitySuite360.Cloudflare.OpenApi.Models.ArgoAnalytics_response_single?> GetAsync(Action<RequestConfiguration<global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Analytics.Latency.LatencyRequestBuilder.LatencyRequestBuilderGetQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
@@ -58,7 +58,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Analytics.Latency
             var requestInfo = ToGetRequestInformation(requestConfiguration);
             var errorMapping = new Dictionary<string, ParsableFactory<IParsable>>
             {
-                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Zones.Item.Analytics.Latency.ArgoAnalytics_response_single4XXError.CreateFromDiscriminatorValue },
+                { "4XX", global::InfinitySuite360.Cloudflare.OpenApi.Models.ArgoAnalytics_apiResponseCommonFailure.CreateFromDiscriminatorValue },
             };
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Models.ArgoAnalytics_response_single>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Models.ArgoAnalytics_response_single.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }

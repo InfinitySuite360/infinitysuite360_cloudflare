@@ -183,7 +183,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances
         public bool? RewriteQuery { get; set; }
         /// <summary>Minimum similarity score a chunk must reach to be returned. Defaults to 0.4.</summary>
         public double? ScoreThreshold { get; set; }
-        /// <summary>The source property</summary>
+        /// <summary>The R2 bucket name for r2, the website URL for web-crawler, or the D1 database ID (UUID) for d1. A d1 instance also requires token_id, and the token needs D1 Read permission. The d1 database cannot be changed after creation.</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Source { get; set; }
@@ -217,7 +217,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances
 #endif
         /// <summary>The token_id property</summary>
         public Guid? TokenId { get; set; }
-        /// <summary>Source type. When omitted or null with a non-blank source, HTTP(S) URLs infer web-crawler and existing R2 bucket names infer r2. A missing or blank source without a type uses managed upload-only storage.</summary>
+        /// <summary>Source type. When omitted or null with a non-blank source, HTTP(S) URLs infer web-crawler and existing R2 bucket names infer r2. A missing or blank source without a type uses managed upload-only storage. d1 is never inferred; it indexes the rows returned by source_params.d1.query.</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances.InstancesPostResponse_result_type? Type { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.AiSearch.Instances.InstancesPostResponse_result"/> and sets the default values.

@@ -33,7 +33,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Observability.Usage.
         {
         }
         /// <summary>
-        /// Whether Workers Observability is keeping fewer of the account&apos;s events, usually because it passed its daily limit, and what that limit is. Daily limits reset at 00:00 UTC; paid accounts are brought back in stages over the following hours.
+        /// Whether Workers Observability is keeping fewer of the account&apos;s events, because it passed its daily limit or for another reason, and what that limit is. Daily limits reset at 00:00 UTC; paid accounts are brought back in stages over the following hours.
         /// </summary>
         /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Observability.Usage.Limit.LimitGetResponse"/></returns>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
@@ -62,7 +62,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Observability.Usage.
             return await RequestAdapter.SendAsync<global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Observability.Usage.Limit.LimitGetResponse>(requestInfo, global::InfinitySuite360.Cloudflare.OpenApi.Accounts.Item.Observability.Usage.Limit.LimitGetResponse.CreateFromDiscriminatorValue, errorMapping, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
-        /// Whether Workers Observability is keeping fewer of the account&apos;s events, usually because it passed its daily limit, and what that limit is. Daily limits reset at 00:00 UTC; paid accounts are brought back in stages over the following hours.
+        /// Whether Workers Observability is keeping fewer of the account&apos;s events, because it passed its daily limit or for another reason, and what that limit is. Daily limits reset at 00:00 UTC; paid accounts are brought back in stages over the following hours.
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
