@@ -106,12 +106,32 @@ var events = await cloudflare.Analytics.GetSecurityEventsAsync(DateTimeOffset.Ut
 | R2 buckets | `R2` |
 | Workers scripts and routes | `Workers` |
 | Health Checks, Logpush, audit logs, notifications | `Monitoring` |
-| Page Shield, Security Center, API Shield, bots | `Security` |
+| Page Shield, Security Center, API Shield, bots (older, untyped parts) | `Security` |
+| Page Shield: settings, scripts, connections, cookies, content security rules | `PageShield` |
+| API Shield: operations, discovery, schema validation, token validation, labels, mTLS client certificates | `ApiShield` |
 | Origin CA and mTLS certificates | `Certificates` |
 | GraphQL Analytics, Web Analytics | `Analytics` |
 | Cloudflare IP ranges | `Ips` |
 | Custom lists (IP lists, bulk status) | `Lists` |
 | IP access rules (zone and account) | `IpAccess` |
+
+Page Shield and API Shield (0.4.0; whether a feature is available depends on the plan and is decided by Cloudflare, an unavailable one throws `CloudflareApiException`):
+
+```csharp
+var scripts = await cloudflare.PageShield.ListScriptsAsync(new PageShieldQuery { Status = "active,infrequent", ExcludeCdnCgi = true, PrioritizeMalicious = true });
+var suspicious = scripts.Where(s => s.IsMalicious);
+var cookies = await cloudflare.PageShield.ListCookiesAsync();
+
+// A change is first described, shown to the user and only then sent (and only with AllowWrites = true).
+var plan = cloudflare.PageShield.PreviewCreatePolicy(new PageShieldPolicyInput { Action = "log", Description = "CSP report only", Expression = "(http.host eq \"app.example.com\")", Value = "script-src 'self'" });
+Console.WriteLine($"{plan.Method} {plan.Path}
+{plan.BodyJson}");
+
+var discovered = await cloudflare.ApiShield.ListDiscoveredOperationsAsync(new ApiOperationQuery { State = "review" });
+var operations = await cloudflare.ApiShield.ListOperationsAsync(new ApiOperationQuery { Host = "api.example.com" });
+var validation = await cloudflare.ApiShield.GetSchemaValidationSettingsAsync();
+var jwtRules = await cloudflare.ApiShield.ListTokenValidationRulesAsync();
+```
 
 Edge status and lists (0.3.0):
 
