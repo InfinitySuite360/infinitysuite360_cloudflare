@@ -41,9 +41,7 @@ public static class CloudflareServiceCollectionExtensions
     private static IServiceCollection AddCloudflareCoreServices(this IServiceCollection services)
     {
         services.AddOptions<CloudflareOptions>()
-            .Validate(o => (Uri.TryCreate(o.BaseAddress, UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps) || o.BaseAddress.StartsWith("http://localhost", StringComparison.OrdinalIgnoreCase),
-                "Cloudflare:BaseAddress must be an HTTPS address.")
-            .Validate(o => o.MaxRetries is >= 0 and <= 10, "Cloudflare:MaxRetries must be between 0 and 10.")
+            .Validate(IsValid, "Cloudflare: BaseAddress must be an absolute HTTPS address (http only for loopback), MaxRetries 0 to 10, RetryBaseDelay not negative, MaxResponseBytes positive.")
             .Validate(o => o.AccessJwt.Validate() is null, "Cloudflare:AccessJwt is invalid (team domain such as myteam.cloudflareaccess.com, application audience tags).");
 
         services.AddHttpClient(ApiHttpClientName, (sp, http) => http.Timeout = sp.GetRequiredService<IOptions<CloudflareOptions>>().Value.Timeout);
@@ -67,5 +65,11 @@ public static class CloudflareServiceCollectionExtensions
             sp.GetRequiredService<IHttpClientFactory>().CreateClient(TurnstileHttpClientName),
             sp.GetRequiredService<IOptions<CloudflareOptions>>()));
         return services;
+    }
+
+    private static bool IsValid(CloudflareOptions o)
+    {
+        try { o.Validate(); return true; }
+        catch (CloudflareConfigurationException) { return false; }
     }
 }
