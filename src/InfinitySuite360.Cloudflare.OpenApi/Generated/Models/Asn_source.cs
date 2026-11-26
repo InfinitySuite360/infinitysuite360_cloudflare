@@ -7,15 +7,14 @@ using System.IO;
 using System;
 namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
-    /// <summary>
-    /// Location of the invalid value that caused the error.
-    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
-    public partial class DomainSearch_source : IAdditionalDataHolder, IParsable
+    #pragma warning disable CS1591
+    public partial class Asn_source : IAdditionalDataHolder, IParsable
+    #pragma warning restore CS1591
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
-        /// <summary>JSON Pointer to the invalid or missing request value.</summary>
+        /// <summary>The pointer property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
         public string? Pointer { get; set; }
@@ -24,21 +23,21 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public string Pointer { get; set; }
 #endif
         /// <summary>
-        /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.DomainSearch_source"/> and sets the default values.
+        /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Asn_source"/> and sets the default values.
         /// </summary>
-        public DomainSearch_source()
+        public Asn_source()
         {
             AdditionalData = new Dictionary<string, object>();
         }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.DomainSearch_source"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Asn_source"/></returns>
         /// <param name="parseNode">The parse node to use to read the discriminator value and create the object</param>
-        public static global::InfinitySuite360.Cloudflare.OpenApi.Models.DomainSearch_source CreateFromDiscriminatorValue(IParseNode parseNode)
+        public static global::InfinitySuite360.Cloudflare.OpenApi.Models.Asn_source CreateFromDiscriminatorValue(IParseNode parseNode)
         {
             if(ReferenceEquals(parseNode, null)) throw new ArgumentNullException(nameof(parseNode));
-            return new global::InfinitySuite360.Cloudflare.OpenApi.Models.DomainSearch_source();
+            return new global::InfinitySuite360.Cloudflare.OpenApi.Models.Asn_source();
         }
         /// <summary>
         /// The deserialization information for the current model

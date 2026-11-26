@@ -10,7 +10,8 @@ public sealed class CloudflareOptions
     public const string SectionName = "Cloudflare";
     public const string DefaultBaseAddress = "https://api.cloudflare.com/client/v4/";
 
-    /// <summary>API token (Bearer). Never written to exception messages or logs.</summary>
+    /// <summary>API token (Bearer). Never written to exception messages or logs, hidden from the debugger's member view (0.9.1).</summary>
+    [System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
     public string ApiToken { get; set; } = "";
 
     /// <summary>Default account ID for account-scoped calls when none is passed.</summary>
@@ -81,12 +82,69 @@ public sealed class CloudflareOptions
         (RateBudget ?? throw new CloudflareConfigurationException("Cloudflare: RateBudget must not be null.")).Validate();
     }
 
-    /// <summary>A copy for one client (0.9.0): the factory hands every tenant its own options object, so a later change at the source does not leak into a running client.</summary>
+    /// <summary>
+    /// A deep copy for one client (0.9.0; deep since 0.9.1: <see cref="Turnstile"/>, <see cref="AccessJwt"/> with its audience list and
+    /// <see cref="RateBudget"/> are copied too): the factory hands every tenant its own options object, so a later change at the source does not leak
+    /// into a running client. <see cref="WriteFilter"/> is a delegate and is shared.
+    /// </summary>
     public CloudflareOptions Clone()
     {
         var copy = (CloudflareOptions)MemberwiseClone();
         copy.RateBudget = RateBudget?.Copy() ?? new();
+        copy.Turnstile = Turnstile?.Copy() ?? new();
+        copy.AccessJwt = AccessJwt?.Copy() ?? new();
         return copy;
+    }
+
+    /// <summary>
+    /// A fingerprint of every setting except <see cref="ApiToken"/> and <see cref="WriteFilter"/> (0.9.1, M-3): every public read-write property of the
+    /// options and their nested option objects, by name and invariant value, in a fixed order. Two options with the same fingerprint behave the same
+    /// apart from the token and the filter delegate (the factory compares those separately). Secret values (for example the Turnstile secret) are part of
+    /// the text; the factory only keeps a keyed hash of it.
+    /// </summary>
+    internal string SettingsText()
+    {
+        var sb = new System.Text.StringBuilder();
+        AppendSettings(sb, "", this, 0);
+        return sb.ToString();
+    }
+
+    private static void AppendSettings(System.Text.StringBuilder sb, string prefix, object? value, int depth)
+    {
+        if (value is null) { sb.Append(prefix).Append("=null;"); return; }
+        foreach (var p in value.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+                     .Where(p => p.CanRead && p.CanWrite && p.GetIndexParameters().Length == 0)
+                     .OrderBy(p => p.Name, StringComparer.Ordinal))
+        {
+            if (depth == 0 && p.Name is nameof(ApiToken) or nameof(WriteFilter)) continue;
+            var name = prefix + p.Name;
+            var v = p.GetValue(value);
+            if (v is System.Collections.IEnumerable list and not string)
+            {
+                var i = 0;
+                foreach (var item in list) AppendValue(sb, $"{name}[{i++}]", item, depth);
+                sb.Append(name).Append(".count=").Append(i).Append(';');
+            }
+            else AppendValue(sb, name, v, depth);
+        }
+    }
+
+    private static void AppendValue(System.Text.StringBuilder sb, string name, object? v, int depth)
+    {
+        switch (v)
+        {
+            case null: sb.Append(name).Append("=null;"); break;
+            // Length prefix: no value can imitate the separator of the next entry.
+            case string s: sb.Append(name).Append("=s").Append(s.Length).Append(':').Append(s).Append(';'); break;
+            case bool b: sb.Append(name).Append('=').Append(b ? "true" : "false").Append(';'); break;
+            case Delegate: sb.Append(name).Append("=delegate;"); break;
+            case IFormattable f when v.GetType().IsValueType:
+                sb.Append(name).Append('=').Append(f.ToString(null, System.Globalization.CultureInfo.InvariantCulture)).Append(';'); break;
+            default:
+                if (depth > 4) throw new InvalidOperationException($"Cloudflare: options nest too deep at {name}.");
+                AppendSettings(sb, name + ".", v, depth + 1);
+                break;
+        }
     }
 
     /// <summary>Describes the settings without the token (0.9.0): the token is shown as <c>[redacted]</c> or <c>(none)</c>.</summary>
@@ -101,6 +159,8 @@ public sealed class TurnstileOptions
     public const string DefaultVerifyUrl = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
     public string SiteKey { get; set; } = "";
+
+    [System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
     public string SecretKey { get; set; } = "";
 
     /// <summary>When set, the widget must have been solved on exactly this hostname (rejects tokens minted on other sites).</summary>
@@ -112,4 +172,9 @@ public sealed class TurnstileOptions
     public string VerifyUrl { get; set; } = DefaultVerifyUrl;
 
     public bool IsConfigured => SiteKey.Length > 0 && SecretKey.Length > 0;
+
+    /// <summary>Describes the settings without the secret key (0.9.1).</summary>
+    public override string ToString() => $"TurnstileOptions(SiteKey={SiteKey}, SecretKey={(SecretKey.Length == 0 ? "(none)" : "[redacted]")})";
+
+    internal TurnstileOptions Copy() => (TurnstileOptions)MemberwiseClone();
 }

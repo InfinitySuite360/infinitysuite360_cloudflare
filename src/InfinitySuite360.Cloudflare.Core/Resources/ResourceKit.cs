@@ -141,6 +141,25 @@ internal static class ResourceKit
         return list;
     }
 
+    /// <summary>
+    /// Sends, removes the named members (<paramref name="hidden"/>, for example environment variables) and then every secret-looking member
+    /// (<see cref="StripSecrets"/>) before the model is built (L-6, 0.9.1: both rules, not only the named list).
+    /// </summary>
+    public static async Task<T> SendHiddenSecretFreeAsync<T>(ICloudflareApiConnection api, HttpMethod method, string path, object? body, CancellationToken ct, params string[] hidden)
+    {
+        var response = await api.SendAsync<JsonElement>(method, path, body, ct).ConfigureAwait(false);
+        return As<T>(StripSecrets(Strip(response.Result, hidden)));
+    }
+
+    /// <summary>Every page of a list; each item without the named members and without secret-looking members (L-6, 0.9.1).</summary>
+    public static async Task<IReadOnlyList<T>> ListHiddenSecretFreeAsync<T>(ICloudflareApiConnection api, string path, int perPage, CancellationToken ct, params string[] hidden)
+    {
+        var list = new List<T>();
+        await foreach (var item in api.ListAllAsync<JsonElement>(path, perPage, ct).ConfigureAwait(false))
+            list.Add(As<T>(StripSecrets(Strip(item, hidden))));
+        return list;
+    }
+
     /// <summary>Sends and builds the model from the answer after <see cref="StripSecrets"/> (every secret-looking member removed).</summary>
     public static async Task<T> SendSecretFreeAsync<T>(ICloudflareApiConnection api, HttpMethod method, string path, object? body, CancellationToken ct)
     {

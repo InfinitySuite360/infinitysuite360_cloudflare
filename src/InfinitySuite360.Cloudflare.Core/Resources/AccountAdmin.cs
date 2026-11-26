@@ -60,8 +60,35 @@ public sealed class AccountMember : CloudflareModel
     public string? Email { get; init; }
     /// <summary>"accepted" or "pending".</summary>
     public string? Status { get; init; }
+    /// <summary>Legacy roles. Accounts that use domain-scoped roles carry the permissions in <see cref="Policies"/> instead (0.9.1).</summary>
     public List<AccountRole> Roles { get; init; } = [];
+    /// <summary>Access policies of the member (permission groups and resource groups), the newer form of roles (0.9.1).</summary>
+    public List<AccountMemberPolicy> Policies { get; init; } = [];
     public AccountMemberUser? User { get; init; }
+}
+
+/// <summary>An access policy of a member: "allow" or "deny" for a set of permission groups on a set of resource groups (0.9.1).</summary>
+public sealed class AccountMemberPolicy : CloudflareModel
+{
+    public string? Id { get; init; }
+    /// <summary>"allow" or "deny".</summary>
+    public string? Access { get; init; }
+    public List<AccountPermissionGroup> PermissionGroups { get; init; } = [];
+    public List<AccountResourceGroup> ResourceGroups { get; init; } = [];
+}
+
+/// <summary>A permission group of a member policy, for example "Super Administrator - All Privileges".</summary>
+public sealed class AccountPermissionGroup : CloudflareModel
+{
+    public string? Id { get; init; }
+    public string? Name { get; init; }
+}
+
+/// <summary>A resource group of a member policy (which account or zones the permissions apply to).</summary>
+public sealed class AccountResourceGroup : CloudflareModel
+{
+    public string? Id { get; init; }
+    public string? Name { get; init; }
 }
 
 /// <summary>The user behind a membership.</summary>
@@ -84,7 +111,8 @@ public sealed class AccountRole : CloudflareModel
 
 /// <summary>
 /// Account members and roles, narrow wrapper (0.9.0, matrix priority 3): list and read members and roles; remove a member with preview and
-/// <c>allowRemoval</c>; removing the last member with a role whose name contains "Super Administrator" is refused (lock-out). Inviting members and changing
+/// <c>allowRemoval</c>; removing the last accepted super administrator (legacy role or policy permission group "Super Administrator …", 0.9.1) is
+/// refused (lock-out). Inviting members and changing
 /// roles are deliberately only reachable through <c>OpenApi</c>: an invitation sends an e-mail to a person, and role changes are the account's access control,
 /// which belongs in the dashboard with its own confirmation. Endpoints <c>account-members-*</c>, <c>account-roles-*</c> of cloudflare/api-schemas@650bd71;
 /// developers.cloudflare.com/fundamentals/manage-members/manage/ (retrieved 17.11.2026).
@@ -108,20 +136,57 @@ public sealed class MembersClient(ICloudflareApiConnection api) : CloudflareReso
     /// <summary>
     /// Removes a member (write guard first, then <paramref name="allowRemoval"/>; then the member list is read and the last super administrator is never
     /// removed). False when the member did not exist.
+    /// <list type="bullet">
+    /// <item>A super administrator is a member whose legacy role or whose policy permission group (<c>policies[].permission_groups[].name</c>) is
+    /// "Super Administrator …" (H-1, 0.9.1). Only members with status "accepted" count: a pending invitation cannot log in.</item>
+    /// <item>A member whose answer carries neither roles nor policies is refused: whether it is the last super administrator cannot be decided
+    /// (fail-closed).</item>
+    /// <item>Within this process the list and the DELETE run under one lock per account, so two parallel removals cannot both pass the check. A gap
+    /// remains against changes from outside the process (dashboard, other tools) between the list and the DELETE: Cloudflare offers no conditional
+    /// DELETE for members.</item>
+    /// </list>
     /// </summary>
     public async Task<bool> RemoveAsync(string memberId, string? accountId = null, bool allowRemoval = false, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "members", ResourceKit.Required(memberId, nameof(memberId)));
         EnsureWritable(HttpMethod.Delete, path);
         ResourceKit.Allow(allowRemoval, "removing a member ends the person's access", nameof(allowRemoval));
-        var members = await ListAsync(accountId, ct).ConfigureAwait(false);
-        static bool Super(AccountMember m) => m.Roles.Any(r => (r.Name ?? "").Contains("Super Administrator", StringComparison.OrdinalIgnoreCase));
-        var target = members.FirstOrDefault(m => m.Id == memberId);
-        if (target is null) return false;
-        if (Super(target) && members.Count(Super) <= 1)
-            throw ResourceKit.Conflict("DELETE", path, "Refused: this is the last super administrator of the account (lock-out).");
-        return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
+        var gate = Gate(Api.Options.BaseAddress, Account(accountId));
+        await gate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            var members = await ListAsync(accountId, ct).ConfigureAwait(false);
+            var target = members.FirstOrDefault(m => m.Id == memberId);
+            if (target is null) return false;
+            if (target.Roles.Count == 0 && target.Policies.Count == 0)
+                throw ResourceKit.Conflict("DELETE", path, "Refused: the member carries neither roles nor policies, so it cannot be checked whether it is the last super administrator.");
+            // The target counts unless Cloudflare says it is not accepted (a missing status is treated as active: cautious); the others only when accepted.
+            var targetActive = target.Status is null || string.Equals(target.Status, "accepted", StringComparison.OrdinalIgnoreCase);
+            if (targetActive && HasSuperGrant(target) && !members.Any(m => m.Id != target.Id && IsActiveSuperAdministrator(m)))
+                throw ResourceKit.Conflict("DELETE", path, "Refused: this is the last super administrator of the account (lock-out).");
+            return await DeleteIfExistsAsync(path, null, ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            gate.Release();
+        }
     }
+
+    /// <summary>An accepted member with a legacy role or a policy permission group named "Super Administrator …" (allow policies only).</summary>
+    internal static bool IsActiveSuperAdministrator(AccountMember m) =>
+        string.Equals(m.Status, "accepted", StringComparison.OrdinalIgnoreCase) && HasSuperGrant(m);
+
+    private static bool HasSuperGrant(AccountMember m) =>
+        m.Roles.Any(r => IsSuper(r.Name))
+        || m.Policies.Any(p => !string.Equals(p.Access, "deny", StringComparison.OrdinalIgnoreCase) && p.PermissionGroups.Any(g => IsSuper(g.Name)));
+
+    private static bool IsSuper(string? name) => (name ?? "").Contains("Super Administrator", StringComparison.OrdinalIgnoreCase);
+
+    // One lock per account and API address for the whole process, in a fixed number of stripes (bounded memory; two accounts may share a stripe).
+    private static readonly SemaphoreSlim[] Gates = Enumerable.Range(0, 64).Select(_ => new SemaphoreSlim(1, 1)).ToArray();
+
+    private static SemaphoreSlim Gate(string baseAddress, string accountId) =>
+        Gates[(int)((uint)StringComparer.Ordinal.GetHashCode(baseAddress.TrimEnd('/').ToLowerInvariant() + "|" + accountId) % (uint)Gates.Length)];
 }
 
 /// <summary>An entry of the account audit log (v2).</summary>

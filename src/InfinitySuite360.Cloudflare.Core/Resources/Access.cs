@@ -75,6 +75,7 @@ public sealed class AccessServiceToken : CloudflareModel
     public string ClientId { get; init; } = "";
     /// <summary>Only returned on create/rotate; store it securely right away.</summary>
     [Obsolete("The client secret belongs in a CloudflareOneTimeSecret. Use IssueServiceTokenAsync/RotateServiceTokenSecretAsync (0.8.0), which never put it into a model. Removed in 1.0.")]
+    [System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
     public string? ClientSecret { get; init; }
     public string? Duration { get; init; }
     public bool? Enabled { get; init; }
@@ -164,7 +165,8 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
     [EditorBrowsable(EditorBrowsableState.Never)]
     public Task<AccessApplication> UpdateApplicationAsync(string appId, AccessApplicationInput app, string? accountId = null, CancellationToken ct = default)
     {
-        EnsureWritable(HttpMethod.Put, AccountPath(accountId, "access", "apps", appId));
+        // Always refused: only the guard is checked (no write follows, so no write operation is marked).
+        CloudflareWritePolicy.EnsureAllowed(HttpMethod.Put, AccountPath(accountId, "access", "apps", appId), Api.Options);
         return Task.FromException<AccessApplication>(AlwaysRefused("UpdateApplicationAsync", "replacing an application can drop its policies and login protection", "EnsureApplicationAsync and the policy methods"));
     }
 
@@ -203,11 +205,11 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
     /// <summary>Since 0.8.1 the checks of <see cref="EnsurePolicyAsync"/> with every allow switch off, then a POST.</summary>
     [Obsolete("Use EnsurePolicyAsync (0.8.0); since 0.8.1 this applies its checks with every allow switch off. Removed in 1.0.")]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public Task<AccessPolicy> CreatePolicyAsync(AccessPolicyInput policy, string? accountId = null, CancellationToken ct = default)
+    public async Task<AccessPolicy> CreatePolicyAsync(AccessPolicyInput policy, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "access", "policies");
         EnsureWritable(HttpMethod.Post, path);
-        return Api.PostAsync<AccessPolicy>(path, PolicyBody(policy, allowLoosen: false, allowBlock: false, null), ct);
+        return await Api.PostAsync<AccessPolicy>(path, PolicyBody(policy, allowLoosen: false, allowBlock: false, null), ct).ConfigureAwait(false);
     }
 
     /// <summary>Since 0.8.1 <see cref="RemovePolicyAsync"/> with every allow switch off.</summary>
@@ -223,12 +225,12 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
     /// <summary>Creates a group that includes the given email addresses (since 0.8.1 with the checks of <see cref="EnsureGroupAsync"/>).</summary>
     [Obsolete("Use EnsureGroupAsync (0.8.0); since 0.8.1 this applies its checks with every allow switch off. Removed in 1.0.")]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public Task<AccessGroup> CreateGroupAsync(string name, IEnumerable<string> emails, string? accountId = null, CancellationToken ct = default)
+    public async Task<AccessGroup> CreateGroupAsync(string name, IEnumerable<string> emails, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "access", "groups");
         EnsureWritable(HttpMethod.Post, path);
         var body = GroupBody(new AccessGroupInput { Name = name, Include = emails.Select(AccessRules.Email).ToList() }, allowLoosen: false, null);
-        return Api.PostAsync<AccessGroup>(path, body, ct);
+        return await Api.PostAsync<AccessGroup>(path, body, ct).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -255,7 +257,8 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
     [EditorBrowsable(EditorBrowsableState.Never)]
     public Task<AccessServiceToken> CreateServiceTokenAsync(string name, string duration = "8760h", string? accountId = null, CancellationToken ct = default)
     {
-        EnsureWritable(HttpMethod.Post, AccountPath(accountId, "access", "service_tokens"));
+        // Always refused: only the guard is checked (no write follows, so no write operation is marked).
+        CloudflareWritePolicy.EnsureAllowed(HttpMethod.Post, AccountPath(accountId, "access", "service_tokens"), Api.Options);
         return Task.FromException<AccessServiceToken>(AlwaysRefused("CreateServiceTokenAsync", "its result would carry the client secret in a model", "IssueServiceTokenAsync"));
     }
 
@@ -264,7 +267,8 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
     [EditorBrowsable(EditorBrowsableState.Never)]
     public Task<AccessServiceToken> RotateServiceTokenAsync(string tokenId, string? accountId = null, CancellationToken ct = default)
     {
-        EnsureWritable(HttpMethod.Post, AccountPath(accountId, "access", "service_tokens", tokenId, "rotate"));
+        // Always refused: only the guard is checked (no write follows, so no write operation is marked).
+        CloudflareWritePolicy.EnsureAllowed(HttpMethod.Post, AccountPath(accountId, "access", "service_tokens", tokenId, "rotate"), Api.Options);
         return Task.FromException<AccessServiceToken>(AlwaysRefused("RotateServiceTokenAsync", "it invalidates the old secret at once and its result would carry the new secret in a model", "RotateServiceTokenSecretAsync"));
     }
 
@@ -292,11 +296,11 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
     /// <summary>Creates an identity provider (since 0.8.1 write guard first, type checked, secrets stripped from the answer).</summary>
     [Obsolete("Use EnsureIdentityProviderAsync (0.8.0); since 0.8.1 this checks the write guard and the type first. Removed in 1.0.")]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public Task<AccessIdentityProvider> CreateIdentityProviderAsync(string name, string type, object? config = null, string? accountId = null, CancellationToken ct = default)
+    public async Task<AccessIdentityProvider> CreateIdentityProviderAsync(string name, string type, object? config = null, string? accountId = null, CancellationToken ct = default)
     {
         var path = AccountPath(accountId, "access", "identity_providers");
         EnsureWritable(HttpMethod.Post, path);
-        return ResourceKit.SendSecretFreeAsync<AccessIdentityProvider>(Api, HttpMethod.Post, path, IdpBody(name, type, config), ct);
+        return await ResourceKit.SendSecretFreeAsync<AccessIdentityProvider>(Api, HttpMethod.Post, path, IdpBody(name, type, config), ct).ConfigureAwait(false);
     }
 
     /// <summary>Always refused since 0.8.1: a full replacement of a login method without any check can lock everybody out.</summary>
@@ -304,7 +308,8 @@ public sealed partial class AccessClient(ICloudflareApiConnection api) : Cloudfl
     [EditorBrowsable(EditorBrowsableState.Never)]
     public Task<AccessIdentityProvider> UpdateIdentityProviderAsync(string providerId, string name, string type, object? config = null, string? accountId = null, CancellationToken ct = default)
     {
-        EnsureWritable(HttpMethod.Put, AccountPath(accountId, "access", "identity_providers", providerId));
+        // Always refused: only the guard is checked (no write follows, so no write operation is marked).
+        CloudflareWritePolicy.EnsureAllowed(HttpMethod.Put, AccountPath(accountId, "access", "identity_providers", providerId), Api.Options);
         return Task.FromException<AccessIdentityProvider>(AlwaysRefused("UpdateIdentityProviderAsync", "replacing a login method without a check can lock everybody out", "the OpenApi client deliberately"));
     }
 

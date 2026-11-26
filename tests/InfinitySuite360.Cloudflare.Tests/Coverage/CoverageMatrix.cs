@@ -200,13 +200,17 @@ internal static class CoverageMatrix
         (r, _) => r.Method == HttpMethod.Get
             ? FakeHandler.Json("""{"success":true,"errors":[],"messages":[],"result":[{"id":"id1","name":"name1"}],"result_info":{"page":1,"per_page":50,"total_pages":1,"count":1,"total_count":1}}""")
             : FakeHandler.Json("""{"success":true,"errors":[],"messages":[],"result":{"id":"id1"}}"""),
+        // 0.9.1: a list item with status and role, so that checks which refuse items without them (Members.RemoveAsync, H-1) still reach their write.
+        (r, _) => r.Method == HttpMethod.Get
+            ? FakeHandler.Json("""{"success":true,"errors":[],"messages":[],"result":[{"id":"id1","name":"name1","status":"accepted","roles":[{"id":"r1","name":"Viewer"}]}],"result_info":{"page":1,"per_page":50,"total_pages":1,"count":1,"total_count":1}}""")
+            : FakeHandler.Json("""{"success":true,"errors":[],"messages":[],"result":{"id":"id1"}}"""),
     ];
 
-    /// <summary>Calls whose reflective sample arguments are refused locally (enumerated values), made with valid arguments.</summary>
-    private static readonly (string Client, string Member, Func<CloudflareClient, Task> Run)[] Scenarios =
-    [
-        ("Workflows", "ChangeInstanceStatusAsync", c => c.Workflows.ChangeInstanceStatusAsync("wf1", "i1", "pause")),
-    ];
+    /// <summary>
+    /// Calls whose reflective sample arguments are refused locally, made with valid arguments. Empty since 0.9.1: Workflows.ChangeInstanceStatusAsync takes
+    /// an enum and is reached by the reflective surface (L-8). Keep it empty: a method the reflection cannot reach should get typed parameters instead.
+    /// </summary>
+    internal static readonly (string Client, string Member, Func<CloudflareClient, Task> Run)[] Scenarios = [];
 
     // ------------------------------------------------------------------ report
 

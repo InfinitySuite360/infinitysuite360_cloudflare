@@ -1,5 +1,56 @@
 # Changelog
 
+## 0.9.1 – unreleased
+
+Hardening of stage P6 after an independent review of 0.9.0 (one high, three medium, eight low findings). Contains 0.9.0, which was never published on a feed.
+Every finding is covered by tests with the fake handler and a fake clock (no network, no real token).
+
+* **H-1 last super administrator (high):** `Members.RemoveAsync` also recognises a super administrator by policy (`policies[].permission_groups[].name`
+  "Super Administrator – All Privileges", allow policies only; new models `AccountMemberPolicy`, `AccountPermissionGroup`, `AccountResourceGroup`), counts only
+  members with status `accepted` (a pending invitation cannot step in), refuses a member that carries neither roles nor policies (fail-closed), and runs list and
+  DELETE under one lock per account and API address in the process (64 stripes), so two parallel removals cannot both pass. Remaining gap, documented: changes
+  from outside the process between list and DELETE (no conditional DELETE at Cloudflare).
+* **M-1 budget deadline and queue (medium):** `MaxDelay` now bounds the whole wait of one call (deadline = start + `MaxDelay`, across every re-check, also when a
+  429 extends the block while the call waits); waiting calls are served first come, first served (one queue per kind, so a waiting read never holds up a write);
+  new `RateBudget.MaxQueued` (default 1000): one more waiting call fails at once (`CloudflareRateBudgetExceededException.QueueFull`); `Delayed` is raised once per
+  call; a cancelled call gives up its place. `HttpClient.Timeout` does not cover this wait; the budget's deadline and the cancellation token do.
+* **M-2 monotonic time (medium):** the window, the 429 block and the pruning use `TimeProvider.GetTimestamp`/`GetElapsedTime`; a changed system time neither
+  frees nor blocks slots. `Snapshot().BlockedUntil` is wall-clock time for display only. Note for own `TimeProvider`s in tests: override `GetTimestamp` too.
+* **M-3 client factory (medium):** a cached client is replaced when *any* option value changes (keyed hash over every read-write property of the options and of
+  their nested option objects, except the token and the filter delegate, which are compared separately), not only the fields of `ToString`; `Clone` is deep
+  (`Turnstile`, `AccessJwt` with its audience list, `RateBudget`); compare-and-build runs under a lock, so parallel first calls get the same client.
+* **L-1:** the coverage tests read commit, checksum and operation count from `openapi/cloudflare-openapi.lock.json` and `openapi/GENERATION.md` instead of fixed
+  values, so the weekly regeneration (`openapi-update.yml`) passes for a new schema.
+* **L-2:** the reads a write method makes to prepare its change (member list before a removal, current state before Ensure/upsert) count against the write share
+  until the write is sent. The mark starts at the write guard check and lives in the asynchronous flow of the method; the 16 public write methods that were
+  synchronous (`Task`-returning without `async`) are `async` now, so the mark never reaches the caller (their argument and guard exceptions now arrive through the
+  task instead of being thrown at the call). The four always-refused obsolete Access methods check the guard without marking.
+* **L-3:** an exception in a `Delayed`/`Throttled` subscriber is swallowed and counted (`cloudflare.budget.subscriber_errors`); the 429 answer is disposed if
+  reporting it fails (connection and `CloudflareRateBudgetHandler`).
+* **L-4:** `[DebuggerBrowsable(Never)]` on `CloudflareOptions.ApiToken`, `TurnstileOptions.SecretKey`, `AccessServiceToken.ClientSecret`, `TurnstileWidget.Secret`
+  and the value of `CloudflareOneTimeSecret`; `TurnstileOptions.ToString` without the secret.
+* **L-5:** the budget registry keeps at most `MaxBudgets` (1024) budgets: idle budgets are removed, least recently used first; a client that still holds a
+  removed budget is moved to the current budget of its token on its next request (no split count). At most 100 budget labels per process in metrics, then `other`.
+  New counter `cloudflare.budget.refused`.
+* **L-6:** Pages and Workflows remove every secret-looking member from their answers in addition to their named members (`ResourceKit.SendHiddenSecretFreeAsync`,
+  `ListHiddenSecretFreeAsync`).
+* **L-7:** `Retry-After` as HTTP date is read with the budget's clock (connection and `CloudflareRateBudgetHandler`; the handler read only seconds before).
+* **L-8 tests:** WriteFilter-before-read for *all* curated clients (reflective), single-dot ids (`.`, `%2e`) in the reflective path test and in named calls,
+  `Workflows.ChangeInstanceStatusAsync` reached by the reflective surface (the scenario workaround is gone), parallelism, clock jumps and cancellation in the
+  budget, factory race. A fifth sample answer (list item with status and role) keeps `Members.RemoveAsync` in the coverage matrix.
+* Supply chain (documentation): the packages are not published on a feed; the platform keeps them in its local feed with `SHA512SUMS`. Reserving the prefix
+  `InfinitySuite360.*` on nuget.org is an open task for the owner of the organisation (protects against a foreign package with the same id).
+* Tests: 28 new, 473 in total.
+
+**Breaking changes (against the unpublished 0.9.0)**
+
+* `WorkflowsClient.ChangeInstanceStatusAsync` and `PreviewChangeInstanceStatus` take `WorkflowInstanceAction` (`Pause`, `Resume`, `Restart`, `Terminate`) instead of a
+  string; an undefined value throws `ArgumentOutOfRangeException`.
+* `CloudflareRateBudgetExceededException` is a regular class (new `QueueFull`); `CloudflareRateBudgetSnapshot` has `Queued`; `RateBudget.MaxDelay` is limited to
+  24 hours; budgets measure with `TimeProvider.GetTimestamp`.
+* Behaviour: a preparing read of a write method draws from the write share; the 16 former synchronous write methods report argument and guard errors through the
+  returned task.
+
 ## 0.9.0 – unreleased
 
 Stage P6 of the plan: cross-cutting work and the rest of the API. Contains 0.8.1. Defaults are cautious; no real Cloudflare call in any test (fake handler only).

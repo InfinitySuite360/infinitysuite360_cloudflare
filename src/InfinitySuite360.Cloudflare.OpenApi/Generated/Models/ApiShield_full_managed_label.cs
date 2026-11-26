@@ -12,14 +12,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
     public partial class ApiShield_full_managed_label : global::InfinitySuite360.Cloudflare.OpenApi.Models.ApiShield_full_label, IParsable
     #pragma warning restore CS1591
     {
-        /// <summary>The source property</summary>
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-#nullable enable
-        public string? Source { get; set; }
-#nullable restore
-#else
-        public string Source { get; set; }
-#endif
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value
         /// </summary>
@@ -38,7 +30,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>(base.GetFieldDeserializers())
             {
-                { "source", n => { Source = n.GetStringValue(); } },
             };
         }
         /// <summary>
@@ -49,7 +40,6 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             base.Serialize(writer);
-            writer.WriteStringValue("source", Source);
         }
     }
 }

@@ -40,11 +40,11 @@ public sealed class PagesClient(ICloudflareApiConnection api) : CloudflareResour
     private static readonly string[] Hidden = ["env_vars", "deployment_configs", "web_analytics_token", "build_config"];
 
     public async Task<IReadOnlyList<PagesProject>> ListProjectsAsync(string? accountId = null, CancellationToken ct = default) =>
-        (await ResourceKit.ListStrippedAsync<PagesProject>(Api, AccountPath(accountId, "pages", "projects"), 10, ct, Hidden).ConfigureAwait(false));
+        (await ResourceKit.ListHiddenSecretFreeAsync<PagesProject>(Api, AccountPath(accountId, "pages", "projects"), 10, ct, Hidden).ConfigureAwait(false));
 
     public async Task<PagesProject?> GetProjectAsync(string projectName, string? accountId = null, CancellationToken ct = default)
     {
-        try { return await ResourceKit.SendStrippedAsync<PagesProject>(Api, HttpMethod.Get, ProjectPath(accountId, projectName), null, ct, Hidden).ConfigureAwait(false); }
+        try { return await ResourceKit.SendHiddenSecretFreeAsync<PagesProject>(Api, HttpMethod.Get, ProjectPath(accountId, projectName), null, ct, Hidden).ConfigureAwait(false); }
         catch (CloudflareApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound) { return null; }
     }
 
@@ -53,7 +53,7 @@ public sealed class PagesClient(ICloudflareApiConnection api) : CloudflareResour
     {
         if (environment is not (null or "production" or "preview")) throw new ArgumentException("environment must be \"production\" or \"preview\".", nameof(environment));
         var path = CloudflarePath.WithQuery(ProjectPath(accountId, projectName) + "/deployments", ("env", environment));
-        return await ResourceKit.ListStrippedAsync<PagesDeployment>(Api, path, 25, ct, Hidden).ConfigureAwait(false);
+        return await ResourceKit.ListHiddenSecretFreeAsync<PagesDeployment>(Api, path, 25, ct, Hidden).ConfigureAwait(false);
     }
 
     /// <summary>What <see cref="RollbackAsync"/> would send (nothing is sent).</summary>
@@ -62,12 +62,12 @@ public sealed class PagesClient(ICloudflareApiConnection api) : CloudflareResour
             $"Roll production of {projectName} back to deployment {deploymentId}. Visitors get the older version at once.");
 
     /// <summary>Rolls production back to <paramref name="deploymentId"/> (write guard first; needs <paramref name="allowDeploy"/>; POST, never repeated).</summary>
-    public Task<PagesDeployment> RollbackAsync(string projectName, string deploymentId, string? accountId = null, bool allowDeploy = false, CancellationToken ct = default)
+    public async Task<PagesDeployment> RollbackAsync(string projectName, string deploymentId, string? accountId = null, bool allowDeploy = false, CancellationToken ct = default)
     {
         var path = DeploymentPath(accountId, projectName, deploymentId) + "/rollback";
         EnsureWritable(HttpMethod.Post, path);
         ResourceKit.Allow(allowDeploy, "a rollback changes what visitors get at once", nameof(allowDeploy));
-        return ResourceKit.SendStrippedAsync<PagesDeployment>(Api, HttpMethod.Post, path, null, ct, Hidden);
+        return await ResourceKit.SendHiddenSecretFreeAsync<PagesDeployment>(Api, HttpMethod.Post, path, null, ct, Hidden).ConfigureAwait(false);
     }
 
     private string ProjectPath(string? accountId, string projectName) =>
@@ -137,6 +137,19 @@ public sealed class WorkflowInstance : CloudflareModel
     public DateTimeOffset? EndedOn { get; init; }
 }
 
+/// <summary>What <see cref="WorkflowsClient.ChangeInstanceStatusAsync"/> does with an instance (0.9.1).</summary>
+public enum WorkflowInstanceAction
+{
+    /// <summary>Pause a running instance (no switch needed).</summary>
+    Pause,
+    /// <summary>Resume a paused instance (no switch needed).</summary>
+    Resume,
+    /// <summary>Restart from the beginning; the running state is lost (needs <c>allowTerminate</c>).</summary>
+    Restart,
+    /// <summary>End the instance for good; it cannot be resumed (needs <c>allowTerminate</c>).</summary>
+    Terminate,
+}
+
 /// <summary>
 /// Workflows, narrow wrapper (0.9.0, matrix priority 3): list workflows and instances, read an instance; pause, resume or terminate an instance with
 /// preview (<c>terminate</c> needs <c>allowTerminate</c>, it cannot be resumed). Creating instances (with parameters), events and deleting workflows are
@@ -153,33 +166,39 @@ public sealed class WorkflowsClient(ICloudflareApiConnection api) : CloudflareRe
 
     /// <summary>Instances of a workflow; <paramref name="status"/> filters (for example "errored").</summary>
     public Task<IReadOnlyList<WorkflowInstance>> ListInstancesAsync(string workflowName, string? status = null, string? accountId = null, CancellationToken ct = default) =>
-        ResourceKit.ListStrippedAsync<WorkflowInstance>(Api, CloudflarePath.WithQuery(WorkflowPath(accountId, workflowName) + "/instances", ("status", status)), 50, ct, Hidden);
+        ResourceKit.ListHiddenSecretFreeAsync<WorkflowInstance>(Api, CloudflarePath.WithQuery(WorkflowPath(accountId, workflowName) + "/instances", ("status", status)), 50, ct, Hidden);
 
     public async Task<WorkflowInstance?> GetInstanceAsync(string workflowName, string instanceId, string? accountId = null, CancellationToken ct = default)
     {
-        try { return await ResourceKit.SendStrippedAsync<WorkflowInstance>(Api, HttpMethod.Get, InstancePath(accountId, workflowName, instanceId), null, ct, Hidden).ConfigureAwait(false); }
+        try { return await ResourceKit.SendHiddenSecretFreeAsync<WorkflowInstance>(Api, HttpMethod.Get, InstancePath(accountId, workflowName, instanceId), null, ct, Hidden).ConfigureAwait(false); }
         catch (CloudflareApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound) { return null; }
     }
 
     /// <summary>What <see cref="ChangeInstanceStatusAsync"/> would send (nothing is sent).</summary>
-    public CloudflareChangePreview PreviewChangeInstanceStatus(string workflowName, string instanceId, string status, string? accountId = null) =>
-        Preview(HttpMethod.Patch, InstancePath(accountId, workflowName, instanceId) + "/status", new { status = Status(status) },
-            $"Set instance {instanceId} of {workflowName} to \"{status}\".{(status == "terminate" ? " WARNING: a terminated instance cannot be resumed." : "")}");
+    public CloudflareChangePreview PreviewChangeInstanceStatus(string workflowName, string instanceId, WorkflowInstanceAction action, string? accountId = null) =>
+        Preview(HttpMethod.Patch, InstancePath(accountId, workflowName, instanceId) + "/status", new { status = Status(action) },
+            $"Set instance {instanceId} of {workflowName} to \"{Status(action)}\".{(action == WorkflowInstanceAction.Terminate ? " WARNING: a terminated instance cannot be resumed." : "")}");
 
     /// <summary>
-    /// Pauses, resumes, restarts or terminates an instance (<paramref name="status"/>: "pause", "resume", "restart", "terminate"). "terminate" and "restart" need
-    /// <paramref name="allowTerminate"/> (the running state is lost). Write guard first.
+    /// Pauses, resumes, restarts or terminates an instance. <see cref="WorkflowInstanceAction.Terminate"/> and <see cref="WorkflowInstanceAction.Restart"/>
+    /// need <paramref name="allowTerminate"/> (the running state is lost). Write guard first. 0.9.1: the action is an enum (a string in 0.9.0), so an
+    /// invalid value cannot be passed and the method is reachable for the reflective tests.
     /// </summary>
-    public Task<JsonElement> ChangeInstanceStatusAsync(string workflowName, string instanceId, string status, string? accountId = null, bool allowTerminate = false, CancellationToken ct = default)
+    public Task<JsonElement> ChangeInstanceStatusAsync(string workflowName, string instanceId, WorkflowInstanceAction action, string? accountId = null, bool allowTerminate = false, CancellationToken ct = default)
     {
-        var s = Status(status);
+        var s = Status(action);
         return GuardedWriteAsync<JsonElement>(HttpMethod.Patch, InstancePath(accountId, workflowName, instanceId) + "/status", new { status = s }, ct,
-            s is "pause" or "resume" || allowTerminate, $"\"{s}\" ends the running state of the instance", nameof(allowTerminate));
+            action is WorkflowInstanceAction.Pause or WorkflowInstanceAction.Resume || allowTerminate, $"\"{s}\" ends the running state of the instance", nameof(allowTerminate));
     }
 
-    private static string Status(string? status) => status is "pause" or "resume" or "restart" or "terminate"
-        ? status
-        : throw new ArgumentException("status must be \"pause\", \"resume\", \"restart\" or \"terminate\".", nameof(status));
+    private static string Status(WorkflowInstanceAction action) => action switch
+    {
+        WorkflowInstanceAction.Pause => "pause",
+        WorkflowInstanceAction.Resume => "resume",
+        WorkflowInstanceAction.Restart => "restart",
+        WorkflowInstanceAction.Terminate => "terminate",
+        _ => throw new ArgumentOutOfRangeException(nameof(action), action, "Unknown workflow instance action."),
+    };
 
     private string WorkflowPath(string? accountId, string workflowName) =>
         AccountPath(accountId, "workflows", ResourceKit.Required(workflowName, nameof(workflowName)));
@@ -262,7 +281,7 @@ public sealed class SecretsStoreEntry : CloudflareModel
 public sealed class SecretsStoreClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
     public Task<IReadOnlyList<SecretsStore>> ListStoresAsync(string? accountId = null, CancellationToken ct = default) =>
-        ResourceKit.ListStrippedAsync<SecretsStore>(Api, AccountPath(accountId, "secrets_store", "stores"), 50, ct, "value");
+        ResourceKit.ListHiddenSecretFreeAsync<SecretsStore>(Api, AccountPath(accountId, "secrets_store", "stores"), 50, ct, "value");
 
     /// <summary>The secrets of a store: names, scopes, status, comment (no values).</summary>
     public async Task<IReadOnlyList<SecretsStoreEntry>> ListSecretsAsync(string storeId, string? accountId = null, CancellationToken ct = default)

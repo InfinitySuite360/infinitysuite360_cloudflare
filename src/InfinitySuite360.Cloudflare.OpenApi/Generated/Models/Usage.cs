@@ -9,13 +9,21 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     #pragma warning disable CS1591
-    public partial class DomainSearch : IAdditionalDataHolder, IParsable
+    public partial class Usage : IAdditionalDataHolder, IParsable
     #pragma warning restore CS1591
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>The code property</summary>
         public int? Code { get; set; }
+        /// <summary>The documentation_url property</summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
+#nullable enable
+        public string? DocumentationUrl { get; set; }
+#nullable restore
+#else
+        public string DocumentationUrl { get; set; }
+#endif
         /// <summary>The message property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -24,30 +32,30 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 #else
         public string Message { get; set; }
 #endif
-        /// <summary>Location of the invalid value that caused the error.</summary>
+        /// <summary>The source property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.DomainSearch_source? Source { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage_source? Source { get; set; }
 #nullable restore
 #else
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.DomainSearch_source Source { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage_source Source { get; set; }
 #endif
         /// <summary>
-        /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.DomainSearch"/> and sets the default values.
+        /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage"/> and sets the default values.
         /// </summary>
-        public DomainSearch()
+        public Usage()
         {
             AdditionalData = new Dictionary<string, object>();
         }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.DomainSearch"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage"/></returns>
         /// <param name="parseNode">The parse node to use to read the discriminator value and create the object</param>
-        public static global::InfinitySuite360.Cloudflare.OpenApi.Models.DomainSearch CreateFromDiscriminatorValue(IParseNode parseNode)
+        public static global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage CreateFromDiscriminatorValue(IParseNode parseNode)
         {
             if(ReferenceEquals(parseNode, null)) throw new ArgumentNullException(nameof(parseNode));
-            return new global::InfinitySuite360.Cloudflare.OpenApi.Models.DomainSearch();
+            return new global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage();
         }
         /// <summary>
         /// The deserialization information for the current model
@@ -58,8 +66,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             return new Dictionary<string, Action<IParseNode>>
             {
                 { "code", n => { Code = n.GetIntValue(); } },
+                { "documentation_url", n => { DocumentationUrl = n.GetStringValue(); } },
                 { "message", n => { Message = n.GetStringValue(); } },
-                { "source", n => { Source = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.DomainSearch_source>(global::InfinitySuite360.Cloudflare.OpenApi.Models.DomainSearch_source.CreateFromDiscriminatorValue); } },
+                { "source", n => { Source = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage_source>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage_source.CreateFromDiscriminatorValue); } },
             };
         }
         /// <summary>
@@ -70,8 +79,9 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
             writer.WriteIntValue("code", Code);
+            writer.WriteStringValue("documentation_url", DocumentationUrl);
             writer.WriteStringValue("message", Message);
-            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.DomainSearch_source>("source", Source);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage_source>("source", Source);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

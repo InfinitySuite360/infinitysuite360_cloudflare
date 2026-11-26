@@ -49,6 +49,7 @@ public sealed class CloudflareClientFactory : ICloudflareClientFactory
     private readonly HttpMessageHandler? _ownedHandler;
     private readonly CloudflareRateBudgetRegistry _budgets;
     private readonly ConcurrentDictionary<string, Entry> _clients = new(StringComparer.Ordinal);
+    private readonly object _gate = new();
     private volatile bool _disposed;
 
     private sealed record Entry(string Fingerprint, string Settings, Func<HttpMethod, string, bool>? WriteFilter, ICloudflareClient Client);
@@ -107,14 +108,19 @@ public sealed class CloudflareClientFactory : ICloudflareClientFactory
         var source = _resolve(tenant) ?? throw new CloudflareConfigurationException($"Cloudflare: tenant \"{tenant}\" is not configured.");
         var options = Prepare(source, tenant);
         var fingerprint = _budgets.Fingerprint(options.ApiToken);
-        var settings = options.ToString();
-        // A cached client is reused only for the same tenant with the same token and the same settings; otherwise a new one replaces it.
-        var entry = _clients.AddOrUpdate(tenant,
-            _ => new Entry(fingerprint, settings, options.WriteFilter, Build(options)),
-            (_, old) => old.Fingerprint == fingerprint && old.Settings == settings && ReferenceEquals(old.WriteFilter, options.WriteFilter)
-                ? old
-                : new Entry(fingerprint, settings, options.WriteFilter, Build(options)));
-        return entry.Client;
+        // M-3 (0.9.1): every setting counts (keyed hash of all option values except the token, see CloudflareOptions.SettingsText), not only ToString.
+        var settings = _budgets.Fingerprint(options.SettingsText());
+        // A cached client is reused only for the same tenant with the same token and the same settings; otherwise a new one replaces it. One lock for
+        // the compare-and-build, so parallel first calls get the same client instead of each building one (M-3/L-8 race).
+        lock (_gate)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (_clients.TryGetValue(tenant, out var old) && old.Fingerprint == fingerprint && old.Settings == settings && ReferenceEquals(old.WriteFilter, options.WriteFilter))
+                return old.Client;
+            var entry = new Entry(fingerprint, settings, options.WriteFilter, Build(options));
+            _clients[tenant] = entry;
+            return entry.Client;
+        }
     }
 
     public ICloudflareClient CreateClient(CloudflareOptions options)

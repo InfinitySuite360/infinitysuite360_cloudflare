@@ -18,20 +18,20 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>The errors property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Dns_records>? Errors { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage>? Errors { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Dns_records> Errors { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage> Errors { get; set; }
 #endif
         /// <summary>The primary error message.</summary>
         public override string Message { get => base.Message; }
         /// <summary>The messages property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Dns_records>? Messages { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage>? Messages { get; set; }
 #nullable restore
 #else
-        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Dns_records> Messages { get; set; }
+        public List<global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage> Messages { get; set; }
 #endif
         /// <summary>The result property</summary>
         public global::InfinitySuite360.Cloudflare.OpenApi.Models.DnsRecords_apiResponseCommonFailure_result? Result { get; set; }
@@ -62,8 +62,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "errors", n => { Errors = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Dns_records>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Dns_records.CreateFromDiscriminatorValue)?.AsList(); } },
-                { "messages", n => { Messages = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Dns_records>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Dns_records.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "errors", n => { Errors = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage.CreateFromDiscriminatorValue)?.AsList(); } },
+                { "messages", n => { Messages = n.GetCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage.CreateFromDiscriminatorValue)?.AsList(); } },
                 { "result", n => { Result = n.GetEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.DnsRecords_apiResponseCommonFailure_result>(); } },
                 { "success", n => { Success = n.GetBoolValue(); } },
             };
@@ -75,8 +75,8 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         public virtual void Serialize(ISerializationWriter writer)
         {
             if(ReferenceEquals(writer, null)) throw new ArgumentNullException(nameof(writer));
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Dns_records>("errors", Errors);
-            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Dns_records>("messages", Messages);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage>("errors", Errors);
+            writer.WriteCollectionOfObjectValues<global::InfinitySuite360.Cloudflare.OpenApi.Models.Usage>("messages", Messages);
             writer.WriteEnumValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.DnsRecords_apiResponseCommonFailure_result>("result", Result);
             writer.WriteBoolValue("success", Success);
             writer.WriteAdditionalData(AdditionalData);

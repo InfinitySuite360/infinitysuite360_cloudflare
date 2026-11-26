@@ -9,7 +9,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Kiota", "1.0.0")]
     #pragma warning disable CS1591
-    public partial class Memberships : IAdditionalDataHolder, IParsable
+    public partial class User : IAdditionalDataHolder, IParsable
     #pragma warning restore CS1591
     {
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
@@ -35,27 +35,27 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
         /// <summary>The source property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Memberships_source? Source { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.User_source? Source { get; set; }
 #nullable restore
 #else
-        public global::InfinitySuite360.Cloudflare.OpenApi.Models.Memberships_source Source { get; set; }
+        public global::InfinitySuite360.Cloudflare.OpenApi.Models.User_source Source { get; set; }
 #endif
         /// <summary>
-        /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Memberships"/> and sets the default values.
+        /// Instantiates a new <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.User"/> and sets the default values.
         /// </summary>
-        public Memberships()
+        public User()
         {
             AdditionalData = new Dictionary<string, object>();
         }
         /// <summary>
         /// Creates a new instance of the appropriate class based on discriminator value
         /// </summary>
-        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.Memberships"/></returns>
+        /// <returns>A <see cref="global::InfinitySuite360.Cloudflare.OpenApi.Models.User"/></returns>
         /// <param name="parseNode">The parse node to use to read the discriminator value and create the object</param>
-        public static global::InfinitySuite360.Cloudflare.OpenApi.Models.Memberships CreateFromDiscriminatorValue(IParseNode parseNode)
+        public static global::InfinitySuite360.Cloudflare.OpenApi.Models.User CreateFromDiscriminatorValue(IParseNode parseNode)
         {
             if(ReferenceEquals(parseNode, null)) throw new ArgumentNullException(nameof(parseNode));
-            return new global::InfinitySuite360.Cloudflare.OpenApi.Models.Memberships();
+            return new global::InfinitySuite360.Cloudflare.OpenApi.Models.User();
         }
         /// <summary>
         /// The deserialization information for the current model
@@ -68,7 +68,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
                 { "code", n => { Code = n.GetIntValue(); } },
                 { "documentation_url", n => { DocumentationUrl = n.GetStringValue(); } },
                 { "message", n => { Message = n.GetStringValue(); } },
-                { "source", n => { Source = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Memberships_source>(global::InfinitySuite360.Cloudflare.OpenApi.Models.Memberships_source.CreateFromDiscriminatorValue); } },
+                { "source", n => { Source = n.GetObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.User_source>(global::InfinitySuite360.Cloudflare.OpenApi.Models.User_source.CreateFromDiscriminatorValue); } },
             };
         }
         /// <summary>
@@ -81,7 +81,7 @@ namespace InfinitySuite360.Cloudflare.OpenApi.Models
             writer.WriteIntValue("code", Code);
             writer.WriteStringValue("documentation_url", DocumentationUrl);
             writer.WriteStringValue("message", Message);
-            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.Memberships_source>("source", Source);
+            writer.WriteObjectValue<global::InfinitySuite360.Cloudflare.OpenApi.Models.User_source>("source", Source);
             writer.WriteAdditionalData(AdditionalData);
         }
     }
