@@ -43,6 +43,34 @@ public sealed class TunnelConfiguration : CloudflareModel
     public string? Source { get; init; }
 }
 
+/// <summary>One connection of a connector to a Cloudflare data centre.</summary>
+public sealed class TunnelConnection : CloudflareModel
+{
+    public string? Id { get; init; }
+    public string? Uuid { get; init; }
+    public string? ColoName { get; init; }
+    public string? ClientId { get; init; }
+    public string? ClientVersion { get; init; }
+    public string? OriginIp { get; init; }
+    public bool IsPendingReconnect { get; init; }
+    public DateTimeOffset? OpenedAt { get; init; }
+}
+
+/// <summary>A running cloudflared instance (replica) of a tunnel with its connections.</summary>
+public sealed class TunnelConnector : CloudflareModel
+{
+    public string Id { get; init; } = "";
+    public string? Version { get; init; }
+    public string? Arch { get; init; }
+    public string? OriginIp { get; init; }
+    public DateTimeOffset? RunAt { get; init; }
+    public List<string> Features { get; init; } = [];
+    public List<TunnelConnection> Conns { get; init; } = [];
+
+    /// <summary>Connections that are not waiting to reconnect.</summary>
+    public int ActiveConnections => Conns.Count(c => !c.IsPendingReconnect);
+}
+
 /// <summary>Cloudflare Tunnel (cloudflared) management.</summary>
 public sealed class TunnelsClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
@@ -64,6 +92,17 @@ public sealed class TunnelsClient(ICloudflareApiConnection api) : CloudflareReso
     /// <summary>Disconnects the tunnel's connections (for example before deleting it).</summary>
     public Task CleanupConnectionsAsync(string tunnelId, string? accountId = null, CancellationToken ct = default) =>
         Api.DeleteAsync(AccountPath(accountId, "cfd_tunnel", tunnelId, "connections"), ct);
+
+    /// <summary>Connectors (replicas) of the tunnel with their connections; empty when no cloudflared is connected.</summary>
+    public async Task<List<TunnelConnector>> ListConnectionsAsync(string tunnelId, string? accountId = null, CancellationToken ct = default) =>
+        await Api.GetAsync<List<TunnelConnector>>(AccountPath(accountId, "cfd_tunnel", tunnelId, "connections"), ct).ConfigureAwait(false) ?? [];
+
+    /// <summary>Connectors of the tunnel (newer endpoint for the same information, with version and features).</summary>
+    public async Task<List<TunnelConnector>> ListConnectorsAsync(string tunnelId, string? accountId = null, CancellationToken ct = default) =>
+        await Api.GetAsync<List<TunnelConnector>>(AccountPath(accountId, "cfd_tunnel", tunnelId, "connectors"), ct).ConfigureAwait(false) ?? [];
+
+    public Task<TunnelConnector> GetConnectorAsync(string tunnelId, string connectorId, string? accountId = null, CancellationToken ct = default) =>
+        Api.GetAsync<TunnelConnector>(AccountPath(accountId, "cfd_tunnel", tunnelId, "connectors", connectorId), ct);
 
     /// <summary>Token for <c>cloudflared tunnel run --token …</c>. Treat it as a secret.</summary>
     public Task<string> GetTokenAsync(string tunnelId, string? accountId = null, CancellationToken ct = default) =>

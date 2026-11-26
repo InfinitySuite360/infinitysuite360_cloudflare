@@ -76,6 +76,14 @@ public static class ZoneSettingIds
     public const string EmailObfuscation = "email_obfuscation";
     public const string HotlinkProtection = "hotlink_protection";
     public const string WebSockets = "websockets";
+    /// <summary>How long a visitor who passed a challenge is not challenged again (seconds).</summary>
+    public const string ChallengeTtl = "challenge_ttl";
+    /// <summary>0-RTT connection resumption ("on"/"off"); requests can be replayed, so "off" is the safer value for APIs.</summary>
+    public const string ZeroRtt = "0rtt";
+    /// <summary>Encrypted Client Hello ("on"/"off").</summary>
+    public const string Ech = "ech";
+    /// <summary>SSL/TLS Recommender: Cloudflare suggests the strictest SSL mode the origin supports.</summary>
+    public const string SslRecommender = "ssl_recommender";
 }
 
 /// <summary>Zones, zone settings, cache purge, DNSSEC and Tiered Cache.</summary>

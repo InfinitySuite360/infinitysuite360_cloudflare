@@ -95,7 +95,33 @@ public static class AccessRules
     public static JsonElement DevicePosture(string integrationUid) => E(new { device_posture = new { integration_uid = integrationUid } });
 }
 
-/// <summary>Zero Trust Access: applications, policies, groups and service tokens.</summary>
+/// <summary>An identity provider of Zero Trust (Google, GitHub, one-time PIN, SAML, OIDC, …).</summary>
+public sealed class AccessIdentityProvider : CloudflareModel
+{
+    public string Id { get; init; } = "";
+    public string Name { get; init; } = "";
+    /// <summary>For example "onetimepin", "google", "github", "azureAD", "saml", "oidc".</summary>
+    public string Type { get; init; } = "";
+    /// <summary>Provider settings. Cloudflare returns secrets masked.</summary>
+    public JsonElement? Config { get; init; }
+    public JsonElement? ScimConfig { get; init; }
+}
+
+/// <summary>An entry of the Access request log (who tried to reach which application, allowed or not).</summary>
+public sealed class AccessRequestLog : CloudflareModel
+{
+    public string? Action { get; init; }
+    public bool Allowed { get; init; }
+    public string? AppDomain { get; init; }
+    public string? AppUid { get; init; }
+    public string? Connection { get; init; }
+    public DateTimeOffset? CreatedAt { get; init; }
+    public string? IpAddress { get; init; }
+    public string? RayId { get; init; }
+    public string? UserEmail { get; init; }
+}
+
+/// <summary>Zero Trust Access: applications, policies, groups, service tokens, identity providers and request logs.</summary>
 public sealed class AccessClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
     // ---- Applications ----
@@ -168,6 +194,38 @@ public sealed class AccessClient(ICloudflareApiConnection api) : CloudflareResou
 
     public Task DeleteServiceTokenAsync(string tokenId, string? accountId = null, CancellationToken ct = default) =>
         Api.DeleteAsync(AccountPath(accountId, "access", "service_tokens", tokenId), ct);
+
+    // ---- Identity providers ----
+    public Task<IReadOnlyList<AccessIdentityProvider>> ListIdentityProvidersAsync(string? accountId = null, CancellationToken ct = default) =>
+        Api.ListAllToListAsync<AccessIdentityProvider>(AccountPath(accountId, "access", "identity_providers"), 50, ct);
+
+    public Task<AccessIdentityProvider> GetIdentityProviderAsync(string providerId, string? accountId = null, CancellationToken ct = default) =>
+        Api.GetAsync<AccessIdentityProvider>(AccountPath(accountId, "access", "identity_providers", providerId), ct);
+
+    /// <summary>Creates an identity provider. <paramref name="config"/> depends on the type (for example <c>new { }</c> for "onetimepin").</summary>
+    public Task<AccessIdentityProvider> CreateIdentityProviderAsync(string name, string type, object? config = null, string? accountId = null, CancellationToken ct = default) =>
+        Api.PostAsync<AccessIdentityProvider>(AccountPath(accountId, "access", "identity_providers"), new { name, type, config = config ?? new { } }, ct);
+
+    /// <summary>Replaces an identity provider (PUT: send the complete configuration).</summary>
+    public Task<AccessIdentityProvider> UpdateIdentityProviderAsync(string providerId, string name, string type, object? config = null, string? accountId = null, CancellationToken ct = default) =>
+        Api.PutAsync<AccessIdentityProvider>(AccountPath(accountId, "access", "identity_providers", providerId), new { name, type, config = config ?? new { } }, ct);
+
+    public Task DeleteIdentityProviderAsync(string providerId, string? accountId = null, CancellationToken ct = default) =>
+        Api.DeleteAsync(AccountPath(accountId, "access", "identity_providers", providerId), ct);
+
+    // ---- Request logs ----
+    /// <summary>Latest Access request log entries (newest first by default).</summary>
+    public async Task<List<AccessRequestLog>> ListRequestLogsAsync(DateTimeOffset? since = null, DateTimeOffset? until = null, int limit = 100, bool newestFirst = true,
+        string? userEmail = null, string? rayId = null, string? appDomain = null, string? accountId = null, CancellationToken ct = default)
+    {
+        var path = CloudflarePath.WithQuery(AccountPath(accountId, "access", "logs", "access_requests"),
+            ("limit", Math.Clamp(limit, 1, 1000).ToString(System.Globalization.CultureInfo.InvariantCulture)),
+            ("direction", newestFirst ? "desc" : "asc"),
+            ("since", since?.ToUniversalTime().ToString("o", System.Globalization.CultureInfo.InvariantCulture)),
+            ("until", until?.ToUniversalTime().ToString("o", System.Globalization.CultureInfo.InvariantCulture)),
+            ("user_email", userEmail), ("ray_id", rayId), ("app_domain", appDomain));
+        return await Api.GetAsync<List<AccessRequestLog>>(path, ct).ConfigureAwait(false) ?? [];
+    }
 
     /// <summary>Tokens that expire within the next <paramref name="withinDays"/> days.</summary>
     public static IReadOnlyList<AccessServiceToken> DueForRotation(IEnumerable<AccessServiceToken> tokens, DateTimeOffset now, int withinDays = 30) =>

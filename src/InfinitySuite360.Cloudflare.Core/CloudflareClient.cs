@@ -33,6 +33,8 @@ public interface ICloudflareClient
     CertificatesClient Certificates { get; }
     AnalyticsClient Analytics { get; }
     IpsClient Ips { get; }
+    ListsClient Lists { get; }
+    IpAccessClient IpAccess { get; }
 }
 
 public sealed class CloudflareClient : ICloudflareClient
@@ -55,6 +57,8 @@ public sealed class CloudflareClient : ICloudflareClient
         Certificates = new(api);
         Analytics = new(api);
         Ips = new(api);
+        Lists = new(api);
+        IpAccess = new(api);
     }
 
     /// <summary>Creates a client without dependency injection (console tools, scripts, tests).</summary>
@@ -80,4 +84,6 @@ public sealed class CloudflareClient : ICloudflareClient
     public CertificatesClient Certificates { get; }
     public AnalyticsClient Analytics { get; }
     public IpsClient Ips { get; }
+    public ListsClient Lists { get; }
+    public IpAccessClient IpAccess { get; }
 }

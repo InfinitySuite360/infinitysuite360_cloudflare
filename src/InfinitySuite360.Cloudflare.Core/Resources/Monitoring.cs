@@ -97,6 +97,20 @@ public sealed class AlertWebhook : CloudflareModel
     public string? Type { get; init; }
 }
 
+/// <summary>A notification Cloudflare sent (history of <c>alerting/v3/history</c>).</summary>
+public sealed class AlertHistoryEntry : CloudflareModel
+{
+    public string Id { get; init; } = "";
+    public string? Name { get; init; }
+    public string? Description { get; init; }
+    public string? AlertType { get; init; }
+    public string? AlertBody { get; init; }
+    public string? Mechanism { get; init; }
+    public string? MechanismType { get; init; }
+    public string? PolicyId { get; init; }
+    public DateTimeOffset? Sent { get; init; }
+}
+
 /// <summary>Health Checks, Logpush, audit logs and notifications.</summary>
 public sealed class MonitoringClient(ICloudflareApiConnection api) : CloudflareResourceClient(api)
 {
@@ -140,6 +154,20 @@ public sealed class MonitoringClient(ICloudflareApiConnection api) : CloudflareR
     /// <summary>Available alert types grouped by product.</summary>
     public Task<Dictionary<string, List<JsonElement>>> ListAvailableAlertsAsync(string? accountId = null, CancellationToken ct = default) =>
         Api.GetAsync<Dictionary<string, List<JsonElement>>>(AccountPath(accountId, "alerting", "v3", "available_alerts"), ct);
+
+    /// <summary>
+    /// History of the notifications sent. One page: <paramref name="perPage"/> entries (1 to 100) from <paramref name="page"/>.
+    /// Cloudflare keeps the history for a limited time only.
+    /// </summary>
+    public async Task<List<AlertHistoryEntry>> ListAlertHistoryAsync(DateTimeOffset? since = null, DateTimeOffset? before = null, int perPage = 25, int page = 1, string? accountId = null, CancellationToken ct = default)
+    {
+        var path = CloudflarePath.WithQuery(AccountPath(accountId, "alerting", "v3", "history"),
+            ("per_page", Math.Clamp(perPage, 1, 100).ToString(CultureInfo.InvariantCulture)),
+            ("page", Math.Max(page, 1).ToString(CultureInfo.InvariantCulture)),
+            ("since", since?.ToUniversalTime().ToString("o", CultureInfo.InvariantCulture)),
+            ("before", before?.ToUniversalTime().ToString("o", CultureInfo.InvariantCulture)));
+        return await Api.GetAsync<List<AlertHistoryEntry>>(path, ct).ConfigureAwait(false) ?? [];
+    }
 
     public Task<List<AlertPolicy>> ListAlertPoliciesAsync(string? accountId = null, CancellationToken ct = default) =>
         Api.GetAsync<List<AlertPolicy>>(AccountPath(accountId, "alerting", "v3", "policies"), ct);
