@@ -1,3 +1,4 @@
+#pragma warning disable CS0618 // covers the old, unguarded identity provider methods of AccessClient until they are removed (1.0)
 using System.Net;
 using System.Text.Json;
 using InfinitySuite360.Cloudflare.Resources;
@@ -314,8 +315,12 @@ public class EdgeStatusTests
         Assert.Equal("github", body.GetProperty("type").GetString());
         Assert.Equal("x", body.GetProperty("config").GetProperty("client_id").GetString());
 
+        // 0.8.1: the obsolete delete is RemoveIdentityProviderAsync without allowRemoveLast (providers and applications are read first).
+        handler.Responses.Enqueue(FakeHandler.Ok("""[{"id":"idp1","name":"One-time PIN","type":"onetimepin"},{"id":"idp2","name":"GitHub","type":"github"}]""", """{"page":1,"per_page":50,"total_pages":1}"""));
+        handler.Responses.Enqueue(FakeHandler.Ok("[]", """{"page":1,"per_page":50,"total_pages":1}"""));
+        handler.Responses.Enqueue(FakeHandler.Ok("{}"));
         await cf.Access.DeleteIdentityProviderAsync("idp2");
-        Assert.Equal(HttpMethod.Delete, handler.Requests[2].Method);
+        Assert.Equal(HttpMethod.Delete, handler.Requests[^1].Method);
     }
 
     [Fact]

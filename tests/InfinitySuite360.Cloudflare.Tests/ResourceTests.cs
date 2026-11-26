@@ -1,3 +1,4 @@
+#pragma warning disable CS0618 // covers the old, unguarded R2 methods until they are removed
 using System.Net;
 using System.Text.Json;
 using InfinitySuite360.Cloudflare.Resources;
@@ -34,14 +35,18 @@ public class ResourceTests
     public async Task Tunnel_configuration_adds_catch_all_and_uses_camelCase()
     {
         var (cf, handler, _) = FakeHandler.Create(o => o.AllowWrites = true);
+        // 0.8.1: the obsolete PutConfigurationAsync is SetIngressAsync (read, version read again, PUT).
         handler.Responses.Enqueue(FakeHandler.Ok("""{"tunnel_id":"t1","version":2}"""));
+        handler.Responses.Enqueue(FakeHandler.Ok("""{"tunnel_id":"t1","version":2}"""));
+        handler.Responses.Enqueue(FakeHandler.Ok("""{"tunnel_id":"t1","version":3}"""));
         var origin = JsonSerializer.SerializeToElement(new { noTLSVerify = true });
         await cf.Tunnels.PutConfigurationAsync("t1", [new TunnelIngressRule { Hostname = "app.example.com", Service = "https://localhost:8443", OriginRequest = origin }]);
-        var body = JsonDocument.Parse(handler.Requests[0].Body!).RootElement.GetProperty("config").GetProperty("ingress");
+        Assert.Equal(HttpMethod.Put, handler.Requests[^1].Method);
+        var body = JsonDocument.Parse(handler.Requests[^1].Body!).RootElement.GetProperty("config").GetProperty("ingress");
         Assert.Equal(2, body.GetArrayLength());
         Assert.True(body[0].GetProperty("originRequest").GetProperty("noTLSVerify").GetBoolean());
         Assert.Equal("http_status:404", body[1].GetProperty("service").GetString());
-        Assert.Contains("/accounts/acc1/cfd_tunnel/t1/configurations", handler.Requests[0].Url);
+        Assert.Contains("/accounts/acc1/cfd_tunnel/t1/configurations", handler.Requests[^1].Url);
     }
 
     [Fact]

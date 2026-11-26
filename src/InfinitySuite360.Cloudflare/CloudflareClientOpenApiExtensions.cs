@@ -27,7 +27,15 @@ public static class CloudflareClientOpenApiExtensions
     public static CloudflareApiClient GetOpenApi(this ICloudflareClient client)
     {
         ArgumentNullException.ThrowIfNull(client);
-        return Clients.GetValue(client, static c => new Lazy<CloudflareApiClient>(() => CloudflareOpenApi.CreateClient(c.Api.Options))).Value;
+        return Clients.GetValue(client, static c => new Lazy<CloudflareApiClient>(() => Create(c))).Value;
+    }
+
+    // A client from ICloudflareClientFactory carries the budget of its token on the connection: the generated client draws from the same budget (0.9.0).
+    private static CloudflareApiClient Create(ICloudflareClient c)
+    {
+        if (c.Api is not CloudflareApiConnection { RateBudget: { } budget }) return CloudflareOpenApi.CreateClient(c.Api.Options);
+        var options = c.Api.Options;
+        return CloudflareOpenApi.CreateClient(options, new HttpClient(CloudflareOpenApi.CreateHandler(options, null, budget)) { Timeout = options.Timeout });
     }
 
     /// <summary>Sets where the generated client of <paramref name="client"/> comes from (called on first use of <c>OpenApi</c>).</summary>

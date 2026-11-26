@@ -37,11 +37,20 @@ public sealed class CloudflareApiConnection : ICloudflareApiConnection
     public CloudflareApiConnection(HttpClient http, CloudflareOptions options, Func<TimeSpan, CancellationToken, Task>? delay = null)
     {
         _http = http;
-        Options = options;
+        Options = options ?? throw new ArgumentNullException(nameof(options));
         _delay = delay ?? Task.Delay;
     }
 
     public CloudflareOptions Options { get; }
+
+    /// <summary>
+    /// Shared request budget of the token (0.9.0; see <see cref="CloudflareRateBudgetRegistry"/>). When set, every attempt takes a slot first and waits while
+    /// the budget is used up; a 429 from Cloudflare blocks the budget until <c>Retry-After</c>. Null: no counting (the default without a registry).
+    /// </summary>
+    public CloudflareRateBudget? RateBudget { get; init; }
+
+    /// <summary>Describes the connection without the token.</summary>
+    public override string ToString() => $"CloudflareApiConnection({Options}, Budget={RateBudget?.Name ?? "none"})";
 
     public Task<CloudflareResponse<T>> SendAsync<T>(HttpMethod method, string path, object? body = null, CancellationToken ct = default) =>
         SendContentAsync<T>(method, path, () => body is null ? null! : JsonContent(body), ct);
@@ -50,14 +59,14 @@ public sealed class CloudflareApiConnection : ICloudflareApiConnection
     {
         CloudflareWritePolicy.EnsureAllowed(method, path, Options);
         using var response = await SendWithRetryAsync(method, path, content, ct).ConfigureAwait(false);
-        var text = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+        var text = await ReadLimitedAsync(response, ct).ConfigureAwait(false);
         return Parse<T>(method, path, response.StatusCode, text);
     }
 
     public async Task<string> GetRawAsync(string path, CancellationToken ct = default)
     {
         using var response = await SendWithRetryAsync(HttpMethod.Get, path, () => null!, ct).ConfigureAwait(false);
-        var text = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+        var text = await ReadLimitedAsync(response, ct).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode) Parse<JsonElement>(HttpMethod.Get, path, response.StatusCode, text);
         return text;
     }
@@ -70,7 +79,7 @@ public sealed class CloudflareApiConnection : ICloudflareApiConnection
             ["variables"] = variables is null ? new JsonObject() : JsonSerializer.SerializeToNode(variables, variables.GetType(), CloudflareJson.Options),
         };
         using var response = await SendWithRetryAsync(HttpMethod.Post, "graphql", () => JsonContent(body), ct).ConfigureAwait(false);
-        var text = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+        var text = await ReadLimitedAsync(response, ct).ConfigureAwait(false);
         JsonElement root;
         try
         {
@@ -98,19 +107,26 @@ public sealed class CloudflareApiConnection : ICloudflareApiConnection
         if (string.IsNullOrWhiteSpace(Options.ApiToken))
             throw new CloudflareConfigurationException("Cloudflare: no API token configured (CloudflareOptions.ApiToken).");
 
-        var idempotent = CloudflareWritePolicy.IsIdempotent(method);
+        CloudflarePath.EnsureSafe(path);
+        var uri = CloudflareWritePolicy.ResolveUri(path, Options);
+        var idempotent = CloudflareWritePolicy.IsIdempotent(method, path);
+        var maxRetries = Math.Clamp(Options.MaxRetries, 0, CloudflareOptions.MaxRetriesLimit);
+        // GraphQL Analytics uses POST but only reads; it counts against the read share.
+        var kind = CloudflareWritePolicy.IsRead(method) || CloudflarePath.Normalize(path) == "graphql" ? CloudflareRequestKind.Read : CloudflareRequestKind.Write;
         for (var attempt = 0; ; attempt++)
         {
-            using var request = new HttpRequestMessage(method, BuildUri(path));
+            if (RateBudget is { } budget) await budget.AcquireAsync(kind, ct).ConfigureAwait(false);
+            using var request = new HttpRequestMessage(method, uri);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Options.ApiToken);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             request.Headers.UserAgent.TryParseAdd(Options.UserAgent);
             request.Content = content();
 
-            var response = await _http.SendAsync(request, HttpCompletionOption.ResponseContentRead, ct).ConfigureAwait(false);
+            var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.TooManyRequests) RateBudget?.ReportThrottled(RetryAfter(response), kind);
             var retryable = response.StatusCode == HttpStatusCode.TooManyRequests
                 || (idempotent && response.StatusCode is HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout);
-            if (!retryable || attempt >= Options.MaxRetries) return response;
+            if (!retryable || attempt >= maxRetries) return response;
 
             var wait = RetryDelay(response, attempt);
             response.Dispose();
@@ -118,19 +134,46 @@ public sealed class CloudflareApiConnection : ICloudflareApiConnection
         }
     }
 
-    private TimeSpan RetryDelay(HttpResponseMessage response, int attempt)
+    private static TimeSpan? RetryAfter(HttpResponseMessage response)
     {
         var ra = response.Headers.RetryAfter;
-        TimeSpan? fromHeader = ra?.Delta ?? (ra?.Date is { } date ? date - DateTimeOffset.UtcNow : null);
+        return ra?.Delta ?? (ra?.Date is { } date ? date - DateTimeOffset.UtcNow : null);
+    }
+
+    private TimeSpan RetryDelay(HttpResponseMessage response, int attempt)
+    {
+        var fromHeader = RetryAfter(response);
         var wait = fromHeader ?? TimeSpan.FromMilliseconds(Options.RetryBaseDelay.TotalMilliseconds * Math.Pow(2, attempt));
         if (wait < TimeSpan.Zero) wait = TimeSpan.Zero;
         return wait > TimeSpan.FromSeconds(60) ? TimeSpan.FromSeconds(60) : wait;
     }
 
-    private Uri BuildUri(string path)
+    // Reads the body with an upper bound (CloudflareOptions.MaxResponseBytes): an oversized or endless answer fails instead of filling the memory.
+    private async Task<string> ReadLimitedAsync(HttpResponseMessage response, CancellationToken ct)
     {
-        var baseAddress = Options.BaseAddress.EndsWith('/') ? Options.BaseAddress : Options.BaseAddress + "/";
-        return new Uri(new Uri(baseAddress), path.TrimStart('/'));
+        var limit = Options.MaxResponseBytes;
+        var method = response.RequestMessage?.Method.Method ?? "";
+        var path = response.RequestMessage?.RequestUri is { } u ? CloudflareWritePolicy.RelativePath(u, Options) : "";
+        if (response.Content.Headers.ContentLength is long length && length > limit)
+            throw new CloudflareApiException(response.StatusCode, method, path, [new CloudflareError { Message = $"The answer is larger than {limit} bytes (CloudflareOptions.MaxResponseBytes)." }]);
+        await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+        using var buffer = new MemoryStream();
+        var chunk = new byte[81920];
+        int read;
+        while ((read = await stream.ReadAsync(chunk, ct).ConfigureAwait(false)) > 0)
+        {
+            if (buffer.Length + read > limit)
+                throw new CloudflareApiException(response.StatusCode, method, path, [new CloudflareError { Message = $"The answer is larger than {limit} bytes (CloudflareOptions.MaxResponseBytes)." }]);
+            buffer.Write(chunk, 0, read);
+        }
+        var charset = response.Content.Headers.ContentType?.CharSet;
+        Encoding encoding;
+        try { encoding = string.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset.Trim('"')); }
+        catch (ArgumentException) { encoding = Encoding.UTF8; }
+        var bytes = buffer.GetBuffer();
+        var preamble = encoding.GetPreamble();
+        var start = preamble.Length > 0 && buffer.Length >= preamble.Length && bytes.AsSpan(0, preamble.Length).SequenceEqual(preamble) ? preamble.Length : 0;
+        return encoding.GetString(bytes, start, (int)buffer.Length - start);
     }
 
     private static HttpContent JsonContent(object body)
@@ -151,18 +194,18 @@ public sealed class CloudflareApiConnection : ICloudflareApiConnection
         if (string.IsNullOrWhiteSpace(text))
         {
             if ((int)status is >= 200 and < 300) return new CloudflareResponse<T> { Success = true };
-            throw new CloudflareApiException(status, method.Method, normalized, []);
+            throw CloudflareApiException.Create(status, method.Method, normalized, []);
         }
 
         CloudflareResponse<T>? parsed;
         try { parsed = JsonSerializer.Deserialize<CloudflareResponse<T>>(text, CloudflareJson.Options); }
         catch (JsonException ex)
         {
-            throw new CloudflareApiException(status, method.Method, normalized, [new CloudflareError { Message = "Response is not valid JSON." }], ex);
+            throw CloudflareApiException.Create(status, method.Method, normalized, [new CloudflareError { Message = "Response is not valid JSON." }], ex);
         }
 
         if (parsed is null || !parsed.Success || (int)status is < 200 or >= 300)
-            throw new CloudflareApiException(status, method.Method, normalized, parsed?.Errors ?? []);
+            throw CloudflareApiException.Create(status, method.Method, normalized, parsed?.Errors ?? []);
         return parsed;
     }
 }
@@ -202,7 +245,12 @@ public static class CloudflareApiConnectionExtensions
             var info = response.ResultInfo;
             if (items.Count == 0 || info is null) yield break;
             var next = info.Cursors?.After ?? info.Cursor;
-            if (info.TotalPages == 0 && !string.IsNullOrEmpty(next)) { cursor = next; continue; }
+            if (info.TotalPages == 0 && !string.IsNullOrEmpty(next))
+            {
+                if (next == cursor) yield break; // the same cursor again would loop
+                cursor = next;
+                continue;
+            }
             if (cursor is not null) yield break;
             if (info.TotalPages > 0 ? page >= info.TotalPages : items.Count < perPage) yield break;
         }

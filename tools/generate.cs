@@ -3,7 +3,8 @@
 //   dotnet run tools/generate.cs              generate from the commit pinned in openapi/cloudflare-openapi.lock.json
 //   dotnet run tools/generate.cs -- --update  pin the latest commit of cloudflare/api-schemas first, then generate
 //
-// Steps: download (cached, SHA-256 verified) -> normalize (openapi/normalization.md) -> Kiota -> openapi/COVERAGE.md
+// Steps: download (cached, SHA-256 verified) -> normalize (openapi/normalization.md) -> Kiota -> openapi/GENERATION.md
+//        -> openapi/operations.tsv (tools/coverage.cs --index). Afterwards: dotnet run tools/coverage.cs (writes openapi/COVERAGE.md, 0.9.0).
 
 using System.Diagnostics;
 using System.Globalization;
@@ -86,14 +87,14 @@ foreach (var path in Directory.EnumerateFiles(output, "*RequestBuilder.cs", Sear
 }
 if (indexerFixes > 0) normalizer.Stats["P1 indexer-renamed"] = indexerFixes;
 
-// ---- Coverage report ----
+// ---- Generation report (schema counts, normalization; the coverage matrix is written by tools/coverage.cs since 0.9.0) ----
 var paths = doc["paths"]!.AsObject();
 string[] methods = ["get", "post", "put", "patch", "delete"];
 var ops = paths.SelectMany(p => p.Value!.AsObject().Where(m => methods.Contains(m.Key)).Select(m => (Path: p.Key, Method: m.Key, Op: m.Value!.AsObject()))).ToList();
 var byArea = ops.GroupBy(o => Area(o.Path)).OrderByDescending(g => g.Count()).ToList();
 var files = Directory.GetFiles(output, "*.cs", SearchOption.AllDirectories);
 var sb = new StringBuilder();
-sb.AppendLine("# Cloudflare API coverage").AppendLine();
+sb.AppendLine("# Generated OpenAPI client").AppendLine();
 sb.AppendLine($"Generated from `{repository}@{sha}` ({lockDoc["committedAt"]}), file `{file}`, SHA-256 `{hash}`.").AppendLine();
 sb.AppendLine("| | Count |").AppendLine("|---|---|");
 sb.AppendLine($"| Paths | {paths.Count} |");
@@ -101,7 +102,7 @@ sb.AppendLine($"| Operations | {ops.Count} |");
 foreach (var m in methods) sb.AppendLine($"| {m.ToUpperInvariant()} | {ops.Count(o => o.Method == m)} |");
 sb.AppendLine($"| Schemas | {doc["components"]!["schemas"]!.AsObject().Count} |");
 sb.AppendLine($"| Generated C# files | {files.Length} |").AppendLine();
-sb.AppendLine("Every operation listed in the schema is reachable through `ICloudflareClient.OpenApi`.").AppendLine();
+sb.AppendLine("Every operation listed in the schema is reachable through `ICloudflareClient.OpenApi`. Coverage by the curated clients: [COVERAGE.md](COVERAGE.md).").AppendLine();
 sb.AppendLine("## Normalization").AppendLine();
 sb.AppendLine("Rules are described in [normalization.md](normalization.md).").AppendLine();
 sb.AppendLine("| Rule | Applied |").AppendLine("|---|---|");
@@ -109,8 +110,10 @@ foreach (var s in normalizer.Stats.OrderBy(k => k.Key)) sb.AppendLine($"| {s.Key
 sb.AppendLine().AppendLine("## Operations per area").AppendLine();
 sb.AppendLine("| Area | Operations |").AppendLine("|---|---|");
 foreach (var g in byArea) sb.AppendLine($"| `{g.Key}` | {g.Count()} |");
-await File.WriteAllTextAsync(Path.Combine(root, "openapi", "COVERAGE.md"), sb.ToString());
-Console.WriteLine($"Done: {ops.Count} operations, {files.Length} files.");
+await File.WriteAllTextAsync(Path.Combine(root, "openapi", "GENERATION.md"), sb.ToString());
+if (Run("dotnet", ["run", Path.Combine(root, "tools", "coverage.cs"), "--", "--index"], root) != 0)
+    throw new InvalidOperationException("tools/coverage.cs --index failed.");
+Console.WriteLine($"Done: {ops.Count} operations, {files.Length} files. Next: dotnet run tools/coverage.cs (openapi/COVERAGE.md).");
 return 0;
 
 static string Area(string path)

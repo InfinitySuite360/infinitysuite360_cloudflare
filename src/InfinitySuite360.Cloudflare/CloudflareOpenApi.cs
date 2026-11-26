@@ -20,6 +20,7 @@ public static class CloudflareOpenApi
     public static CloudflareApiClient CreateClient(CloudflareOptions options, HttpClient? httpClient = null)
     {
         ArgumentNullException.ThrowIfNull(options);
+        options.Validate();
         var http = httpClient ?? new HttpClient(CreateHandler(options)) { Timeout = options.Timeout };
         var auth = new BaseBearerTokenAuthenticationProvider(new OptionsTokenProvider(options));
         var adapter = new DefaultRequestAdapter(auth, httpClient: http) { BaseUrl = options.BaseAddress.TrimEnd('/') };
@@ -30,17 +31,24 @@ public static class CloudflareOpenApi
     /// Handler chain for the generated client: write guard first, then Kiota's default handlers (retry, redirect, …).
     /// Retries only happen for HTTP 429 or idempotent methods.
     /// </summary>
-    public static HttpMessageHandler CreateHandler(CloudflareOptions options, HttpMessageHandler? innerHandler = null)
+    public static HttpMessageHandler CreateHandler(CloudflareOptions options, HttpMessageHandler? innerHandler = null) => CreateHandler(options, innerHandler, null);
+
+    /// <summary>
+    /// Handler chain with the shared request budget of the token (0.9.0): write guard, Kiota's handlers, then <see cref="CloudflareRateBudgetHandler"/>
+    /// right before the network, so every attempt (also a retry) takes a slot.
+    /// </summary>
+    public static HttpMessageHandler CreateHandler(CloudflareOptions options, HttpMessageHandler? innerHandler, CloudflareRateBudget? budget)
     {
         var retry = new RetryHandlerOption
         {
-            MaxRetry = Math.Clamp(options.MaxRetries, 0, 10),
+            MaxRetry = Math.Clamp(options.MaxRetries, 0, CloudflareOptions.MaxRetriesLimit),
             ShouldRetry = (_, _, response) =>
                 response.StatusCode == HttpStatusCode.TooManyRequests
-                || (response.RequestMessage is { } request && CloudflareWritePolicy.IsIdempotent(request.Method)),
+                || (response.RequestMessage is { RequestUri: { } uri } request && CloudflareWritePolicy.IsIdempotent(request.Method, CloudflareWritePolicy.RelativePath(uri, options))),
         };
         var handlers = KiotaClientFactory.CreateDefaultHandlers([retry]);
         handlers.Insert(0, new CloudflareWriteGuardHandler(options));
+        if (budget is not null) handlers.Add(new CloudflareRateBudgetHandler(budget));
         return KiotaClientFactory.ChainHandlersCollectionAndGetFirstLink(innerHandler ?? KiotaClientFactory.GetDefaultHttpMessageHandler(), [.. handlers])
             ?? throw new InvalidOperationException("Could not build the handler chain.");
     }
